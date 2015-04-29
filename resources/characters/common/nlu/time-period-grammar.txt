@@ -1,0 +1,85 @@
+1	<FP>	<NUM>	<IN>	<TP>	{div(1,3)}
+1	<FP>	<NUM>	<COUNT>	<IN>	<TP>	{div(1,4)}
+1	<FP>	<NUM>	<COUNT>	<INC>	<IN>	<TP>	{div(1,4)}
+1	<FP>	<NUM>	<OF>	<COUNT>	<IN>	<TP>	{div(1,5)}
+1	<FP>	<NUM>	<OF>	<COUNT>	<INC>	<IN>	<TP>	{div(1,5)}
+1	<FP>	<H> <IN>	<COUNT>	{div(toDouble("1"),1)}
+1	<FP>	<H> <IN>	<COUNT>	<INC>	{div(toDouble("1"),1)}
+1	<FP>	<INQ>	<TP>		{div(toDouble("1"),2)}
+1	<FP>	daily	{div(toDouble("1"),secondsInDay)}
+1	<FP>	everyday	{div(toDouble("1"),secondsInDay)}
+1	<FP>	weekly	{div(toDouble("1"),secondsInWeek)}
+1	<FP>	monthly	{div(toDouble("1"),secondsInMonth)}
+1	<FP>	yearly	{div(toDouble("1"),secondsInYear)}
+1	<FP>	<NUM>	<FP>	{mul(1,2)}
+1	<FP>	<NUM>	<COUNT>	<FP>	{mul(1,2)}
+1	<NUM>	<NUM>	<INC>	{nothing(1)}
+1	<INC>	<OR>	more	{nothing(1)}
+1	<NUM>	<C>	{nothing(1)}
+1	<NUM>	<F>	{nothing(1)}
+1	<NUM>	<S>	{nothing(1)}
+1	<NUM>	|NUM|	{nothing(1)}
+1	<INP>	in	{nothing(1)}
+1	<INP>	the	{nothing(1)}
+1	<INP>	this	{nothing(1)}
+1	<INP>	<A>	{nothing(1)}
+1	<INP>	<OF>	{nothing(1)}
+1	<INP>	per	{nothing(1)}
+1	<INP>	for	{nothing(1)}
+1	<INQ>	each	{nothing(1)}
+1	<INQ>	every	{nothing(1)}
+1	<IN>	<MOD> <IN>	{nothing(1)}
+1	<IN>	<INP>	{nothing(1)}
+1	<IN>	<INQ>	{nothing(1)}
+1	<MOD>	<INP>	{nothing(1)}
+1	<MOD>	almost	{nothing(1)}
+1	<MOD>	nearly	{nothing(1)}
+
+1	<COUNT>	time	{nothing(1)}
+1	<COUNT>	times	{nothing(1)}
+1	<COUNT>	day	{nothing(1)}
+1	<COUNT>	days	{nothing(1)}
+
+1	<TP>	<TP>	<TP>	{sum(1,2)}
+1	<TP>	<TP>	<AND>	<TP>	{sum(1,3)}
+1	<TP>	<TP>	<AND>	<A>	<TP>	{sum(1,4)}
+1	<TP>	<TU>	<AND>	<H>	{sum(1,mul(3,1))}
+1	<TP>	<TU>	<AND>	<A>	<H>	{sum(1,mul(4,1))}
+1	<TP>	|NUM|	<TU>	<AND>	<H>	{sum(mul(1,2),mul(4,2))}
+1	<TP>	|NUM|	<TU>	<AND>	<A>	<H>	{sum(mul(1,2),mul(5,2))}
+1	<TP>	|NUM|	<AND>	<A>	<H>	<TU>	{mul(5,sum(4,1))}
+1	<TP>	<TU>	{1}
+1	<TP>	|NUM|	<TU>	{mul(1,2)}
+1	<TP>	<C>	<OF>	<TP>	{mul(1,3)}
+1	<TP>	<C>	<TP>	{mul(1,2)}
+1	<TU>	<H>	<TU>	{mul(1,2)}
+1	<TU>	<H>	<A>	<TU>	{mul(1,3)}
+1	<TP>	<F>	<TP>	{mul(1,2)}
+1	<TP>	<S>	<TP>	{mul(1,2)}
+
+1	<TU>	year	{secondsInYear}
+1	<TU>	years	{secondsInYear}
+1	<TU>	yrs	{secondsInYear}
+1	<TU>	months	{secondsInMonth}
+1	<TU>	month	{secondsInMonth}
+1	<TU>	weekend	{whileParsing("<TP>",mul(toDouble("2"),secondsInDay),whileParsing("<FP>",secondsInWeek))}
+1	<TU>	weekends	{whileParsing("<TP>",mul(toDouble("2"),secondsInDay),whileParsing("<FP>",secondsInWeek))}
+1	<TU>	day	{secondsInDay}
+1	<TU>	night	{secondsInDay}
+1	<TU>	nights	{secondsInDay}
+1	<TU>	days	{secondsInDay}
+1	<TU>	week	{secondsInWeek}
+1	<TU>	weeks	{secondsInWeek}
+1	<TU>	decade	{secondsInDecade}
+1	<TU>	decades	{secondsInDecade}
+1	|NUM|	([0-9]*\.[\d]+)|([\d]+)	{toDouble(1)}
+
+1	<H>	half	{toDouble("0.5")}
+1	<C>	couple	{toDouble("2")}
+1	<S>	several	{toDouble("5")}
+1	<F>	few	{toDouble("2")}
+1	<F>	<A>	few	{toDouble("3")}
+1	<A>	a	{nothing(1)}
+1	<AND>	and	{nothing(1)}
+1	<OR>	or	{nothing(1)}
+1	<OF>	of	{nothing(1)}

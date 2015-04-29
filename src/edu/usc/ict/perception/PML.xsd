@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CHANGE LOG: changed layer1/2 entries type from choice to sequence scherer 02/21
+				 added cogito speech features to layer2 scherer 02/22 
+				 updated face gestures and audio features 03/20
+				 added attributes gender and age to body 03/20 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="pml">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="head"/>
+        <xs:element ref="body" minOccurs="0" maxOccurs="10"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="head">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="timeStamp"/>
+        <xs:element ref="source"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="timeStamp">
+    <xs:complexType>
+      <xs:attribute name="value" type="xs:dateTime" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="source">
+    <xs:complexType>
+      <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="body">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="layer1" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="layer2" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required" />
+	  <xs:attribute name="gender" type="xs:double" use="required" /> <!-- 0 = none, 1 = male, 2 = female -->
+	  <xs:attribute name="age" type="xs:double" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="layer1">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="presence" minOccurs="0" maxOccurs="1"/>
+		<xs:element ref="smileFrequency" minOccurs="0" maxOccurs="1"/>
+		<xs:element ref="activity" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="attention" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="agreement" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="engagement" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="anxiety" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="presence">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="presenceType"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="presenceType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="present"/>
+        <xs:enumeration value="not_present"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="activity">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="behaviorType"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="smileFrequency">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="behaviorType"/>
+		<xs:element name="smiles" type="xs:double" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="behaviorType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="high"/>
+        <xs:enumeration value="mid"/>
+        <xs:enumeration value="low"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="confidence">
+    <xs:simpleType>
+      <xs:restriction base="xs:double">
+        <xs:minInclusive value="0.0"/>
+        <xs:maxInclusive value="1.0"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="conf_str">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="confident"/>
+        <xs:enumeration value="not_confident"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="behaviorValue">
+    <xs:simpleType>
+      <xs:restriction base="xs:double">
+        <xs:minInclusive value="0.0"/>
+        <xs:maxInclusive value="1.0"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="engagement">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="behaviorType"/>
+        <xs:element ref="behaviorValue" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="agreement">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="behaviorType"/>
+        <xs:element ref="behaviorValue" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="anxiety">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="behaviorType"/>
+        <xs:element ref="behaviorValue" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="attention">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="behaviorType"/>
+        <xs:element ref="behaviorValue" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="layer2">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="posture" minOccurs="0" maxOccurs="10"/>
+        <xs:element ref="faceGesture" minOccurs="0" maxOccurs="10"/>
+        <xs:element ref="headPose" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="handPoseLeft" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="handPoseRight" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="faceGaze" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="eyeGaze" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="headGesture" minOccurs="0" maxOccurs="10"/>
+        <xs:element ref="handGesture" minOccurs="0" maxOccurs="10"/>
+        <xs:element ref="armLeft" minOccurs="0" maxOccurs="10"/>
+        <xs:element ref="armRight" minOccurs="0" maxOccurs="10"/>
+		<xs:element ref="speechFraction" minOccurs="0" maxOccurs="10"/>
+		<xs:element ref="speechVariation" minOccurs="0" maxOccurs="10"/>
+		<xs:element ref="speechRate" minOccurs="0" maxOccurs="10"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
+
+  <xs:element name="posture">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="postureType" />
+        <xs:element ref="postureStatus" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="postureDegree" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="postureType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="leaning_forward"/>
+        <xs:enumeration value="leaning_backward"/>
+        <xs:enumeration value="upright"/>
+        <xs:enumeration value="tilted"/>
+        <xs:enumeration value="rocking"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="postureStatus">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="sitting"/>
+        <xs:enumeration value="standing"/>
+        <xs:enumeration value="walking"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="postureDegree">
+    <xs:simpleType>
+      <xs:restriction base="xs:double">
+        <xs:minInclusive value="-90"/>
+        <xs:maxInclusive value="90"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="faceGesture">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="faceGestureType" />
+		<xs:element name="gestureBool" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="gestureValue" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="faceGestureType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="smile"/>
+		<xs:enumeration value="leftEyeClosed"/>
+		<xs:enumeration value="rightEyeClosed"/>
+		<xs:enumeration value="mouthOpen"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="gestureValue">
+    <xs:simpleType>
+      <xs:restriction base="xs:double">
+        <xs:minInclusive value="0.0"/>
+        <xs:maxInclusive value="1.0"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+
+  <xs:element name="headPose">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="position"/>
+        <xs:element ref="poseType" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="rotation"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="handPoseLeft">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="position"/>
+        <xs:element ref="poseType" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="rotation"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="handPoseRight">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="position"/>
+        <xs:element ref="poseType" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="rotation"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="position">
+    <xs:complexType>
+      <xs:attribute name="x" type="xs:double" use="required" />
+      <xs:attribute name="y" type="xs:double" use="required" />
+      <xs:attribute name="z" type="xs:double" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="rotation">
+    <xs:complexType>
+      <xs:attribute name="rotX" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:double">
+            <xs:minInclusive value="-180"/>
+            <xs:maxInclusive value="180"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="rotY" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:double">
+            <xs:minInclusive value="-180"/>
+            <xs:maxInclusive value="180"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="rotZ" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:double">
+            <xs:minInclusive value="-180"/>
+            <xs:maxInclusive value="180"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="poseType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="moving"/>
+        <xs:enumeration value="not_moving"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+
+  <xs:element name="gazeCategoryHorizontal">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="left"/>
+        <xs:enumeration value="right"/>
+        <xs:enumeration value="central"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="gazeCategoryVertical">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="up"/>
+        <xs:enumeration value="down"/>
+        <xs:enumeration value="central"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="gazeCategoryDirection">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="towards"/>
+        <xs:enumeration value="away"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+
+  <xs:element name="faceGaze">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="gazeCategoryHorizontal"/>
+        <xs:element ref="gazeCategoryVertical"/>
+        <xs:element ref="gazeCategoryDirection"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="eyeGaze">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="gazeCategoryHorizontal"/>
+        <xs:element ref="gazeCategoryVertical"/>
+        <xs:element ref="gazeCategoryDirection"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="headGesture">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="headGestureType"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="headGestureType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="nod"/>
+        <xs:enumeration value="shake"/>
+        <xs:enumeration value="glanceLeft"/>
+        <xs:enumeration value="glanceRight"/>
+        <xs:enumeration value="glanceUp"/>
+        <xs:enumeration value="glanceDown"/>
+        <xs:enumeration value="static"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="handGesture">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="handGestureType"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="handGestureType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="fidgeting"/>
+        <xs:enumeration value="notFidgeting"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="armLeft">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="armType"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="armRight">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="armType"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="armType">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="hand_on_lap"/>
+        <xs:enumeration value="hand_on_face"/>
+        <xs:enumeration value="hand_on_side"/>
+        <xs:enumeration value="closed_arms"/>
+        <xs:enumeration value="moving"/>
+        <xs:enumeration value="static"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="speechFraction">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="speechFractionValue" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="speechInterval" type="xs:double" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="startTime" type="xs:double" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="endTime" type="xs:double" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="speechFractionValue">
+    <xs:simpleType>
+      <xs:restriction base="xs:double">
+        <xs:minInclusive value="0.0"/>
+        <xs:maxInclusive value="1.0"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="speechVariation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="speechVariationValue" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="speechInterval" type="xs:double" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="startTime" type="xs:double" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="endTime" type="xs:double" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="speechVariationValue">
+    <xs:simpleType>
+      <xs:restriction base="xs:double">
+        <xs:minInclusive value="0.0"/>
+        <xs:maxInclusive value="1.0"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  
+  
+  <xs:element name="speechRate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="speechRateValue" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="speechInterval" type="xs:double" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="startTime" type="xs:double" minOccurs="1" maxOccurs="1"/>
+		<xs:element name="endTime" type="xs:double" minOccurs="1" maxOccurs="1"/>
+		<xs:element ref="confidence" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="conf_str" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="speechRateValue">
+    <xs:simpleType>
+      <xs:restriction base="xs:double">
+        <xs:minInclusive value="0.0"/>
+        <xs:maxInclusive value="10.0"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  
+</xs:schema>

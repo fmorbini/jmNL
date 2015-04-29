@@ -1,0 +1,23 @@
+<informationState>
+	<!-- variable automatically set by the DM -->
+	<initialize expr="assign(lastNonNullSubdialog,null)"/>
+	<initialize expr="assign(timeSinceLastAction,0)"/>
+	<initialize expr="assign(timeSinceLastUserAction,0)"/>
+	<initialize expr="assign(timeSinceLastSystemAction,0)"/>
+	<initialize expr="assign(event,null)"/>	
+	<initialize expr="assign(systemEvent,null)"/>	
+	<initialize expr="assign(consecutiveUnhandledUserActions,0)"/>
+	<initialize expr="assign(timerInterval,0)"/>
+	<initialize expr="assign(preferForms,null)"/>
+	<initialize expr="assign(timeSinceLastResource,null)"/>
+
+	<initialize expr="assign(state,null)"/>
+	<initialize expr="assign(type,null)"/>
+	<initialize expr="assign(flavor,null)"/>
+	<initialize expr="assign(sugar,null)"/>
+	<initialize expr="assign(confirmX,null)"/>
+	<initialize expr="assign(clarifyFlavors,null)"/>
+	<initialize expr="assign(alreadyAsked,false)"/>
+	
+	
+	</informationState>

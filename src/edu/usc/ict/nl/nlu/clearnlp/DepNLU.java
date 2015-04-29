@@ -1,0 +1,112 @@
+package edu.usc.ict.nl.nlu.clearnlp;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import com.clearnlp.component.AbstractComponent;
+import com.clearnlp.dependency.DEPNode;
+import com.clearnlp.dependency.DEPTree;
+import com.clearnlp.nlp.NLPGetter;
+import com.clearnlp.nlp.NLPMode;
+import com.clearnlp.reader.AbstractReader;
+import com.clearnlp.segmentation.AbstractSegmenter;
+import com.clearnlp.tokenization.AbstractTokenizer;
+import com.clearnlp.util.UTInput;
+import com.clearnlp.util.UTOutput;
+
+import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.fst.sps.test.NLUTest;
+import edu.usc.ict.nl.nlu.fst.train.Aligner;
+import edu.usc.ict.nl.util.StringUtils;
+
+public class DepNLU
+{
+	final String language = AbstractReader.LANG_EN;
+	private AbstractComponent[] components;
+	private AbstractTokenizer tokenizer;
+	
+	public DepNLU() throws Exception {
+		this("general-en");
+	}
+	
+	public DepNLU(String modelType) throws Exception {
+		tokenizer  = NLPGetter.getTokenizer(language);
+		AbstractComponent tagger     = NLPGetter.getComponent(modelType, language, NLPMode.MODE_POS);
+		AbstractComponent parser     = NLPGetter.getComponent(modelType, language, NLPMode.MODE_DEP);
+		components = new AbstractComponent[]{tagger, parser};
+	}
+	public List<DEPTree> parse(String text, PrintStream output) throws Exception {
+		BufferedReader input=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(text.getBytes()),"UTF-8"));
+		List<DEPTree> result=parse(tokenizer, components, input, output);
+		return result;
+	}
+	
+	public List<DEPTree> parse(AbstractTokenizer tokenizer, AbstractComponent[] components, BufferedReader input,PrintStream output) throws Exception {
+		List<DEPTree> ret=null;
+		String line;
+		while((line=input.readLine())!=null) {
+			DEPTree tree = NLPGetter.toDEPTree(tokenizer.getTokens(line));
+			for (AbstractComponent component : components) {
+				component.process(tree);
+			}
+			if (ret==null) ret=new ArrayList<DEPTree>();
+			ret.add(tree);
+		}
+		return ret;
+	}
+	
+	public String enrichedInputString(List<DEPTree> result,String separator) {
+		StringBuffer ret=null;
+		if (result!=null) {
+			for(DEPTree r:result) {
+				int s=r.size();
+				for(int i=1;i<s;i++) {
+					DEPNode n = r.get(i);
+					DEPNode head=n.getHead();
+					String nPos=n.pos,hPos=(head!=null)?head.pos:null;
+					if (ret==null) ret=new StringBuffer();
+					if (ret.length()>0) ret.append(" ");
+					ret.append(n.form+separator+i+separator+n.pos);
+					if (head!=null) ret.append(separator+head.form+separator+hPos);
+				}
+			}
+		}
+		return (ret!=null)?ret.toString():null;
+	}
+
+	public static void main(String[] args) throws Exception
+	{
+		DepNLU parser=new DepNLU();
+		List<DEPTree> result = parser.parse("A small triangle and a big triangle argue inside the room.", System.out);
+		System.out.println(parser.enrichedInputString(result,"_"));
+		int id=1;
+		if (result!=null) {
+			for(DEPTree r:result) {
+				new CONLL(r).toGDLGraph("sentence-"+id+".gdl");
+				id++;
+			}
+		}
+		/*
+		List<TrainingDataFormat> test = Aligner.extractTrainingDataFromSingleStep1and3GoogleXLSXForSPS(NLUTest.ros9);
+		
+		DepNLU parser=new DepNLU();
+		int id=1;
+		for(TrainingDataFormat td:test) {
+			List<CONLL> result = parser.parse(td.getUtterance(), System.out);
+			if (result!=null) {
+				for(CONLL r:result) {
+					r.toGDLGraph("sentence-"+id+".gdl");
+					id++;
+				}
+			}
+		}
+*/
+	}
+
+}

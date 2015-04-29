@@ -1,0 +1,220 @@
+
+<project name="NLModule" default="build">
+    <!-- paths -->
+	<dirname property="NLModule" file="${ant.file.NLModule}"/>
+
+	<!-- directories -->
+	<property name="NLModule.sources"   location="${NLModule}/src"/>
+	<property name="NLModule.resources" location="${NLModule}/resources"/>
+	<property name="NLModule.libraries" location="${NLModule}/lib"/>
+	<property name="NLModule.mxnluEXE" location="${NLModule}/mxnlu"/>
+	<property name="NLModule.binaries"  location="${NLModule}/bin"/>
+	<property name="Binaries.nlmodule"  location="${NLModule}/deployed"/>
+	<property name="Binaries.nlmodule.bin"  location="${Binaries.nlmodule}/bin"/>
+	<property name="Binaries.nlmodule-lib"  location="${Binaries.nlmodule}/lib"/>
+	<property name="Binaries.nlmodule-logs"  location="${Binaries.nlmodule}/logs"/>
+	<property name="Binaries.nlmodule-src"  location="${Binaries.nlmodule}/src"/>
+	<property name="Binaries.nlmodule-res"  location="${Binaries.nlmodule}/resources"/>
+	<property name="Binaries.nlmodule-mxnluEXE"  location="${Binaries.nlmodule}/mxnlu"/>
+
+	<!-- files -->
+	<property name="NLModule.file.classpath" location="${NLModule}/.classpath"/>
+	<property name="NLModule.file.project"   location="${NLModule}/.project"/>
+	<property name="Binaries.nlmodule-jar"   location="${Binaries.nlmodule}/nlModule.jar"/>
+	<property name="Binaries.nlmodule-noclasspath-jar"   location="${Binaries.nlmodule}/nlModule-noclasspath.jar"/>
+	<property name="nlmodule-ui-jarname"   value="nlModule-ui.jar"/>
+	<property name="Binaries.nlmodule-ui-jar"   location="${Binaries.nlmodule}/${nlmodule-ui-jarname}"/>
+	<property name="Binaries.nlmodule-ui-jar.bat"   location="${Binaries.nlmodule}/nlModule-ui.bat"/>
+	<property name="Binaries.nlmodule-nluexe-jar"   location="${Binaries.nlmodule}/nlModule-nluexe.jar"/>
+
+    <!-- classpaths -->
+    <path id="NLModule.classpath.build">
+        <fileset dir="${NLModule.libraries}" includes="**/*.jar, **/*.zip" excludes="**/datanucleus**"/>
+        <pathelement path="${NLModule.resources}"/>
+        <pathelement path="${NLModule.binaries}"/>
+    </path>
+	<path id="NLModule.classpath.deploy">
+        <fileset dir="${Binaries.nlmodule-lib}" includes="**/*.jar, **/*.zip"/>
+    </path>
+    <path id="NLModule.classpath.scripts">
+        <pathelement path="${Binaries.nlmodule-jar}"/>
+    </path>
+    <path id="chat.classpath.scripts">
+        <pathelement path="${Binaries.chat-jar}"/>
+    </path>
+    <propertyset id="NLModule.sourcepath.eclipse">
+        <propertyref name="SCXML.name"/>
+	</propertyset>
+
+    <!-- properties -->
+	<!-- arguments -->
+	<property name="NLModule.name"  value="NLModule"/>
+	<property name="NLModule.title" value="edu.usc.ict.nl"/>
+	<property name="NLModule.class" value="edu.usc.ict.nl.bus.NLBus"/>
+    <!-- targets -->
+
+	<target name="clean">
+		<delete dir="${NLModule.binaries}" includeemptydirs="true" failonerror="false"/>
+        <mkdir dir="${NLModule.binaries}"/>
+        <mkdir dir="${Binaries.nlmodule-lib}"/>
+	</target>
+
+	<target name="build" depends="clean">
+		<!-- 	uncomment the following 2 lines to print the classpath -->
+		<!-- 	<property name="myclasspath" refid="DMS.archives"/> -->
+		<!-- 	<echo message="Classpath = ${myclasspath}"/> -->
+		<javac srcdir="${NLModule.sources}" destdir="${NLModule.binaries}" debug="true" includeantruntime="false">
+			<classpath>
+				<path refid="NLModule.classpath.build"/>
+			</classpath>
+		</javac>
+	</target>
+	<target name="classpath">
+		<echo message="Started writing the NLModule classpath"/>
+		<pathconvert property="archives" refid="NLModule.classpath.build" dirsep="/" pathsep="&quot;/&gt;&#10;&#09;&lt;classpathentry kind=&quot;lib&quot; path=&quot;"/>  
+		<basename property="sources" file="${NLModule.sources}"/>
+		<basename property="binaries" file="${NLModule.binaries}"/>
+		<echo file=".classpath">
+
+<![CDATA[
+
+<!-- This file was generated for Eclipse by Ant.	-->
+<!-- Any changes to this file will be overwritten.	-->
+<!-- Edit build.xml to make your changes permanent.	-->
+
+<classpath>
+
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="${archives}"/>
+	<classpathentry kind="output" path="${binaries}"/>
+	<classpathentry kind="src" path="${sources}"/>
+
+</classpath>
+
+]]>
+
+		</echo>
+		<echo message="Completed writing the NLModule classpath"/>
+
+	</target>
+
+    <target name="deploy" depends="build">
+
+		<echo message="Started deploying the NLModule java archives"/>
+
+		<delete file="${Binaries.nlmodule-jar}" failonerror="false"/>
+		<delete file="${Binaries.nlmodule-ui-jar}" failonerror="false"/>
+		<delete dir="${Binaries.nlmodule-lib}"    includeemptydirs="true"    failonerror="false"/>
+		<delete dir="${Binaries.nlmodule-src}"    includeemptydirs="true"    failonerror="false"/>
+		<delete dir="${Binaries.nlmodule-res}"    includeemptydirs="true"    failonerror="false"/>
+		<delete dir="${Binaries.nlmodule-mxnluEXE}"    includeemptydirs="true"    failonerror="false"/>
+		<delete dir="${Binaries.nlmodule.bin}"    includeemptydirs="true"    failonerror="false"/>
+		<delete dir="${Binaries.nlmodule}"        includeemptydirs="true"    failonerror="false"/>
+        <mkdir dir="${Binaries.nlmodule-logs}"/>
+		<copy file="${NLModule}/style.xsl" todir="${Binaries.nlmodule-logs}"/>
+                <copy todir="${Binaries.nlmodule-src}" overwrite="true" includeEmptyDirs="false">
+                    <fileset dir="${NLModule.sources}">
+                        <exclude name="**/*.java"/>
+                        <exclude name="**/*.jj"/>
+                    </fileset>
+                </copy>
+                <copy todir="${Binaries.nlmodule-res}" overwrite="true" includeEmptyDirs="false">
+                    <fileset dir="${NLModule.resources}"/>
+                </copy>
+                <copy todir="${Binaries.nlmodule-mxnluEXE}" overwrite="true" includeEmptyDirs="false">
+                    <fileset dir="${NLModule.mxnluEXE}"/>
+                </copy>
+                <copy todir="${Binaries.nlmodule-lib}" overwrite="true" enablemultiplemappings="false" includeEmptyDirs="false" flatten="true">
+                    <fileset dir="${NLModule.libraries}"/>
+                </copy>
+
+                <pathconvert property="NLModule-manifest-classpath" refid="NLModule.classpath.deploy" dirsep="/" pathsep=" ">
+                    <map from="${Binaries.nlmodule}/" to=""/>
+                </pathconvert>
+                <jar jarfile="${Binaries.nlmodule-jar}" basedir="${NLModule.binaries}" includes="**/*.class" manifestencoding="utf-8">
+                    <manifest>
+                        <attribute name="Class-Path"                value="src/ ${NLModule-manifest-classpath} resources/"/>
+                        <attribute name="Main-Class"                value="edu.usc.ict.nl.bus.NLBus"/>
+                        <attribute name="Implementation-Title"         value="NLModule"/>
+                        <attribute name="Implementation-Version"     value="${SimCoach.revision}"/>
+                        <attribute name="Implementation-Vendor"     value="${ICT.name}"/>
+                    </manifest>
+                </jar>
+                <jar jarfile="${Binaries.nlmodule-noclasspath-jar}" basedir="${NLModule.binaries}" includes="**/*.class" manifestencoding="utf-8">
+                    <manifest>
+                        <attribute name="Class-Path"                value="src/ resources/"/>
+                        <attribute name="Main-Class"                value="edu.usc.ict.nl.bus.NLBus"/>
+                        <attribute name="Implementation-Title"         value="NLModule"/>
+                        <attribute name="Implementation-Version"     value="${SimCoach.revision}"/>
+                        <attribute name="Implementation-Vendor"     value="${ICT.name}"/>
+                    </manifest>
+                </jar>                
+                <jar jarfile="${Binaries.nlmodule-nluexe-jar}" basedir="${NLModule.binaries}" includes="**/*.class" manifestencoding="utf-8">
+                    <manifest>
+                        <attribute name="Class-Path"                value="src/ ${NLModule-manifest-classpath} resources/"/>
+                        <attribute name="Main-Class"                value="edu.usc.ict.nl.nlu.NLUExe"/>
+                        <attribute name="Implementation-Title"         value="NLModule"/>
+                        <attribute name="Implementation-Version"     value="${SimCoach.revision}"/>
+                        <attribute name="Implementation-Vendor"     value="${ICT.name}"/>
+                    </manifest>
+                </jar>
+                <jar jarfile="${Binaries.nlmodule-ui-jar}" basedir="${NLModule.binaries}" includes="**/*.class" manifestencoding="utf-8">
+                    <manifest>
+                        <attribute name="Class-Path"                value="src/ ${NLModule-manifest-classpath} resources/"/>
+                        <attribute name="Main-Class"                value="edu.usc.ict.nl.ui.chat.ChatInterface"/>
+                        <attribute name="Implementation-Title"         value="NLModule chat"/>
+                        <attribute name="Implementation-Version"     value="${SimCoach.revision}"/>
+                        <attribute name="Implementation-Vendor"     value="${ICT.name}"/>
+                    </manifest>
+                </jar>
+
+                <chmod file="${Binaries.nlmodule-jar}" perm="+x"/>
+                <chmod file="${Binaries.nlmodule-ui-jar}" perm="+x"/>
+                		<echo file="${Binaries.nlmodule-ui-jar.bat}">
+
+                    <![CDATA[
+
+                        @echo off
+
+                        REM This file was generated for Windows (Command Shell) by Ant.
+                        REM Any changes to this file will be overwritten.
+                        REM Edit build.xml to make your changes permanent.
+
+                        pushd "%~dp0"
+                        java -jar "${nlmodule-ui-jarname}" %*
+                        popd
+
+                    ]]>
+
+                </echo>
+
+                <echo message="Completed deploying the NLModule java archives"/>
+
+            </target>
+			
+<!--
+	<target name="nlu" depends="deploy">
+		<delete dir="${Binaries.nlmodule.bin}"        includeemptydirs="true"    failonerror="false"/>
+ 		<mkdir dir="${Binaries.nlmodule.bin}" />
+		<unzip dest="${Binaries.nlmodule.bin}">
+			<fileset id="NLModule.libs" dir="${Binaries.nlmodule-lib}">
+				<include name="*.jar" />
+			</fileset>
+		</unzip>
+        <copy todir="${Binaries.nlmodule.bin}" overwrite="true" includeEmptyDirs="false">
+            <fileset dir="${NLModule.binaries}"/>
+        </copy>
+
+        <jar destfile="${Binaries.nlmodule-nluexe-jar}" basedir="${Binaries.nlmodule.bin}" includes="**/*.class" filesetmanifest="mergewithoutmain">
+			<fileset dir="${NLModule.libraries}" includes="**/*.jar"/>
+                    <manifest>
+                        <attribute name="Class-Path"                value="src/ ${NLModule-manifest-classpath}"/>
+                        <attribute name="Main-Class"                value="edu.usc.ict.nl.nlu.NLUExe"/>
+                        <attribute name="Implementation-Title"         value="NLUExe"/>
+                        <attribute name="Implementation-Version"     value="${SimCoach.revision}"/>
+                        <attribute name="Implementation-Vendor"     value="${ICT.name}"/>
+                    </manifest>
+		</jar>
+    </target>
+-->
+</project>

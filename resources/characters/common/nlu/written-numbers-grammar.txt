@@ -1,0 +1,73 @@
+1	<N>	<N>	<OR>	<N>	{avg(1,3)}
+1	<N>	<N>	<COUNT>	{nothing(1)}
+1	<N>	|NUM|	{nothing(1)}
+1	|NUM|	([0-9]*\.[\d]+)|([\d]+)	{toDouble(1)}
+
+1	<N>	<zero>	{round(1)}
+1	<N>	<N99>	{round(1)}
+1	<N>	<N999>	{round(1)}
+1	<N>	<N999999>	{round(1)}
+
+1	<N99>	<singleD>	{1}
+1	<N99>	<below20>	{1}
+1	<N99>	<decade>	{1}
+1	<N99>	<decade> <singleD>	{sum(1,2)}
+
+1	<N999>	<HU>	{1}
+1	<N999>	<HU> <N99>	{sum(1,2)}
+1	<N999>	<HU> <AND> <N99>	{sum(1,3)}
+1	<N999>	<N99> <HU>	{mul(1,2)}
+1	<N999>	<singleD> <HU> <N99>	{sum(mul(1,2),3)}
+1	<N999>	<singleD> <HU> <AND> <N99>	{sum(mul(1,2),4)}
+
+1	<N999999>	<TH>	{1}
+1	<N999999>	<TH> <N999>	{sum(1,2)}
+1	<N999999>	<TH> <AND> <N999>	{sum(1,3)}
+1	<N999999>	<N999> <TH>	{mul(1,2)}
+1	<N999999>	<N999> <TH> <N999>	{sum(mul(1,2),3)}
+1	<N999999>	<N999> <TH> <AND> <N999>	{sum(mul(1,2),4)}
+
+1	<zero>	zero	{toDouble("0")}
+1	<singleD>	one	{toDouble("1")}
+1	<singleD>	two	{toDouble("2")}
+1	<singleD>	three	{toDouble("3")}
+1	<singleD>	four	{toDouble("4")}
+1	<singleD>	five	{toDouble("5")}
+1	<singleD>	six	{toDouble("6")}
+1	<singleD>	seven	{toDouble("7")}
+1	<singleD>	eight	{toDouble("8")}
+1	<singleD>	nine	{toDouble("9")}
+1	<below20>	ten	{toDouble("10")}
+1	<below20>	eleven	{toDouble("11")}
+1	<below20>	twelve	{toDouble("12")}
+1	<below20>	thirteen	{toDouble("13")}
+1	<below20>	fourteen	{toDouble("14")}
+1	<below20>	fifteen	{toDouble("15")}
+1	<below20>	sixteen	{toDouble("16")}
+1	<below20>	seventeen	{toDouble("17")}
+1	<below20>	eighteen	{toDouble("18")}
+1	<below20>	nineteen	{toDouble("19")}
+1	<decade>	twenty	{toDouble("20")}
+1	<decade>	thirty	{toDouble("30")}
+1	<decade>	forty	{toDouble("40")}
+1	<decade>	fourty	{toDouble("40")}
+1	<decade>	fifty	{toDouble("50")}
+1	<decade>	sixty	{toDouble("60")}
+1	<decade>	seventy	{toDouble("70")}
+1	<decade>	eighty	{toDouble("80")}
+1	<decade>	ninety	{toDouble("90")}
+1	<HU>	hundred	{toDouble("100")}
+1	<TH>	thousand	{toDouble("1000")}
+1	<MI>	million	{toDouble("1000000")}
+1	<BI>	billion	{toDouble("1000000000")}
+1	<TR>	trillion	{toDouble("1000000000000")}
+1	<HU>	hundreds	{toDouble("100")}
+1	<TH>	thousands	{toDouble("1000")}
+1	<MI>	millions	{toDouble("1000000")}
+1	<BI>	billions	{toDouble("1000000000")}
+1	<TR>	trillions	{toDouble("1000000000000")}
+1	<AND>	and	{nothing(1)}
+1	<OR>	or	{nothing(1)}
+1	<OR>	to	{nothing(1)}
+1	<COUNT>	time	{nothing(1)}
+1	<COUNT>	times	{nothing(1)}

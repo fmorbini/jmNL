@@ -1,0 +1,66 @@
+Network low-confidence {
+	#topic: basic
+	#entrance condition: current NLU speech act = internal.low-confidence
+	system: statement.not-understand
+	#goal: simple
+}
+Network ignored {
+	#topic: basic
+	#entrance condition: current NLU speech act = ignored
+	system: statement.ignore
+	#goal: simple
+}
+/*
+Network loop {
+	#topic: basic
+	#entrance condition: current NLU speech act = loop
+	system: statement.loop
+	#goal: simple
+}
+*/
+Network empty {
+	#topic: basic
+	#entrance condition: current NLU speech act = empty
+	
+	DO
+	#goal: simple
+}
+
+Network create {
+	#topic: create
+	#entrance condition: current NLU speech act = CREATE
+    #action: SHAPE=ARG1
+    #action: SIZE=ARG2
+    #action: COLOR=ARG3
+	system: RCREATE
+	#goal: simple
+}
+Network pick {
+	#topic: pick
+	#entrance condition: current NLU speech act = PICK
+    #action: OBJ=ARG0
+	system: PICK
+	#goal: simple
+}
+Network release {
+	#topic: release
+	#entrance condition: current NLU speech act = RELEASE
+    #action: OBJ=ARG0
+	system: RELEASE
+	#goal: simple
+}
+Network goto {
+	#topic: goto
+	#entrance condition: current NLU speech act = GOTO
+    #action: OBJ=ARG0
+	system: GOTO
+	#goal: simple
+}
+Network delete {
+	#topic: delete
+	#entrance condition: current NLU speech act = DELETE
+    #action: OBJ=ARG0
+	system: DELETE
+	#goal: simple
+}
+

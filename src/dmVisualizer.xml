@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<display name="bv1" class="edu.usc.ict.nl.dm.visualizer.kbDisplay.BooleanTextAndColorDisplay">
+		<property name="fontSize" value="20"/>
+		<property name="trueText" value="Aversion handler enabled"/>
+		<property name="falseText" value="Aversion handler disabled"/>
+		<property name="trueColor" value="green"/>
+		<property name="falseColor" value="black"/>
+	</display>
+	<display name="bv4" class="edu.usc.ict.nl.dm.visualizer.kbDisplay.BooleanTextAndColorDisplay">
+		<property name="fontSize" value="20"/>
+		<property name="trueText" value="Activity handler enabled"/>
+		<property name="falseText" value="Activity handler disabled"/>
+		<property name="trueColor" value="green"/>
+		<property name="falseColor" value="red"/>
+	</display>
+	<display name="bv2" class="edu.usc.ict.nl.dm.visualizer.kbDisplay.BooleanSemaphoreDisplay">
+		<property name="fontSize" value="5"/>
+		<property name="trueColor" value="orange"/>
+		<property name="falseColor" value="red"/>
+		<property name="circleSize" value="5"/>
+		<property name="space" value="50"/>
+	</display>
+	<display name="bv3" class="edu.usc.ict.nl.dm.visualizer.kbDisplay.BooleanSemaphoreDisplay">
+		<property name="fontSize" value="15"/>
+		<property name="trueColor" value="green"/>
+		<property name="falseColor" value="red"/>
+		<property name="circleSize" value="20"/>
+		<property name="space" value="15"/>
+	</display>
+	<display name="black" class="edu.usc.ict.nl.dm.visualizer.kbDisplay.BooleanTextAndColorDisplay">
+		<property name="fontSize" value="20"/>
+		<property name="trueColor" value="black"/>
+		<property name="falseColor" value="black"/>
+		<property name="nullColor" value="black"/>
+	</display>
+	<dialogueHistory visible="false"/>
+	<informationState visible="true">
+		<variable name="separator1" pretty="Information State:" design="black"/>
+		<variable name="activityhandlercanstart" pretty="User high activity" design="bv3"/>
+		<variable name="aversionhandlercanstart" pretty="User gaze aversion" design="bv3"/>
+		<!--<variable name="dofeedback" pretty="feedback" design="bv2"/>
+		<variable name="activity" pretty="activity" design="bv2"/>-->
+	</informationState>
+</config>

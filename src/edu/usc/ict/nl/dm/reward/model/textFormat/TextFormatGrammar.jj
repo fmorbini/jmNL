@@ -1,0 +1,527 @@
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = true;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+PARSER_BEGIN(TextFormatGrammar)
+package edu.usc.ict.nl.dm.reward.model.textFormat;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Stack;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import edu.usc.ict.nl.util.StringUtils;
+import edu.usc.ict.nl.util.XMLUtils;
+import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
+import edu.usc.ict.nl.kb.DialogueKBFormula;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/** Simple brace matcher. */
+public class TextFormatGrammar {
+
+  private static int sn=1;
+  private static final String prefix="node";
+  private static int getID() {return ++sn;}
+  private static String getStateName(int n) {return prefix+n;}
+  private static HashMap<Integer,String> allStates=new HashMap<Integer,String>();
+  private static final int endState=getID();
+  private HashMap<String,String> userMacros=null;
+
+  private static final Pattern eventStringMacro=Pattern.compile("^[\\s]*[Oo][Rr][\\s]*\\((.+)\\)[\\s]*$");
+  private List<String> getEvents(String es) {
+        List<String> ret=new ArrayList<String>();
+        Matcher m=eventStringMacro.matcher(es);
+        if (m.matches()) {
+        	String listS=m.group(1);
+        	if (!StringUtils.isEmptyString(listS)) {
+        		String[] list=listS.split(",");
+        		for (String e:list) {
+        			e=StringUtils.cleanupSpaces(e);
+        			ret.add(e);
+        		}
+        	} else {
+        		ret.add(StringUtils.cleanupSpaces(es));
+        	}
+        } else {
+       		ret.add(StringUtils.cleanupSpaces(es));
+        }
+        if (ret!=null && !ret.isEmpty() && userMacros!=null) {
+        		Set<String> noRepeats=new LinkedHashSet<String>();
+                Stack<String> events=new Stack<String>();
+                events.addAll(ret);
+                
+                while(!events.isEmpty()) {
+                        String e=events.pop();
+                        String macro=getMacroFor(e);
+                        if (!StringUtils.isEmptyString(macro)) {
+                                events.addAll(getEvents(macro));
+                        } else noRepeats.add(e);
+                }
+                ret.clear();
+                ret.addAll(noRepeats);
+        }
+        return ret;
+  }
+  
+  public void setUserMacros(HashMap<String,String> macros) {userMacros=macros;}
+  private String getMacroFor(String e) {return (userMacros!=null)?userMacros.get(e):null;}
+
+  private static void addTransitionToState(int sn,DialogueKBFormula cnd,int target,int line) throws ParseException {
+  	canAddOutgoingTransitionToState(sn,line);
+	String content="";
+	if (allStates.containsKey(sn)) content=allStates.get(sn);
+	content+="<transition condition=\""+((cnd!=null)?cnd.toString():"")+"\" target=\""+getStateName(target)+"\"/>";
+	allStates.put(sn,content);
+  }
+  private static void addListenToState(int sn,String event,DialogueKBFormula cnd,boolean ce,int target,int line) throws ParseException {
+  	canAddOutgoingTransitionToState(sn,line);
+    if (StringUtils.isEmptyString(StringUtils.cleanupSpaces(event)))
+    	throw new ParseException("empty user argument at line "+line);
+	String content="";
+	if (allStates.containsKey(sn)) content=allStates.get(sn);
+	content+="<listen event=\""+StringUtils.cleanupSpaces(event)+"\" target=\""+getStateName(target)+"\" condition=\""+((cnd!=null)?cnd.toString():"")+"\" consume=\""+ce+"\"/>";
+	allStates.put(sn,content);
+  }
+  private static void addSayToState(int sn,String say,boolean interruptible,int target,int line) throws ParseException {
+  	canAddOutgoingTransitionToState(sn,line);
+    if (StringUtils.isEmptyString(StringUtils.cleanupSpaces(say)))
+    	throw new ParseException("empty system argument at line "+line);
+	String content="";
+	if (allStates.containsKey(sn)) content=allStates.get(sn);
+	content+="<say event=\""+XMLUtils.escapeStringForXML(say)+"\" target=\""+getStateName(target)+"\" interruptible=\""+interruptible+"\"/>";
+	allStates.put(sn,content);
+  }
+  
+  private static void canAddOutgoingTransitionToState(int sn,int line) throws ParseException {
+  	if (sn==endState) throw new ParseException("Trying to add outgoing edge to final state. Line: "+line);
+  }
+
+  private static void addToState(int sn,String add) {
+	String content="";
+	if (allStates.containsKey(sn)) content=allStates.get(sn);
+	content+=add;
+	allStates.put(sn,content);
+  }
+  
+  /** Main entry point. */
+  public static void main(String args[]) throws ParseException {
+	try {
+		TextFormatGrammar parser = new TextFormatGrammar(new java.io.FileInputStream(args[0]));
+		parser.Input();
+	} catch (java.io.FileNotFoundException e) { System.out.println("Java Parser Version 1.1: File " + args[0] + " not found."); return; }
+  }
+
+}
+
+PARSER_END(TextFormatGrammar)
+
+<DEFAULT> SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| <"//" (~["\n"])* (["\n","\r"])>
+| <"/*">: INSIDE_COMMENT
+}
+
+<INSIDE_COMMENT>
+SKIP:
+{
+        <"*/">: DEFAULT
+|       <~[]>
+}
+
+<DEFAULT> TOKEN :
+{
+  <LBRACE: "{"(<SPACE>)*>
+| <#AN: "#"(<SPACE>)*>
+| <#SPACE: ([" ", "\t", "\n", "\r"])+>
+| <RBRACE: "}"(<SPACE>)*>
+| <LRB: "("(<SPACE>)*>
+| <RRB: ")"(<SPACE>)*>
+| <VAR: <AN>"var:"(<SPACE>)*>:TEXT
+| <GOAL: <AN>"goal:"(<SPACE>)*>
+| <SEND: <AN>"send:"(<SPACE>)*>
+| <FORGET: <AN>"forget:"(<SPACE>)*>:TEXT
+| <TTCND: <AN>"turntaking condition:"(<SPACE>)*>:TEXT
+| <TOPIC: <AN>"topic:"(<SPACE>)*>
+| <USER: "user:"(<SPACE>)*>:TEXT
+| <SYSTEM: "system:">:TEXT
+| <ISYSTEM: "isystem:">:TEXT
+| <EC: <AN>"entrance condition:"(<SPACE>)*>
+| <UI: "current NLU speech act"(<SPACE>)*"="(<SPACE>)*>:TEXT
+| <SI: "system initiative">
+| <GV: <AN>"goal value:"(<SPACE>)*>:TEXT
+| <RO: <AN>"reentrance option:">:TEXT
+| <IS: <AN>("information state:"|"action:")(<SPACE>)*>:TEXT
+| <NETWORK: ["N","n"]"etwork">
+| <FINAL: ["F","f"]"inal">
+| <DAEMON: ["D","d"]"aemon">
+| <CONDITION: <AN>"condition:">:TEXT
+| <CE: <AN>"consumes event">
+| <OR: "OR"(<SPACE>)*>
+| <END: ("END STATE")(<SPACE>)*>
+| <GOTOEND: (("GOTO"(<SPACE>)*"END")|"EXIT")>
+| <NOP: "NOP"|"DO">
+| <IF: "IF"(<SPACE>)*>:TEXT
+| <ELSE: "ELSE"(<SPACE>)*>
+| <CM: ","(<SPACE>)*>
+| <IGNORE: <AN>"ignore:"(<SPACE>)*>
+| <ID: (~["="," ", "\t", "\n", "\r","/",",","(",")","{","}"])+>
+}
+
+<TEXT> TOKEN: {
+	<ENDTEXT: (("//" (~["\n", "\r"])+)? (["\n", "\r"])+)> :DEFAULT
+	|<URL: ("http://")?((~["(",")","/","\n","\r","\t"," "])+("/"))+(~["(",")","/","\n","\r","\t"," "])*>
+	| <ANY: (("/"~["*","/"])|(~["\r","\n","/"])|<URL>)+>
+}
+
+<INSIDE_COMMENT_TEXT>
+SKIP:
+{
+        <"*/">: TEXT
+|       <~[]>
+}
+
+
+/** Root production. */
+String Input() :{
+	Token t;
+	String n;
+	String output="<networks>";
+}
+{
+	(n=ReadNetwork() {output+=n;})+ {return output+"</networks>";}
+}
+String ReadNetwork() :{
+	Token t,f=null,d=null,cnd=null;
+	int cs=getID();
+	int ns=getID();
+	String output="";
+	DialogueKBFormula cndf=null;
+}
+{
+	{
+		allStates.clear();
+	}
+	((f=<FINAL>)? (d=<DAEMON>)? <NETWORK> t=<ID> <LBRACE>) {
+	if ((f!=null) && (d!=null)) throw new ParseException("Invalid final daemon network at line "+f.beginLine+" column: "+f.beginColumn);
+		output="<network id=\""+t.image+"\" "+
+			((f!=null)?"final=\"true\" ":"final=\"false\" ")+
+			((d!=null)?"daemon=\"true\" ":"daemon=\"false\" ")+
+			">";
+	}
+	
+	(CurrentStateAnnotation(ns,cs,true))*
+	(ns=ReadBlock(ns,cs))+
+	(<END> (CurrentStateAnnotation(endState,cs,false))+)?
+	<RBRACE>{
+		if (ns!=endState) addTransitionToState(ns,null,endState,0);
+		for(int i=0;i<=sn;i++) {
+			if (allStates.containsKey(i)) {
+				if (i==cs) {
+					output+=allStates.get(i);
+				} else {
+					output+="<state id=\""+getStateName(i)+"\">\n";
+					output+=allStates.get(i);
+					output+="</state>\n";
+				}
+			}
+		}
+		output+="</network>\n";
+		return output;
+	}
+}
+
+int ReadBlock(int cs,int ss):{
+	int ns=cs;
+	int ns2;
+	int startThen,endThen,startElse=-1,endElse=-1,endIf=-1;
+	Token cnd=null;
+}
+{
+	// cs: ID of current state
+	(cnd=<LBRACE> (ns=ReadBlock(ns,ss))+ <RBRACE> (CurrentStateAnnotation(ns,ss,false))* (<OR> ns2=ReadBlock(cs,ss) {
+		if (ns!=endState) {
+			addTransitionToState(ns,null,ns=getID(),cnd.beginLine);
+			if (ns2!=endState) {
+				addTransitionToState(ns2,null,ns,cnd.beginLine);
+			}
+			addToState(ns,"");
+		} else {
+			ns=ns2;
+		} 
+	})?) {return ns;}|
+	(ns=ReadTerminalBlock(cs,ss) (cnd=<OR> ns2=ReadBlock(cs,ss) {
+		addTransitionToState(ns,null,ns=getID(),cnd.beginLine);
+		addTransitionToState(ns2,null,ns,cnd.beginLine);
+		addToState(ns,"");
+	})?) {return ns;}|
+	(<IF> cnd=<ANY><ENDTEXT> (endThen=readIfBody(startThen=getID(),ss))
+	 (LOOKAHEAD(1) <ELSE> endElse=readIfBody(startElse=getID(),ss))?) {
+		try {
+ 			DialogueKBFormula f=DialogueKBFormula.parse(cnd.image);
+			addTransitionToState(cs,f,startThen,cnd.beginLine);
+ 		} catch (Exception e) {throw new ParseException("Invalid condition: "+cnd.image+" at line "+cnd.beginLine+" column: "+cnd.beginColumn);}
+		if ((endThen!=endState) || (endElse!=endState))	endIf=getID();
+		if (startElse>0) {
+			addTransitionToState(cs,null,startElse,cnd.beginLine);
+			if (endElse!=endState) {
+				addTransitionToState(endElse,null,endIf,cnd.beginLine);
+			}
+		} else {
+			addTransitionToState(cs,null,endIf,cnd.beginLine);
+		}
+		if (endThen!=endState) {
+			addTransitionToState(endThen,null,endIf,cnd.beginLine);
+		}
+		return (endIf>0)?endIf:endState;
+	}|
+	(cnd=<NOP> (CurrentStateAnnotation(cs,ss,false))*) {
+		addTransitionToState(ns,null,ns=getID(),cnd.beginLine);
+		return ns;
+	}
+}
+int readIfBody(int cs,int ss):{
+	int ns=cs;
+	int ns2;
+	int startThen,endThen,startElse=-1,endElse=-1,endIf=-1;
+	Token cnd=null;
+}
+{
+	// cs: ID of current state
+	(cnd=<LBRACE> (ns=ReadBlock(ns,ss))+ <RBRACE>) {return ns;}|
+	(ns=ReadTerminalBlock(cs,ss)) {return ns;}|
+	(<IF> cnd=<ANY><ENDTEXT> (endThen=readIfBody(startThen=getID(),ss))
+	 (LOOKAHEAD(1) <ELSE> endElse=readIfBody(startElse=getID(),ss))?) {
+		try {
+ 			DialogueKBFormula f=DialogueKBFormula.parse(cnd.image);
+			addTransitionToState(cs,f,startThen,cnd.beginLine);
+ 		} catch (Exception e) {throw new ParseException("Invalid condition: "+cnd.image+" at line "+cnd.beginLine+" column: "+cnd.beginColumn);}
+		if ((endThen!=endState) || (endElse!=endState))	endIf=getID();
+		if (startElse>0) {
+			addTransitionToState(cs,null,startElse,cnd.beginLine);
+			if (endElse!=endState) {
+				addTransitionToState(endElse,null,endIf,cnd.beginLine);
+			}
+		} else {
+			addTransitionToState(cs,null,endIf,cnd.beginLine);
+		}
+		if (endThen!=endState) {
+			addTransitionToState(endThen,null,endIf,cnd.beginLine);
+		}
+		return (endIf>0)?endIf:endState;
+	}|
+	(cnd=<NOP> (CurrentStateAnnotation(cs,ss,false))*) {
+		addTransitionToState(ns,null,ns=getID(),cnd.beginLine);
+		return ns;
+	}
+}
+int ReadTerminalBlock(int cs,int ss): {
+	int ns;
+	Token pos;
+}
+{
+	(ns=ReadEdge(cs) (CurrentStateAnnotation(ns,ss,false))*) {return ns;} |
+	(pos=<GOTOEND>) {
+		addTransitionToState(cs,null,endState,pos.beginLine);
+		return endState;
+	}
+}
+
+int ReadEdge(int cs):{
+	int ns=getID();
+	Token say=null;
+	Token cnd=null;
+	Token ce=null;
+	String ret;
+	List<String> events;
+	DialogueKBFormula f=null;
+	Token pos;
+	boolean interruptible=false;
+}
+{
+	(pos=<USER> say=<ANY><ENDTEXT> (((<CONDITION> cnd=<ANY><ENDTEXT>)(ce=<CE>)?)|((ce=<CE>)(<CONDITION> cnd=<ANY><ENDTEXT>)?))?) {
+		events=getEvents(say.image);
+		if (cnd!=null) {
+			try {
+ 				f=DialogueKBFormula.parse(cnd.image);
+ 			} catch (Exception e) {throw new ParseException("Invalid condition: "+cnd+" at line "+cnd.beginLine+" column: "+cnd.beginColumn);}
+ 		}
+		if (events.size()==1) {
+			String event=events.get(0);
+			addListenToState(cs,event,f,(ce!=null),ns,pos.beginLine);
+			addToState(ns,"");
+			return ns;
+		} else {
+			for(String event: events) {
+				int ms=getID();
+				addListenToState(cs,event,f,(ce!=null),ms,pos.beginLine);
+				addTransitionToState(ms,null,ns,pos.beginLine);
+			}
+			addToState(ns,"");
+			return ns;
+		}
+	} |
+	(((pos=<SYSTEM>)|(pos=<ISYSTEM>){interruptible=true;}) say=<ANY><ENDTEXT>) {
+		events=getEvents(say.image);
+		if (events.size()==1) {
+			String event=events.get(0);
+			addSayToState(cs,event,interruptible,ns,pos.beginLine);
+			addToState(ns,"");
+			return ns;
+		} else {
+			for(String event: events) {
+				int ms=getID();
+				addSayToState(cs,event,interruptible,ms,pos.beginLine);
+				addTransitionToState(ms,null,ns,pos.beginLine);
+			}
+			addToState(ns,"");
+			return ns;
+		}
+	}
+}
+
+void CurrentStateAnnotation(int cs,int ss,boolean isRoot):{
+	Token t1=null,t2=null,cnd=null,forget=null;
+	boolean si=false;
+	String ret="",varGoalName,action="";
+	DialogueKBFormula value,f;
+	DialogueOperatorEffect a=null;
+	DialogueKBFormula cndf=null;
+}
+{
+	(<VAR> t1=<ANY><ENDTEXT>) {
+		try {
+ 			a=DialogueOperatorEffect.parse(t1.image);
+ 			if (!a.isAssignment()) throw new Exception();
+ 		} catch (Exception e) {throw new ParseException("Invalid variable assignment: "+t1.image+" at line "+t1.beginLine+" column: "+t1.beginColumn);}
+		ret="<var id=\""+a.getAssignedVariable()+"\" value=\""+a.getAssignedExpression()+"\"/>";
+		addToState((isRoot)?ss:cs,ret+"\n");
+	} |
+	(<EC> ((<UI>{si=false;} t1=<ANY><ENDTEXT>) | <SI>{si=true;}) (<CONDITION> cnd=<ANY><ENDTEXT>)?) {
+		//<ec event="current-user-speech-act(login)" target="welcome-user"/>
+		//<ec event="system-initiative" condition="and(~got-symptom,timeSinceLastAction>=30)" target="start"/>		
+		ret="<ec event=";
+		if (si) ret+="\"system-initiative\" ";
+		else ret+="\"current-user-speech-act("+StringUtils.cleanupSpaces(t1.image)+")\" ";
+		if (cnd!=null) {
+			try {
+	 			f=DialogueKBFormula.parse(cnd.image);
+				ret+="condition=\""+f.toString()+"\" ";
+	 		} catch (Exception e) {throw new ParseException("Invalid condition: "+cnd.image+" at line "+cnd.beginLine+" column: "+cnd.beginColumn);}
+		}
+		ret+="target=\""+getStateName(cs)+"\" />";
+		addToState(ss,ret+"\n");
+	} |
+	((<RO> (t1=<ANY>)?<ENDTEXT>)(<CONDITION> cnd=<ANY><ENDTEXT>)?) {
+		ret="<ec event=\"reentrance-option\" say=\""+((t1!=null)?t1.image:"")+"\" target=\""+getStateName(cs)+"\"";
+		if (cnd!=null) {
+			try {
+	 			f=DialogueKBFormula.parse(cnd.image);
+				ret+=" condition=\""+f.toString()+"\" ";
+	 		} catch (Exception e) {throw new ParseException("Invalid condition: "+cnd.image+" at line "+cnd.beginLine+" column: "+cnd.beginColumn);}
+		}
+		ret+="/>";
+		addToState(ss,ret+"\n");
+	} |
+	(<GOAL> t1=<ID> {token_source.SwitchTo(TEXT);t2=null;} (t2=<ANY>)?<ENDTEXT>) {
+		f=null;
+		if (t2!=null) {
+			try {
+ 				f=DialogueKBFormula.parse(t2.image);
+ 			} catch (Exception e) {throw new ParseException("Invalid goal expression: '"+t2.image+"' at line "+t2.beginLine+" column: "+t2.beginColumn);}
+ 		}
+ 		if (f!=null) {
+			ret="<effect goal=\""+t1.image+"\" expr=\""+t2.image+"\"/>";
+		} else {
+			ret="<effect goal=\""+t1.image+"\" expr=\"\"/>";
+		}
+		addToState(cs,ret+"\n");
+	} |
+	(<SEND> t1=<ID>) {
+		ret="<send id=\""+t1.image+"\"/>";
+		addToState(cs,ret+"\n");
+	} |
+	(<IS> t1=<ANY><ENDTEXT>) {
+		if (StringUtils.isEmptyString(action=StringUtils.cleanupSpaces(t1.image)))
+			throw new ParseException("empty information state update/action at line "+t1.beginLine+" column: "+t1.beginColumn);
+		else {
+			if (action.toLowerCase().equals("swapout")) {
+				ret="<swapout/>";
+			} else if (action.toLowerCase().equals("interrupt")) {
+				ret="<interrupt/>";
+			} else {
+				try {
+		 			a=DialogueOperatorEffect.parse(action);
+		 			if (!a.isAssignment()) throw new Exception();
+		 		} catch (Exception e) {throw new ParseException("Invalid information state update: "+t1.image+" at line "+t1.beginLine+" column: "+t1.beginColumn);}
+				ret="<effect expr=\""+a.toString()+"\"/>";
+			}
+			addToState(cs,ret+"\n");
+		}
+	} |
+	(<GV> t1=<ANY><ENDTEXT>) {
+		try {
+ 			a=DialogueOperatorEffect.parse(t1.image);
+ 			if (!a.isAssignment()) throw new Exception();
+			varGoalName=DialogueOperatorEffect.buildVarNameForGoal(a.getAssignedVariable().getName());
+		    value=(DialogueKBFormula) a.getAssignedExpression();
+			value=DialogueOperatorEffect.processGoalExpression(value,varGoalName);
+			ret="<effect expr=\"Assign("+varGoalName+","+value+")\"/>";
+			addToState(cs,ret+"\n");
+		} catch (Exception e) { throw new ParseException("Error while parsing goal value directive: "+t1.image+" at line "+t1.beginLine+" column: "+t1.beginColumn);}
+	} |
+	(<TOPIC> t1=<ID>) {
+		ret+="<topic id=\""+t1.image+"\" />";
+		addToState(ss,ret+"\n");
+	} |
+	(<FORGET> forget=<ANY><ENDTEXT> (<CONDITION> cnd=<ANY><ENDTEXT>)?) {
+		cndf=null;
+		Integer forgetTime=0;
+		if (cnd!=null) {
+		 	try {
+				cndf=DialogueKBFormula.parse(cnd.image);
+			} catch (Exception e) {throw new ParseException("Invalid condition: "+cnd.image+" at line "+cnd.beginLine+" column: "+cnd.beginColumn);}
+	 		if (forget!=null) {
+	 			forgetTime=Integer.parseInt(forget.image);
+	 			if (forgetTime<0) throw new ParseException("negative forget time at line: "+forget.beginLine+" column: "+forget.beginColumn);
+		 		ret+="<forget time=\""+forgetTime+"\" cnd=\""+cndf.toString()+"\"/>";
+				addToState(ss,ret+"\n");
+	 		}
+	 	}
+ 	} |
+	(<TTCND> cnd=<ANY><ENDTEXT>) {
+		cndf=null;
+		if (cnd!=null) {
+		 	try {
+				cndf=DialogueKBFormula.parse(cnd.image);
+		 		ret+="<turntakingcnd cnd=\""+cndf.toString()+"\"/>";
+				addToState(ss,ret+"\n");
+			} catch (Exception e) {throw new ParseException("Invalid condition: "+cnd.image+" at line "+cnd.beginLine+" column: "+cnd.beginColumn);}
+	 	}
+ 	} |
+	(<IGNORE> t1=<ID>) {
+		ret+="<ignore id=\""+t1.image+"\" />";
+		addToState(ss,ret+"\n");
+	}
+}

@@ -1,0 +1,23 @@
+<sv id="systemNowSpeaking" value="false" type="class java.lang.Boolean" visible="true" readOnly="true" desc="Boolean flag that if true indicates that the system is speacking"/>
+<sv id="systemFractionSpoke" value="1" type="class java.lang.Number" visible="true" readOnly="true" desc="fraction of the system utterance being said that has been currently spoken. Updated at each timer interval."/>
+<sv id="nowSpeaking" value="false" type="class java.lang.Boolean" visible="true" readOnly="true" desc="Boolean flag that if true indicates that the user is speacking"/>
+<sv id="userSpokeForSeconds" value="0" type="class java.lang.Number" visible="true" readOnly="true" desc="Number of seconds the user has spoken last."/>
+<sv id="userTurnSeconds" value="0" type="class java.lang.Number" visible="true" readOnly="true" desc="Number of seconds the user has spoken since the last system intervention."/>
+<sv id="minatTriage" value="TR3" type="class java.lang.String" visible="true" readOnly="true" desc="BBN Minat triage class."/>
+<sv id="minatLabels" value="null" type="interface java.util.List" visible="true" readOnly="true" desc="BBN Minat distress labels."/>
+<sv id="timeSinceLastUserAction" value="0" type="class java.lang.Number" visible="true" readOnly="true" desc="Time in seconds since the last thing said by the user."/>
+<sv id="timeSinceLastSystemAction" value="0" type="class java.lang.Number" visible="true" readOnly="true" desc="Time in seconds since the last thing said by the system."/>
+<sv id="consecutiveUnhandledUserActions" value="0" type="class java.lang.Number" visible="true" readOnly="true" desc="Number of consecutive user actions for which the system had no direct response (handler) across the entire dialogue."/>
+<sv id="consecutiveUnhandledUserActionsInTurn" value="0" type="class java.lang.Number" visible="true" readOnly="true" desc="Number of consecutive user actions to which the system didn&#039;t have an handler within the same user turn."/>
+<sv id="timeSinceLastAction" value="0" type="class java.lang.Number" visible="true" readOnly="true" desc="Time in seconds since anyone said something (user or system)."/>
+<sv id="timeSinceLastResource" value="0" type="class java.lang.Number" visible="true" readOnly="true" desc="Time in seconds since the last resource link/video was given."/>
+<sv id="timeSinceStart" value="null" type="class java.lang.Number" visible="true" readOnly="true" desc="Time in seconds since the login event."/>
+<sv id="event" value="null" type="class java.lang.String" visible="true" readOnly="true" desc="Name of last speech act received by the system. After the search is done, it contains the single speech act dealt by the selected network."/>
+<sv id="lastUserSpeechAct" value="null" type="class java.lang.String" visible="true" readOnly="true" desc="Name of last speech act received by the system. Not affected by search selection."/>
+<sv id="lastNonNullSubdialog" value="null" type="class java.lang.String" visible="true" readOnly="true" desc="Name of last sub-dialog executed by the system."/>
+<sv id="systemEvent" value="null" type="class java.lang.String" visible="true" readOnly="true" desc="Name of the speech act last said by the system."/>
+<sv id="timerInterval" value="1" type="class java.lang.Number" visible="true" readOnly="true" desc="Time in seconds between 2 consecutive timer events."/>
+<sv id="preferForms" value="true" type="class java.lang.Boolean" visible="true" readOnly="true" desc="If true and a form is available for the current system speech act, the form will be selected by the NLG."/>
+<sv id="tmpEvent" value="null" type="class java.lang.String" visible="true" readOnly="true" desc="Variable used to store the input event that generated one of the internal events (e.g. unhandled, ignore and loop)."/>
+<sv id="uEventsHistory" value="null" type="interface java.util.Deque" visible="true" readOnly="true" desc="Stores a list of lists of NLUEvents received by the character. The first is the most recent (stack). When a system event is received the next incoming user events are collected in a new list element."/>
+<sv id="lastUserUtterance" value="null" type="class java.lang.String" visible="true" readOnly="true" desc="Stores the last text the user said, as received by the DM."/>

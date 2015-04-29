@@ -1,0 +1,33 @@
+
+
+                    
+
+                        <!-- This file was generated for Eclipse by Ant.    -->
+                        <!-- Any changes to this file will be overwritten.    -->
+                        <!-- Edit build.xml to make your changes permanent.    -->
+
+                        <projectDescription>
+
+                            <name>NLModule</name>
+
+                            <natures>
+
+                                <nature>org.eclipse.jdt.core.javanature</nature>
+
+                            </natures>
+
+                            <buildSpec>
+
+                                <buildCommand>
+
+                                    <name>org.eclipse.jdt.core.javabuilder</name>
+
+                                </buildCommand>
+
+                            </buildSpec>
+
+                        </projectDescription>
+
+                    
+
+                

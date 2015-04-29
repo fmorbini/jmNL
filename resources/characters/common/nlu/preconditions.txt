@@ -1,0 +1,51 @@
+1	<EFF>	<EFFA>	{nothing(1)}
+1	<EFF>	<IMPLICATION>	{nothing(1)}
+1	<EFFA>	<ASSIGNMENT>	{nothing(1)}
+1	<EFFA>	<INCREMENT>	{nothing(1)}
+1	<EFFA>	<ASSERTION>	{nothing(1)}
+1	<IMPLICATION>	<IMPLY>	<LB>	<WFF>	<CM>	<EFFA>	<RB>	{makeImplication(3,5)}
+1	<IMPLICATION>	<IMPLY>	<LB>	<WFF>	<CM>	<EFFA>	<CM>	<EFFA>	<RB>	{makeImplication(3,5,7)}
+1	<ASSIGNMENT>	<ASSIGN>	<LB>	|ID|	<CM>	<WFF>	<RB>	{makeAssignment(makeFormula(3),5)}
+1	<ASSIGNMENT>	|ID|	<EQ>	<WFF>	{makeAssignment(makeFormula(1),3)}
+1	<INCREMENT>	<PP>	<LB>	|ID|	<RB>	{makeIncrement(3,"1")}
+1	<INCREMENT>	<PP>	|ID|	{makeIncrement(2,"1")}
+1	<INCREMENT>	<PP>	<LB>	|ID|	<CM>	<WFF>	<RB>	{makeIncrement(3,5)}
+1	<ASSERTION>	<ASSERT>	<LB>	<WFF>	<RB>	{makeAssertion(3)}
+1	<WFF>	<LB>	<WFF>	<RB>	{nothing(2)}
+1	<WFF>	<PRED>	{makeFormula(1)}
+1	<WFF>	<PRED>	<ARGLIST>	{makeFormula(1,2)}
+1	<WFF>	<WFF>	<CMP>	<WFF>	{makeFormula(2,makeArglist(1,makeArglist(3)))}
+1	<WFF>	<CMP>	<LB>	<WFF>	<CM>	<WFF>	<RB>	{makeFormula(1,makeArglist(3,makeArglist(5)))}
+#1	<WFF>	<OR>	<ARGLIST2P>	{makeFormula(1,2)}
+#1	<WFF>	<AND>	<ARGLIST2P>	{makeFormula(1,2)}
+#1	<WFF>	<NOT>	<ARGLIST1>	{makeFormula(1,2)}
+1	<WFF>	<NOT>	<WFF>	{makeFormula(1,makeArglist(2))}
+#1	<ARGLIST1>	<STARTARGLIST>	<WFF>	<ENDARGLIST>	{makeArglist(2)}
+#1	<ARGLIST2P>	<STARTARGLIST>	<WFF>	<CM>	<ELARGLIST>	<ENDARGLIST>	{makeArglist(2,4)}
+1	<ARGLIST>	<STARTARGLIST>	<ELARGLIST>	<ENDARGLIST>	{nothing(2)}
+1	<ARGLIST>	<STARTARGLIST>	<ENDARGLIST>	{makeArglist()}
+1	<STARTARGLIST>	<LB>	{nothing(1)}
+1	<ENDARGLIST>	<RB>	{nothing(1)}
+1	<ELARGLIST>	<WFF>	{makeArglist(1)}
+1	<ELARGLIST>	<WFF>	<CM>	<ELARGLIST>	{makeArglist(1,3)}
+1	<PRED>	|ID|	{nothing(1)}
+1	<PP>	++	{nothing(1)}
+1	|ID|	([^\,\(\)\=\<\>\~\!\s]+)	{nothing(1)}
+1	<LB>	(	{nothing(1)}
+1	<RB>	)	{nothing(1)}
+1	<CM>	,	{nothing(1)}
+1	<EQ>	=	{nothing(1)}
+1	<CMP>	==	{nothing(1)}
+1	<CMP>	>=	{nothing(1)}
+1	<CMP>	<=	{nothing(1)}
+1	<CMP>	>	{nothing(1)}
+1	<CMP>	<	{nothing(1)}
+1	<CMP>	!=	{nothing(1)}
+#1	<OR>	or	{nothing(1)}
+#1	<AND>	and	{nothing(1)}
+1	<NOT>	not	{nothing(1)}
+1	<NOT>	~	{nothing("not")}
+1	<NOT>	!	{nothing("not")}
+1	<ASSIGN>	assign	{nothing(1)}
+1	<ASSERT>	assert	{nothing(1)}
+1	<IMPLY>	imply	{nothing(1)}

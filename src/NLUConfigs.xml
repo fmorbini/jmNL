@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:camel="http://camel.apache.org/schema/spring"
+       xmlns:broker="http://activemq.apache.org/schema/core"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="MXNLU" class="edu.usc.ict.nl.config.NLUConfig">
+		<!--
+		<property name="nluVhListening" value="true"/>
+		<property name="nluVhGenerating" value="true"/>
+		-->
+		<property name="lowConfidenceEvent" value="internal.low-confidence"/>
+		<property name="emptyTextEventName" value="empty"/>
+		<property name="doSpellchecking" value="false"/>
+		
+		<!-- ########################## NLU START ################################### -->
+		<!-- general nlu setup --> 
+		<property name="stemmerClass"><null/></property>
+		<!-- property name="stemmerClass"  value="edu.usc.ict.nl.stemmer.KStemmer"/-->
+		<property name="printNluErrors" value="true"/>
+		<property name="chartNluMaxLength" value="30"/>
+		<property name="nluModelFile" value="classifier-model"/>
+		<property name="nluTrainingFile" value="classifier-training.txt"/>
+		<property name="nluHardLinks" value="hardlinks.txt"/>
+		<property name="useSystemFormsToTrainNLU" value="true"/>
+		<property name="userUtterances" value="user-utterances.xlsx"/>
+		<property name="nBest" value="2"/>
+		<property name="applyTransformationsToInputText" value="true"/>
+		<property name="generalizeNumbers" value="true"/>
+		<property name="nluNamedEntityExtractors">
+			<list>
+				<ref bean="NumberNE"/>
+				<ref bean="TimeDurationNE"/>
+				<ref bean="TimeFrequencyNE"/>
+			</list>
+		</property>
+		<!-- ** some alternative classifiers available ** -->
+		<!-- setup required for mxnlu to work  -->
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU"/>
+		<property name="nluExeRoot" value="mxnlu"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeaturesBuilderForMXClassifier"/>
+		<property name="acceptanceThreshold" value="0.0"/>
+		<property name="maximumNumberOfLabels" value="255"/>
+		
+		<!-- setup required for mallet maximum entropy to work 
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.mallet.MalletMaxEntClassifierNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.mallet.MalletMaxEntClassifierNLU"/>
+		<property name="acceptanceThreshold" value="0.3"/>
+		<property name="regularization" value="0.02"/>
+		<property name="maximumNumberOfLabels"><null/></property>
+		-->
+		
+		<!-- setup required for opennlp maximum entropy to work 
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="acceptanceThreshold" value="0.0"/>
+		<property name="maximumNumberOfLabels"><null/></property>
+		-->
+
+		<!-- setup required for libsvm to work 
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.svm.LibSVMNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.svm.LibSVMNLU"/>
+		<property name="acceptanceThreshold" value="0.0"/>
+		<property name="maximumNumberOfLabels"><null/></property>
+		-->
+
+		<!-- setup required for mcnlu (jmxnlu) to work
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.jmxnlu.JMXClassifierNLU"/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.jmxnlu.JMXClassifierNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="acceptanceThreshold"><null/></property>
+		<property name="maximumNumberOfLabels"><null/></property>-->
+
+		<!-- setup required for multi nlu (multiple nlus running in parallel)
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.multi.MultiNLU"/>
+		<property name="internalNluListForMultiNlu">
+			<map>
+				<entry key="speech_act_classifier" value="edu.usc.ict.nl.nlu.hierarchical.HierarchicalNLU" config=""/>
+				<entry key="topic_detector" value="edu.usc.ict.nl.nlu.topic.WordlistTopicDetection" />
+			</map>
+		</property>-->
+		<!-- ########################## NLU END ################################### -->
+	</bean>
+	<bean id="multiNLUSample" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.multi.MultiNLU"/>
+		<property name="internalNluListForMultiNlu">
+		<map>
+			<entry key="cGDA"> <ref bean="cGDA"/></entry>
+			<entry key="cV"> <ref bean="cV"/></entry>
+		</map>
+		</property>
+		<property name="mergerForMultiNlu" ref="CascadeMerger"/>
+	</bean>
+	<bean id="cGDA" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.dcaps.CGDA"/>
+	</bean>
+	<bean id="FSTNLU" parent="MXNLU">
+		<property name="userUtterances" value="NLU_Step1andStep3_ROS-to-13-values.xlsx"/>
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.fst.FSTNLU"/>
+		<property name="nluModelFile" value="alignments.fst"/>
+		<property name="fstInputSymbols" value="input.syms"/>
+		<property name="fstOutputSymbols" value="output.syms"/>
+		<property name="trainingFstCommand">
+			<array value-type="java.lang.String">
+			  	<value>C:\\cygwin\\bin\\bash</value>
+	  			<value>-c</value>
+				<value>PATH=$PATH:/bin:/usr/local/bin;\
+						cat alignments.txt|ngramsymbols.exe >alignments.syms;\
+						farcompilestrings -symbols=alignments.syms -keep_symbols=1 alignments.txt>alignments.far;\
+						ngramcount.exe -order=5 alignments.far > alignments.cnts;\
+						ngrammake.exe alignments.cnts >alignments.mod;\
+						fstprint.exe alignments.mod >alignments.fst-txt;\
+						cat alignments.fst-txt |tr -s \"\t \" \" \"|sed -e's/^\(.*[\t ]\+\)\([^- ]\+\)-\(.*\)[\t ]\+\2-\3\([\t ]\+.*\)$/\1\2 \3\4/g'>alignments.fst-txt-processed;\
+						cat alignments.fst-txt-processed |cut -d ' ' -f3|ngramsymbols.exe >%IN%;\
+						cat alignments.fst-txt-processed |cut -d ' ' -f4|ngramsymbols.exe >%OUT%;\
+						fstcompile.exe --isymbols=%IN% --osymbols=%OUT% alignments.fst-txt-processed >%MODEL%;\
+				</value>
+			</array>
+		</property>
+		<property name="runningFstCommand">
+			<array value-type="java.lang.String">
+			  	<value>C:\\cygwin\\bin\\bash</value>
+	  			<value>-c</value>
+	  			<value>export PATH=$PATH:/bin:/usr/local/bin;fstcompile --isymbols=%IN% --osymbols=%IN%|fstcompose - %MODEL%|fstshortestpath --nshortest=%NBEST% |fstprint --isymbols=%IN% --osymbols=%OUT%</value>		
+			</array>
+		</property>
+	</bean>
+	<bean id="GeneralizedFSTNLU" parent="FSTNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.fst.GeneralizedFSTNLU"/>
+	</bean>
+	<bean id="cV" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.dcaps.CV"/>
+	</bean>
+	<bean id="spsNLU" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.multi.MultiNLU"/>
+		<property name="internalNluListForMultiNlu">
+		<map>
+			<entry key="stage1"> <ref bean="spsStage1"/></entry>
+			<entry key="stage2"> <ref bean="spsFSTwithBackup"/></entry>
+		</map>
+		</property>
+		<property name="mergerForMultiNlu" ref="fstCascadeMerger"/>
+	</bean>
+	<bean id="spsFST" parent="FSTNLU">
+		<property name="internalNluClass4Hier" value="FSTNLU"/>
+		<!-- property name="userUtterances" value="NLU_Step1andStep3_ROS-to-13-values.xlsx"/-->
+		<property name="userUtterances" value="ros-5.xlsx"/>
+		
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.fst.sps.SPSFSTNLU"/>
+		<property name="spsMapperUsesNluOutput" value="false"/>
+		<property name="spsMapperModelFile" value="mapper.model"/>
+	</bean>
+	<bean id="spsGeneralizedFST" parent="spsFST">
+		<property name="internalNluClass4Hier" value="GeneralizedFSTNLU"/>
+	</bean>
+	
+	<bean id="spsFSTwithBackup" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.multi.MultiNLU"/>
+		<property name="internalNluListForMultiNlu">
+		<map>
+			<entry key="fst"> <ref bean="spsFST"/></entry>
+			<entry key="backup"> <ref bean="spsFSTbackup"/></entry>
+		</map>
+		</property>
+		<property name="mergerForMultiNlu" ref="fstSpsBackupMerger"/>
+	</bean>
+	<bean id="spsFSTbackup" parent="HierMXNLU">
+		<property name="userUtterances" value="NLU_Step1andStep3_ROS-to-13-values.xlsx"/>
+		<property name="acceptanceThreshold" value="0.1"/>
+		<property name="trainingDataReader" ref="SPSStep1and3UserXLSXFile"/>
+		<property name="nluDir" value="nlufstBackup"/>
+	</bean>
+	<bean id="spsStage1" parent="MXNLU">
+		<property name="userUtterances" value="stage1_new_withmh.xlsx"/>
+	</bean>
+	
+	<bean id="wordlistTopicDetector" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.topic.WordlistTopicDetection"/>
+		<property name="nluModelFile" value="topic-models"/>
+	</bean>
+	<bean id="HierMXNLU" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.hierarchical.HierarchicalNLU"/>
+		<property name="hierNluReturnsNonLeaves" value="true"/>
+		<property name="hierarchicalNluSeparator" value="."/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU"/>
+	</bean>
+	<bean id="ChartHierMXNLU" parent="HierMXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.chart.MXChartClassifierNLU"/>
+		<property name="internalNluClass4Chart" value="edu.usc.ict.nl.nlu.hierarchical.HierarchicalNLU"/>
+	</bean>
+	<bean id="DC" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.directablechar.LFNLU2"/>
+	</bean>
+	
+	<bean id="NumberNE" class="edu.usc.ict.nl.nlu.ne.Numbers">
+		<constructor-arg>
+ 			<value type="java.lang.String[]">.*number,answer.bio-info.user.age</value>
+		</constructor-arg>
+		<!-- 
+ 		<constructor-arg index="0" value=".*number"/>
+		<constructor-arg index="1" value="answer.number"/>
+		<constructor-arg index="2" value="answer.relative-quantity.number"/>
+		<constructor-arg index="3" value="answer.bio-info.user.age"/>
+		-->
+	</bean>
+	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration">
+	</bean>
+	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency">
+	</bean>
+	<bean id="openNLU" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="acceptanceThreshold" value="0.0"/>
+		<property name="maximumNumberOfLabels"><null/></property>
+	</bean>
+	
+	<bean id="CascadeMerger" class="edu.usc.ict.nl.nlu.multi.merger.Cascade">
+		<constructor-arg>
+			<value>c1</value>
+		</constructor-arg>
+		<constructor-arg>
+			<list>
+				<bean class="edu.usc.ict.nl.util.Triple">
+			 		<constructor-arg index="0" value="c1"/>
+					<constructor-arg index="1" value="r1r"/>
+					<constructor-arg index="2" value="c2"/>
+				</bean>
+				<bean class="edu.usc.ict.nl.util.Triple">
+			 		<constructor-arg index="0" value="c2"/>
+					<constructor-arg index="1" value="r2"/>
+					<constructor-arg index="2" value="c3"/>
+				</bean>
+				<bean class="edu.usc.ict.nl.util.Triple">
+			 		<constructor-arg index="0" value="c1"/>
+					<constructor-arg index="1" value="r4"/>
+					<constructor-arg index="2" value="c2"/>
+				</bean>
+			</list>
+		</constructor-arg>
+	</bean>
+	<bean id="fstCascadeMerger" class="edu.usc.ict.nl.nlu.multi.merger.Cascade">
+		<constructor-arg>
+			<value>stage1</value>
+		</constructor-arg>
+		<constructor-arg>
+			<list>
+				<bean class="edu.usc.ict.nl.util.Triple">
+			 		<constructor-arg index="0" value="stage1"/>
+					<constructor-arg index="1" value="question.secondstage"/>
+					<constructor-arg index="2" value="stage2"/>
+				</bean>
+			</list>
+		</constructor-arg>
+	</bean>
+	<bean id="fstSpsBackupMerger" class="edu.usc.ict.nl.nlu.multi.merger.Cascade">
+		<constructor-arg>
+			<value>fst</value>
+		</constructor-arg>
+		<constructor-arg>
+			<list>
+				<bean class="edu.usc.ict.nl.util.Triple">
+			 		<constructor-arg index="0" value="fst"/>
+					<constructor-arg index="1" value="internal.low-confidence"/>
+					<constructor-arg index="2" value="backup"/>
+				</bean>
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="SimcoachUserXLSXFile" class="edu.usc.ict.nl.nlu.trainingFileReaders.SimcoachUserXLSXFile">
+		<constructor-arg index="0" value="0"/>
+	</bean>
+	<bean id="SPSStep1and3UserXLSXFile" class="edu.usc.ict.nl.nlu.trainingFileReaders.SPSFSTXlsxTrainingFile">
+	</bean>
+</beans>

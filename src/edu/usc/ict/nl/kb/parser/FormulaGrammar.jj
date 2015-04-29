@@ -1,0 +1,270 @@
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = true;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+PARSER_BEGIN(FormulaGrammar)
+package edu.usc.ict.nl.kb.parser;
+
+import java.util.List;
+import java.util.ArrayList;
+import edu.usc.ict.nl.util.StringUtils;
+import edu.usc.ict.nl.util.XMLUtils;
+import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
+import edu.usc.ict.nl.kb.DialogueKBFormula;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import edu.usc.ict.nl.parser.semantics.ParserSemanticRules4KB;
+
+
+/** Simple brace matcher. */
+public class FormulaGrammar {
+    public DialogueKBFormula makeFormula(Token t,String p) throws ParseException {
+        try {
+			return DialogueKBFormula.create(p,null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ParseException("error creating formula starting at line: "+t.beginLine+" column: "+t.beginColumn);
+		}
+    }
+    public DialogueKBFormula makeFormula(Token t,String p,List<DialogueKBFormula> args) throws ParseException {
+        try {
+			return DialogueKBFormula.create(p,args);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ParseException("error creating formula starting at line: "+t.beginLine+" column: "+t.beginColumn);
+		}
+	}
+	public List<DialogueKBFormula> makeArglist(DialogueKBFormula f) {
+		if (f==null) return new ArrayList<DialogueKBFormula>();
+		else {
+			List<DialogueKBFormula> args=new ArrayList<DialogueKBFormula>();
+			args.add(f);
+			return args;
+		}
+	}
+	public List<DialogueKBFormula> makeArglist() {
+		return new ArrayList<DialogueKBFormula>();
+	}
+	public List<DialogueKBFormula> makeArglist(DialogueKBFormula f,List<DialogueKBFormula> args2) {
+		if (f==null) return null;
+		else {
+			List<DialogueKBFormula> args=new ArrayList<DialogueKBFormula>();
+			args.add(f);
+			if (args!=null) args.addAll(args2);
+			return args;
+		}
+	}
+	public List<DialogueOperatorEffect> makeEfflist() {
+		return new ArrayList<DialogueOperatorEffect>();
+	}
+	public List<DialogueOperatorEffect> makeEfflist(DialogueOperatorEffect f) {
+		if (f==null) return new ArrayList<DialogueOperatorEffect>();
+		else {
+			List<DialogueOperatorEffect> args=new ArrayList<DialogueOperatorEffect>();
+			args.add(f);
+			return args;
+		}
+	}
+	public List<DialogueOperatorEffect> makeEfflist(DialogueOperatorEffect f,List<DialogueOperatorEffect> args2) {
+		if (f==null) return null;
+		else {
+			List<DialogueOperatorEffect> args=new ArrayList<DialogueOperatorEffect>();
+			args.add(f);
+			if (args!=null) args.addAll(args2);
+			return args;
+		}
+	}
+	public DialogueOperatorEffect makeImplication(Token t,DialogueKBFormula cnd,DialogueOperatorEffect thenE,DialogueOperatorEffect elseE) throws ParseException {
+		if (cnd!=null) {
+			try{
+				if (elseE!=null) {
+					return DialogueOperatorEffect.createImplication(cnd,thenE,elseE);
+				} else {
+					return DialogueOperatorEffect.createImplication(cnd,thenE);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new ParseException("error creating implication starting at line: "+t.beginLine+" column: "+t.beginColumn);
+			}
+		}
+		return null;
+	}
+	public DialogueOperatorEffect makeList(Token t,List<DialogueOperatorEffect> effs) throws ParseException {
+		if (effs!=null) {
+			try{
+				return DialogueOperatorEffect.createList(effs);
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new ParseException("error creating effect list starting at line: "+t.beginLine+" column: "+t.beginColumn);
+			}
+		}
+		return null;
+	}
+	public DialogueOperatorEffect makeAssignment(Token t,String var,DialogueKBFormula value) throws ParseException {
+		try{
+			return DialogueOperatorEffect.createAssignment(var,value);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ParseException("error creating assignment starting at line: "+t.beginLine+" column: "+t.beginColumn);
+		}
+	}
+	public DialogueOperatorEffect makeIncrement(Token t,String var,DialogueKBFormula inc) throws ParseException {
+		try{
+			return DialogueOperatorEffect.createIncrementForVariable(var, inc);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ParseException("error creating increment starting at line: "+t.beginLine+" column: "+t.beginColumn);
+		}
+	}
+	public DialogueOperatorEffect makeAssertion(Token t,DialogueKBFormula f) throws ParseException {
+		try{
+			return DialogueOperatorEffect.createAssertion(f);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ParseException("error creating assertion starting at line: "+t.beginLine+" column: "+t.beginColumn);
+		}
+	}
+}
+
+PARSER_END(FormulaGrammar)
+
+<DEFAULT> SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<DEFAULT> TOKEN :
+{
+  <LB: "(">
+| <RB: ")">
+| <PP: "++">
+| <CM: ",">
+| <EQ: "=">
+| <CMP: ("==")|("<")|(">")|("<=")|(">=")|("!=")>
+| <OR: "or">
+| <AND: "and">
+| <LIST: "assignlist">
+| <NOT: ("not")|("!")|("~")>
+| <ASSIGN: "assign">
+| <ASSERT: "assert">
+| <IMPLY: "imply">
+| <ARIT: "+"|"-"|"/"|"*">
+| <STRING: "'">:TEXT
+| <ID: (~["'","\"","=","+","/","*","<",">","~","!"," ","\t","\n","\r",",","(",")","{","}"])+>
+}
+
+<TEXT> TOKEN: {
+	//<ANY: (~["'"])*"'">:DEFAULT
+	<ANY: (
+         "\\" ~[]     //any escaped character
+    |                 //or
+        ~["'","\\"]  //any character except quote or backslash
+    )* 
+    "'" >:DEFAULT 
+}
+
+/** Root production. */
+DialogueOperatorEffect effect() :{
+	DialogueKBFormula wff=null;
+	DialogueOperatorEffect eff=null,eff2=null;
+	List<DialogueOperatorEffect> effs=null;
+	Token t=null;
+}
+{
+	t=<IMPLY><LB>wff=formula()<CM>eff=assignment()(<CM>eff2=assignment())?<RB> {return makeImplication(t,wff,eff,eff2);}
+	|eff=assignment() {return eff;}
+}
+List<DialogueOperatorEffect> assignmentList() :{
+	DialogueOperatorEffect wff;
+	List<DialogueOperatorEffect> args=null;
+}
+{
+	(wff=assignment()(<CM>args=assignmentList())?) {return (args!=null)?makeEfflist(wff,args):makeEfflist(wff);}
+}
+DialogueOperatorEffect assignment() :{
+	DialogueKBFormula wff=null;
+	Token t=null,p=null;
+	List<DialogueOperatorEffect> effs=null;
+}
+{
+	p=<ASSIGN><LB>t=<ID><CM>wff=formula()<RB> {return makeAssignment(p,t.image,wff);}
+	|p=<PP>((<LB>t=<ID>(<CM>wff=formula())?<RB>)|(t=<ID>)) {return makeIncrement(p,t.image,(wff==null)?makeFormula(t,"1"):wff);}
+	|t=<ID><EQ>wff=formula() {return makeAssignment(t,t.image,wff);}
+	|p=<ASSERT><LB>wff=formula()<RB> {return makeAssertion(p,wff);}
+	|t=<LIST><LB>effs=assignmentList()<RB> {return makeList(t,effs);}
+}
+DialogueKBFormula formula() :{
+	DialogueKBFormula wff=null,wff2=null;
+	List<DialogueKBFormula> args=null;
+	Token t=null;
+}
+{
+	wff=predicateOrFunction()(t=<CMP>wff2=predicateOrFunction())? {return (t==null)?wff:makeFormula(t,t.image,makeArglist(wff,makeArglist(wff2)));}
+	|<LB>wff=formula()<RB> {return wff;}
+	|(t=<CMP>args=arguments2()){return makeFormula(t,t.image,args);}
+	|(t=<AND>args=arguments()){return makeFormula(t,"and",args);}
+	|(t=<OR>args=arguments()){return makeFormula(t,"or",args);}
+	|(t=<NOT>wff=formula()){return makeFormula(t,"not",makeArglist(wff));}
+}
+DialogueKBFormula predicateOrFunction() :{
+	DialogueKBFormula wff,wff2;
+	List<DialogueKBFormula> args=null;
+	Token t;
+}
+{
+	(t=<ID>|t=<ARIT>)(args=arguments())? {return (args!=null)?makeFormula(t,t.image,args):makeFormula(t,t.image);}
+	|(<STRING>t=<ANY>) {return makeFormula(t,"'"+t.image);}
+}
+
+List<DialogueKBFormula> argumentsBody() :{
+	DialogueKBFormula wff;
+	List<DialogueKBFormula> args=null;
+}
+{
+	(wff=formula()(<CM>args=argumentsBody())?) {return (args!=null)?makeArglist(wff,args):makeArglist(wff);}
+}
+List<DialogueKBFormula> arguments() :{
+	List<DialogueKBFormula> args=null;
+}
+{
+	<LB>(args=argumentsBody())?<RB> {return (args!=null)?args:makeArglist();}
+}
+List<DialogueKBFormula> arguments1() :{
+	DialogueKBFormula wff;
+}
+{
+	<LB>wff=formula()<RB> {return makeArglist(wff);}
+}
+List<DialogueKBFormula> arguments2() :{
+	DialogueKBFormula wff,wff2;
+}
+{
+	<LB>wff=formula()<CM>wff2=formula()<RB> {return makeArglist(wff,makeArglist(wff2));}
+}
+List<DialogueKBFormula> arguments2P() :{
+	DialogueKBFormula wff;
+	List<DialogueKBFormula> args;
+}
+{
+	<LB>wff=formula()<CM>args=argumentsBody()<RB> {return makeArglist(wff,args);}
+}
+

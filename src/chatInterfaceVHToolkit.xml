@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:camel="http://camel.apache.org/schema/spring"
+       xmlns:broker="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+	  
+	<import resource="classpath:NLConfigs.xml"/>
+	
+	<bean id="nlChatConfig_EchoNLG" parent="nlConfigHierNLU_RewardDM_EchoNLG">
+       	<property name="runningMode" value="EVAL"/>
+		<property name="defaultCharacter" value="change_this"/>
+		<property name="isStrictNLG" value="true"/>
+		<property name="displayNluOutputChat" value="true"/>
+		<property name="zoomFactorChat" value="1"/>
+		<property name="displayFormAnswerInNlg" value="false"/>
+		<property name="feedbackInputForm" value="questionnaire.html"/>
+		<property name="allowNluTraining" value="true"/>
+		<property name="nlgClass" value="edu.usc.ict.nl.nlg.VRexpressBasicNLG"/>
+		<property name="systemEventsHaveDuration" value="true"/>
+
+		<!--
+       	<property name="vhSpeaker" value="captain"/>
+       	<property name="vhTopic" value="DEFAULT_SCOPE"/>
+       	<property name="vhServer" value="localhost"/>
+		-->
+		<property name="visualizerConfig" value="dmVisualizer.xml"/>
+		<property name="visualizerClass" value="edu.usc.ict.nl.dm.visualizer.prefuse.RewardDMVisualizerPrefuse"/>
+	</bean>
+	
+	<bean id="nlModuleChat" class="edu.usc.ict.simcoach.nl.SimcoachNLEvaluation" scope="singleton">
+		<property name="configuration" ref="nlChatConfig_EchoNLG"/>
+    </bean> 
+	
+    <bean id="chatInterface" class="edu.usc.ict.simcoach.nl.test.ChatInterface" scope="singleton">
+  		<constructor-arg ref="nlModuleChat"/>
+  	</bean> 
+</beans>
