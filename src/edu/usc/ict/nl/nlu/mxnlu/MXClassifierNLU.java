@@ -457,10 +457,10 @@ public class MXClassifierNLU extends NLU {
 		System.out.println(text+" "+cl.getPayload("answer.time-period",text));
 		List<Token> tokens = BuildTrainingData.tokenize(text);
 		System.out.println(BuildTrainingData.tokenize("or(a , and ( a,or(d,e)),c)",DialogueKBFormula.formulaTokenTypes));
-		Long num=BasicNE.getTimePeriodInSeconds(tokens);
-		System.out.println("count/day: "+BasicNE.getTimesEachDay(tokens));
-		System.out.println("count/week: "+BasicNE.getTimesEachDay(tokens)*7);
-		System.out.println("count/month: "+BasicNE.getTimesEachDay(tokens)*30);
+		Long num=BasicNE.getTimePeriodInSeconds(text);
+		System.out.println("count/day: "+BasicNE.getTimesEachDay(text));
+		System.out.println("count/week: "+BasicNE.getTimesEachDay(text)*7);
+		System.out.println("count/month: "+BasicNE.getTimesEachDay(text)*30);
 		if (num!=null) {
 			System.out.println("num days: "+BasicNE.convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInDay));
 		}

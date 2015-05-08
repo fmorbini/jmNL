@@ -85,8 +85,8 @@
 		<property name="nluClass" value="edu.usc.ict.nl.nlu.multi.MultiNLU"/>
 		<property name="internalNluListForMultiNlu">
 			<map>
-				<entry key="speech_act_classifier" value="edu.usc.ict.nl.nlu.hierarchical.HierarchicalNLU" config=""/>
-				<entry key="topic_detector" value="edu.usc.ict.nl.nlu.topic.WordlistTopicDetection" />
+				<entry key="speech_act_classifier"> <ref bean="HierMXNLU"/></entry>
+				<entry key="topic_detector" <ref bean="wordlistTopicDetector"/></entry>
 			</map>
 		</property>-->
 		<!-- ########################## NLU END ################################### -->
@@ -202,6 +202,17 @@
 		<property name="nluClass" value="edu.usc.ict.nl.nlu.directablechar.LFNLU2"/>
 	</bean>
 	
+	<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
+		<constructor-arg>
+ 			<value type="java.lang.String">"filename of model"</value>
+		</constructor-arg>
+		<!-- 
+ 		<constructor-arg index="0" value=".*number"/>
+		<constructor-arg index="1" value="answer.number"/>
+		<constructor-arg index="2" value="answer.relative-quantity.number"/>
+		<constructor-arg index="3" value="answer.bio-info.user.age"/>
+		-->
+	</bean>
 	<bean id="NumberNE" class="edu.usc.ict.nl.nlu.ne.Numbers">
 		<constructor-arg>
  			<value type="java.lang.String[]">.*number,answer.bio-info.user.age</value>

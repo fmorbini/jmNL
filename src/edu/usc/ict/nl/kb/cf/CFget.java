@@ -16,6 +16,8 @@ import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.EvalContext;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.nlu.ne.BasicNE;
+import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.Numbers;
 import edu.usc.ict.nl.util.StringUtils;
 
@@ -61,7 +63,8 @@ public class CFget implements CustomFunctionInterface {
 		Numbers ne = new Numbers("test");
 		ne.setConfiguration(nlu.getConfiguration());
 		String string="i want 18 and twenty four bananas with 4 more and thirty.";
-		Map<String, Object> x = ne.extractPayloadFromText(string, "test");
+		List<NE> nes = ne.extractNamedEntitiesFromText(string, "test");
+		Map<String, Object> x = BasicNE.createPayload(nes);
 		dm.updateISwithNLUvariablesFromEvent(dm.getRootInformationState(),new NLUEvent(new NLUOutput(string, "test", 1, x), 0));
 		Object r=dm.getInformationState().evaluate(DialogueKBFormula.parse("==("+getName()+"(allnums,1),24)"),null);
 		return (Boolean) r;

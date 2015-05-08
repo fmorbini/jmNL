@@ -55,6 +55,7 @@ import org.apache.commons.cli.PosixParser;
 import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.util.AhoCorasick;
+import edu.usc.ict.nl.util.AhoCorasick.LazyArray;
 import edu.usc.ict.nl.util.AhoCorasick.Match;
 import edu.usc.ict.nl.util.AhoCorasick.MatchList;
 import edu.usc.ict.nl.util.Pair;
@@ -370,7 +371,7 @@ public class AnnotationTool extends JDialog implements WindowListener, ActionLis
         AhoCorasick search = new AhoCorasick();
         search.addPattern(q);
         search.finalizePatternAdditions();
-        MatchList[] chart = search.findMatchesInString(possibleLabelsString);
+        LazyArray<MatchList> chart = search.findMatchesInString(possibleLabelsString);
 		List<Match> found = search.getOptimalMatchSequence(chart, 0, new HashMap<Integer, List<Match>>());
         Set<Integer> lineMatches=findLinesWithMatch(found,possibleLabelsString);
         return lineMatches;

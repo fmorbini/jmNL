@@ -31,8 +31,8 @@ public class Numbers extends BasicNE {
 	}
 	
 	@Override
-	public Map<String, Object> extractPayloadFromText(String text,String speechAct) throws Exception {
-		Map<String, Object> payloads = null;
+	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
+		List<NE> payloads = null;
 		if (sas!=null) {
 			boolean match=false;
 			for(int i=0;i<sas.length;i++) {
@@ -41,19 +41,17 @@ public class Numbers extends BasicNE {
 			}
 			if (match) {
 				NumberSearcher ns = new NumberSearcher(text);
-				List<Double> allNumbers=null;
+				boolean first=true;
 				while(ns.possiblyContainingNumber()) {
 					Double num=ns.getNextNumber();
 					if (num!=null) {
 						logger.info("Extracted number "+num+" from the answer '"+text+"'.");
-						if (payloads==null) payloads=new HashMap<String, Object>();
-						if (!payloads.containsKey(firstNumVar.getName())) {
-							payloads.put(firstNumVar.getName(), num);
-							payloads.put(allNumVar.getName(), allNumbers=new ArrayList<Double>());
-							allNumbers.add(num);
-						} else {
-							allNumbers.add(num);
+						if (payloads==null) payloads=new ArrayList<NE>();
+						if (first) {
+							payloads.add(new NE(firstNumVar.getName(),num,firstNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd())));
+							first=false;
 						}
+						payloads.add(new NE(allNumVar.getName(),num,allNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd())));
 					}
 				}
 			}
@@ -63,10 +61,11 @@ public class Numbers extends BasicNE {
 	
 	public static void main(String[] args) throws Exception {
 		NLU nlu=NLU.init("MXNLU");
-		nlu.getConfiguration().setForcedNLUContentRoot("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\resources\\characters\\common\\nlu");
+		nlu.getConfiguration().setForcedNLUContentRoot("C:\\simcoach_svn\\trunk\\core\\NLModule\\resources\\characters\\common\\nlu");
 		Numbers ne = new Numbers("test");
 		ne.setConfiguration(nlu.getConfiguration());
-		Map<String, Object> x = ne.extractPayloadFromText("i want 18 and twenty four bananas with 4 more and thirty.", "test");
+		List<NE> x = ne.extractNamedEntitiesFromText("i want 18 and twenty four bananas with 4 more and thirty.", "test");
 		System.out.println(x);
+		System.out.println(BasicNE.createPayload(x));
 	}
 }

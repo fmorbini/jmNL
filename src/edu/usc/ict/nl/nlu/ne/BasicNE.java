@@ -1,11 +1,15 @@
 package edu.usc.ict.nl.nlu.ne;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,11 +25,14 @@ import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.parser.ChartParser;
 import edu.usc.ict.nl.parser.ChartParser.Item;
 import edu.usc.ict.nl.parser.semantics.ParserSemanticRulesTimeAndNumbers;
+import edu.usc.ict.nl.util.FunctionalLibrary;
+import edu.usc.ict.nl.util.Pair;
+import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
 
 public abstract class BasicNE implements NamedEntityExtractorI {
 	private NLUConfig configuration;
-
+	
 	private SpecialEntitiesRepository svs=null;
 	
 	protected static final Logger logger = Logger.getLogger(NLU.class.getName());
@@ -54,7 +61,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 	}
 
 	public class NumberSearcher {
-		private int start=0,nextstart=0;
+		private int start=0,nextstart=0,thisstart=0;
 		private Matcher m;
 		private final Pattern p=Pattern.compile("([\\+\\-]*[\\d\\.]+[eE\\+\\-\\d]*)");
 		private ChartParser parser=null;
@@ -120,6 +127,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 			try {
 				if (m.find(start)) {
 					this.nextstart=m.end();
+					this.thisstart=m.start();
 					Double number=Double.parseDouble(m.group(1));
 					return number;
 				}
@@ -135,25 +143,29 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 						Iterator<Item> resultIterator = result.iterator();
 						Item r=resultIterator.next();
 						Object n=r.getSemantics();
-						if (n!=null && n instanceof Number)
+						if (n!=null && n instanceof Number) {
 							this.nextstart=inputTokens.get(r.getEnd()-1).getEnd();
+							this.thisstart=inputTokens.get(r.getStart()).getStart();
 							return ((Number)n).doubleValue();
+						}
 					}
 				}
 			} catch (Exception e) {e.printStackTrace();}
 			return null;
 		}
-		
+		public int getStart() {
+			return thisstart;
+		}
+		public int getEnd() {
+			return nextstart;
+		}
 	}
-	public static Long getTimePeriodInSeconds(List<Token> tokens) {
+	public static Long getTimePeriodInSeconds(String input) {
 		ChartParser parser;
 		try {
 			parser = ChartParser.getParserForGrammar(new File("resources/characters/common/nlu/time-period-grammar.txt"));
-			ArrayList<String> input=new ArrayList<String>();
-			for (Token t:tokens) {
-				input.add(t.getName());
-			}
-			Collection<Item> result = parser.parseAndFilter(input,"<TP>");
+			String[] parts=input.split("[\\s]+");
+			Collection<Item> result = parser.parseAndFilter(Arrays.asList(parts),"<TP>");
 			if (result.size()==1) {
 				Iterator<Item> resultIterator = result.iterator();
 				Item r=resultIterator.next();
@@ -175,15 +187,12 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 	}
 	
 	// return number of times per day
-	public static Double getTimesEachDay(List<Token> tokens) {
+	public static Double getTimesEachDay(String text) {
 		ChartParser parser;
 		try {
 			parser = ChartParser.getParserForGrammar(new File("resources/characters/common/nlu/time-period-grammar.txt"));
-			ArrayList<String> input=new ArrayList<String>();
-			for (Token t:tokens) {
-				input.add(t.getName());
-			}
-			Collection<Item> result = parser.parseAndFilter(input,"<FP>");
+			String[] input=text.split("[\\s]+");
+			Collection<Item> result = parser.parseAndFilter(Arrays.asList(input),"<FP>");
 			Double prevTimesEachSecond=null;
 			for (Item r:result) {
 				Double timesEachSecond=(Double)r.getSemantics();
@@ -191,15 +200,80 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 				else prevTimesEachSecond=timesEachSecond;
 			}
 			if (prevTimesEachSecond==null) {
-				logger.info(" extracting frequency from: "+BuildTrainingData.untokenize(tokens));
+				logger.info(" extracting frequency from: "+text);
 				return null;
 			} else return ParserSemanticRulesTimeAndNumbers.numSecondsInDay*prevTimesEachSecond;
 		} catch (Exception e) {e.printStackTrace();}
 		return null;
 	}
 
-	@Override
-	public Token generalize(Token input) {
+	public String fromTokensToOriginalString(List<Token> in) {
+		try {
+			return FunctionalLibrary.printCollection(FunctionalLibrary.map(in, Pair.class.getMethod("getOriginal")), "", "", " ");
+		} catch (Exception e) {
+			logger.error(e);
+		}
 		return null;
+	}
+	
+	@Override
+	public void generalize(List<Token> inputTokens) {
+		List<Integer> tokenStarts=new ArrayList<Integer>();
+		int i=0;
+		for(Token t:inputTokens) {
+			tokenStarts.add(i);
+			i+=1+t.getOriginal().length();
+		}
+		assert(tokenStarts.size()==inputTokens.size());
+		String input=fromTokensToOriginalString(inputTokens);
+		try {
+			List<NE> nes = extractNamedEntitiesFromText(input, null);
+			if (nes!=null) {
+				for(NE ne:nes) {
+					int start=ne.getStart();
+					int end=ne.getEnd();
+					boolean isWholeWordsSubstring=StringUtils.isWholeWordSubstring(start,end,input);
+					if (isWholeWordsSubstring) {
+						for(int j=getTokenAtPosition(start,tokenStarts);j<getTokenAtPosition(end,tokenStarts);j++) {
+							Token original=inputTokens.get(j);
+							Token newToken=new Token("<"+ne.getType()+">", original.getType(), ne.getMatchedString(), start, end);
+							inputTokens.set(j, newToken);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("error generalizing text", e);
+		}
+	}
+	private int getTokenAtPosition(int chPos, List<Integer> tokenStarts) {
+		int token=0;
+		for(int tokenStartPos:tokenStarts) {
+			if (chPos<tokenStartPos) return token-1;
+			token++;
+		}
+		return token;
+	}
+	public static Map<String, Object> createPayload(List<NE> foundNEs) {
+		Map<String,Object> ret=null;
+		if (foundNEs!=null) {
+			for(NE ne:foundNEs) {
+				if (ne!=null) {
+					String vname=ne.getVarName();
+					if (ret==null) ret=new HashMap<String, Object>();
+					Object content=ret.get(vname);
+					if (content==null) ret.put(vname, ne.getValue());
+					else if (content instanceof List) ((List) content).add(ne.getValue());
+					else {
+						Object oldElement=content;
+						content=new ArrayList();
+						ret.put(vname, content);
+						((List) content).add(oldElement);
+						((List)content).add(ne.getValue());
+					}
+				}
+			}
+		}
+		return ret;
 	}
 }

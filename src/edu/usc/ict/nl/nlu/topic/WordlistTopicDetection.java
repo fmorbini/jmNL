@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import sun.security.acl.WorldGroupImpl;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.BuildTrainingData;
@@ -40,7 +41,7 @@ public class WordlistTopicDetection extends NLU {
 		
 	}
 	
-	private static final Pattern hierModelLine=Pattern.compile("^([^\\s]+)[\\s]+([^\\s]+)$");
+	private static final Pattern hierModelLine=Pattern.compile("^([^\\s]+)[\\s]+(.+)$");
 	@Override
 	public void loadModel(File modelFile) throws Exception {
 		try {
@@ -62,11 +63,7 @@ public class WordlistTopicDetection extends NLU {
 		}
 	}
 	
-	private static LinkedHashMap<TokenTypes, Pattern> topicTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(BuildTrainingData.defaultTokenTypes){
-		private static final long serialVersionUID = 1L;
-		{
-		}
-	};
+	private static LinkedHashMap<TokenTypes, Pattern> topicTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(BuildTrainingData.defaultTokenTypes);
 	private class TopicMatcher {
 		AhoCorasickList m;
 		final String topicID; 
@@ -220,8 +217,10 @@ public class WordlistTopicDetection extends NLU {
 		NLUConfig c=(NLUConfig) NLUConfig.WIN_EXE_CONFIG.clone();
 		c.setNluClass(WordlistTopicDetection.class.getCanonicalName());
 		c.setInternalNluClass4Hier(MXClassifierNLU.class.getCanonicalName());
+		c.setForcedNLUContentRoot("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\");
+		c.setNluModelFile("military - Copy");
 		WordlistTopicDetection wt = new WordlistTopicDetection(c);
-		List<NLUOutput> r = wt.getNLUOutput("ssssssssss", null,null);
+		List<NLUOutput> r = wt.getNLUOutput("the things i eat are many fruits liek bananas and apples", null,null);
 		System.out.println(r);
 	}
 }

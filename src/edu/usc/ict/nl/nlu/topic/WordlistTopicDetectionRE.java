@@ -11,14 +11,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
+import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher.TopicMatcherRE;
 import edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
@@ -27,8 +31,8 @@ import edu.usc.ict.nl.util.StringUtils;
 
 public class WordlistTopicDetectionRE extends NLU {
 
-	private List<TopicMatcher> topics=null;
-
+	private KeywordREMatcher matcher=null;
+	
 	public WordlistTopicDetectionRE(NLUConfig c) throws Exception {
 		super(c);
 		
@@ -37,66 +41,16 @@ public class WordlistTopicDetectionRE extends NLU {
 		
 	}
 	
-	private static final Pattern hierModelLine=Pattern.compile("^([^\\s]+)[\\s]+([^\\s]+)$");
 	@Override
-	public void loadModel(File modelFile) throws Exception {
-		try {
-			topics=null;
-			String line;
-			BufferedReader in=new BufferedReader(new FileReader(modelFile));
-			while((line=in.readLine())!=null) {
-				Matcher m=hierModelLine.matcher(line);
-				if (m.matches() && (m.groupCount()==2)) {
-					String topicIdentifier=m.group(1);
-					File thisNodeModelFile=new File(getConfiguration().getNLUContentRoot(),new File(m.group(2)).getName());
-					if (topics==null) topics=new ArrayList<WordlistTopicDetectionRE.TopicMatcher>();
-					topics.add(new TopicMatcher(topicIdentifier,thisNodeModelFile));
-				}
-			}
-			in.close();
-		} catch (Exception e) {
-			logger.warn("Error during hierarchical model building.",e);
-		}
-	}
+	public void loadModel(File nluModel) throws Exception {
+		this.matcher=new KeywordREMatcher(nluModel);
+	};
 	
 	private static LinkedHashMap<TokenTypes, Pattern> topicTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(BuildTrainingData.defaultTokenTypes){
 		private static final long serialVersionUID = 1L;
 		{
 		}
 	};
-	private class TopicMatcher {
-		Pattern p=null;
-		final String topicID; 
-		public TopicMatcher(String topicIdentifier, File patternFile) {
-			topicID=topicIdentifier;
-			p=loadPatternsFromFile(patternFile.getAbsolutePath());
-		}
-		
-		public Pattern loadPatternsFromFile(String patternFile) {
-			try {
-				String line;
-				BufferedReader in=new BufferedReader(new FileReader(patternFile));
-				StringBuffer patternString=new StringBuffer();
-				while((line=in.readLine())!=null) {
-					if (patternString.length()>0) patternString.append("|");
-					patternString.append("("+line+")");
-				}
-				if (patternString.length()>0) return Pattern.compile(patternString.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
-		}
-
-		public String matches(String text) {
-			if (p!=null) {
-				Matcher m=p.matcher(text);
-				if (m.matches()) return topicID;
-			}
-			return null;
-		}
-	}
-
 	public List<String> getTokensStrings(String line) throws Exception {
 		BuildTrainingData b = getBTD();
 		String processedText=(getConfiguration().getApplyTransformationsToInputText())?b.prepareUtteranceForClassification(line,topicTokenTypes):line;
@@ -108,14 +62,11 @@ public class WordlistTopicDetectionRE extends NLU {
 	@Override
 	public List<NLUOutput> getNLUOutput(String text,Set<String> possibleNLUOutputIDs,Integer nBest) throws Exception {
 		List<NLUOutput> nluResult = null;
-		if (topics!=null) {
-			for(TopicMatcher tm:topics) {
-				String match=tm.matches(text);
-				if (match!=null) {
-					if (nluResult==null) nluResult=new ArrayList<NLUOutput>();
-					nluResult.add(new NLUOutput(text, match, 1, null));
-				}
-			}
+		if (matcher!=null && matcher.matches(text)) {
+			TopicMatcherRE tm = matcher.getLastMatchMatcher();
+			String match=tm.getMatchedString(text);
+			if (nluResult==null) nluResult=new ArrayList<NLUOutput>();
+			nluResult.add(new NLUOutput(text, tm.getTopicID(), 1, NLU.createPayload(tm.getTopicID(),DialogueKBFormula.generateStringConstantFromContent(match), null)));
 		}
 		if (nluResult==null || nluResult.isEmpty()) {
 			String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
@@ -170,7 +121,7 @@ public class WordlistTopicDetectionRE extends NLU {
 	}
 	
 	public PerformanceResult testNLUOnThisData(List<TrainingDataFormat> testing,File model,boolean printMistakes) throws Exception {
-		List<TopicMatcher> oldTopics = topics;
+		KeywordREMatcher oldMatcher = matcher;
 		loadModel(model);
 		PerformanceResult result=new PerformanceResult();
 		for(TrainingDataFormat td:testing) {
@@ -185,17 +136,18 @@ public class WordlistTopicDetectionRE extends NLU {
 				}
 			}
 		}
-		topics=oldTopics;
+		matcher=oldMatcher;
 		return result;
 	}
 
 	@Override
 	public boolean isPossibleNLUOutput(NLUOutput o) throws Exception {
-		if (topics!=null) {
+		if (matcher!=null) {
 			String id=o.getId();
-			for(TopicMatcher tm:topics) {
-				if (!StringUtils.isEmptyString(tm.topicID)) {
-					if (tm.topicID.equals(id)) return true;
+			List<TopicMatcherRE> topics=matcher.getTopics();
+			for(TopicMatcherRE tm:topics) {
+				if (!StringUtils.isEmptyString(tm.getTopicID())) {
+					if (tm.getTopicID().equals(id)) return true;
 				}
 			}
 		}
@@ -205,11 +157,11 @@ public class WordlistTopicDetectionRE extends NLU {
 	@Override
 	public HashSet<String> getAllSimplifiedPossibleOutputs() throws Exception {
 		HashSet<String> ret = null;
-		if (topics!=null) {
-			for(TopicMatcher tm:topics) {
-				if (!StringUtils.isEmptyString(tm.topicID)) {
+		if (matcher!=null) {
+			for(TopicMatcherRE tm:matcher.getTopics()) {
+				if (!StringUtils.isEmptyString(tm.getTopicID())) {
 					if (ret==null) ret=new HashSet<String>();
-					ret.add(tm.topicID);
+					ret.add(tm.getTopicID());
 				}
 			}
 		}
@@ -224,10 +176,12 @@ public class WordlistTopicDetectionRE extends NLU {
 		NLUConfig c=(NLUConfig) NLUConfig.WIN_EXE_CONFIG.clone();
 		c.setNluClass(WordlistTopicDetectionRE.class.getCanonicalName());
 		//c.setDefaultCharacter("Ellie_DCAPS");
-		c.setNluModelFile("classifier-model-multi-topic_detector");
+		c.setForcedNLUContentRoot("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\");
+		c.setNluModelFile("military");
+		//c.setNluModelFile("classifier-model-multi-topic_detector");
 		c.setInternalNluClass4Hier(MXClassifierNLU.class.getCanonicalName());
 		WordlistTopicDetectionRE wt = new WordlistTopicDetectionRE(c);
-		List<NLUOutput> r = wt.getNLUOutput("depressed", null,null);
+		List<NLUOutput> r = wt.getNLUOutput("in the military they clean the bills.", null,null);
 		System.out.println(r);
 	}
 }

@@ -23,8 +23,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import edu.usc.ict.nl.bus.NLBusBase;
-import edu.usc.ict.nl.bus.special_variables.SpecialEntitiesRepository;
-import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ConfusionEntry;
@@ -32,6 +30,8 @@ import edu.usc.ict.nl.nlu.FoldsData;
 import edu.usc.ict.nl.nlu.Model;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.ne.BasicNE;
+import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
@@ -322,8 +322,9 @@ public abstract class NLU implements NLUInterface {
 		Map<String, Object> totalPayload=null;
 		if (nes!=null) {
 			for(NamedEntityExtractorI ne:nes) {
-				Map<String, Object> payload=ne.extractPayloadFromText(text, sa);
-				if (payload!=null) {
+				List<NE> foundNEs=ne.extractNamedEntitiesFromText(text, sa);
+				if (foundNEs!=null) {
+					Map<String,Object> payload=BasicNE.createPayload(foundNEs);
 					if (totalPayload==null) totalPayload=payload;
 					else totalPayload.putAll(payload);
 				}
@@ -435,6 +436,14 @@ public abstract class NLU implements NLUInterface {
 	}
 	public Model readModelFileNoCache(File mf) throws Exception {
 		throw new Exception("unhandled");
+	}
+
+	public static Map<String,Object> createPayload(String varName,Object value,Map<String,Object> payload) {
+		if (varName!=null) {
+			if (payload==null) payload=new HashMap<String, Object>();
+			payload.put(varName, value);
+		}
+		return payload;
 	}
 
 }

@@ -817,20 +817,15 @@ public class BuildTrainingData {
 	}
 	public List<Token> generalize(List<Token> tokens) {
 		List<NamedEntityExtractorI> nes = getNamedEntityExtractors();
-		List<Token> ret=new ArrayList<Token>();
+		List<Token> ret=new ArrayList<Token>(tokens);
 		TokenTypes type;
-		for (Token t:tokens) {
-			boolean generalized=false;
-			if (nes!=null) {
-				for(NamedEntityExtractorI ne:nes) {
-					Token generalizedToken=ne.generalize(t);
-					if (generalizedToken!=null) {
-						ret.add(generalizedToken);
-						generalized=true;
-						break;
-					}
-				}
+		boolean generalized=false;
+		if (nes!=null) {
+			for(NamedEntityExtractorI ne:nes) {
+				ne.generalize(ret);
 			}
+		}
+		for (Token t:ret) {
 			if (!generalized) {
 				type=t.getType();
 				if ((type==TokenTypes.NUM) && getConfiguration().getGeneralizeNumbers()) {

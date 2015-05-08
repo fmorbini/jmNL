@@ -171,14 +171,24 @@ public class TraverseFST {
 	public String generateFSTforUtterance(String input)  throws Exception {
 		return generateFSTforUtterance(input, in);
 	}
+	/**
+	 * if iSymbols is not provided, it'll ignore the symbols and leave all words.
+	 * @param input
+	 * @param iSymbols
+	 * @return
+	 * @throws Exception
+	 */
 	public List<Token> generateInputTextForFST(String input,File iSymbols) throws Exception {
-		Map<Integer, String> syms = openSymbols(iSymbols);
-		Set<String> knownWords=new HashSet<String>(syms.values());
+		Set<String> knownWords=null;
+		if (iSymbols!=null) {
+			Map<Integer, String> syms = openSymbols(iSymbols);
+			knownWords=new HashSet<String>(syms.values());
+		}
 		List<Token> tokens = BuildTrainingData.tokenize(input);
 		Iterator<Token> it=tokens.iterator();
 		while(it.hasNext()) {
 			Token t=it.next();
-			if (!knownWords.contains(t.getName().toLowerCase())) {
+			if (knownWords!=null && !knownWords.contains(t.getName().toLowerCase())) {
 				//t.setName("<unk>");
 				it.remove();
 			}
@@ -302,6 +312,8 @@ public class TraverseFST {
 
 	public static void main(String[] args) throws Exception {
 		TraverseFST tf=new TraverseFST();
+		String inputFST=tf.generateFSTforUtterance("this is a test",null);
+		System.out.println(inputFST);
 		String retFST=tf.getNLUforUtterance("sharp pain",10);
 		List<FSTNLUOutput> results = tf.getResults(retFST);
 		System.out.println(FunctionalLibrary.printCollection(results, "", "", "\n"));
