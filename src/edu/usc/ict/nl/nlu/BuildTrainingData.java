@@ -822,7 +822,7 @@ public class BuildTrainingData {
 		boolean generalized=false;
 		if (nes!=null) {
 			for(NamedEntityExtractorI ne:nes) {
-				ne.generalize(ret);
+				generalized|=ne.generalize(ret);
 			}
 		}
 		if (!generalized && getConfiguration().getGeneralizeNumbers()) {
