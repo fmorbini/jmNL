@@ -105,6 +105,14 @@ public class KeywordREMatcher {
 			}
 			return null;
 		}
+		public int getStart() {
+			if (m!=null) return m.start();
+			return -1;
+		}
+		public int getEnd() {
+			if (m!=null) return m.end();
+			return -1;
+		}
 
 		public String getTopicID() {
 			return topicID;

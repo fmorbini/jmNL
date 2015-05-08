@@ -1,23 +1,20 @@
 package edu.usc.ict.nl.nlu.ne;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
-import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
-import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.Token.TokenTypes;
+import edu.usc.ict.nl.nlu.ne.searchers.NumberSearcher;
 
 public class Numbers extends BasicNE {
 	
 	private Pattern[] sas=null;
 	
-	public static final SpecialVar firstNumVar=new SpecialVar(null,"NUM",
+	public static final SpecialVar firstNumVar=new SpecialVar(null,TokenTypes.NUM.toString(),
 			"Number extracted from a answer.number or answer.number-in-period speech acts.","0",Number.class);
 	public static final SpecialVar allNumVar=new SpecialVar(null,"ALLNUMS",
 			"Numbers extracted from a answer.number or answer.number-in-period speech acts.","0",List.class);
@@ -40,7 +37,7 @@ public class Numbers extends BasicNE {
 				if (match=m.matches()) break;
 			}
 			if (match) {
-				NumberSearcher ns = new NumberSearcher(text);
+				NumberSearcher ns = new NumberSearcher(getConfiguration(), text);
 				boolean first=true;
 				while(ns.possiblyContainingNumber()) {
 					Double num=ns.getNextNumber();

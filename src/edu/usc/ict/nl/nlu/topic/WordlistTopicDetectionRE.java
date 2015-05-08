@@ -46,16 +46,17 @@ public class WordlistTopicDetectionRE extends NLU {
 		this.matcher=new KeywordREMatcher(nluModel);
 	};
 	
-	private static LinkedHashMap<TokenTypes, Pattern> topicTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(BuildTrainingData.defaultTokenTypes){
-		private static final long serialVersionUID = 1L;
-		{
-		}
-	};
 	public List<String> getTokensStrings(String line) throws Exception {
+		return getTokensStrings(line, "getName");
+	}
+	public List<String> getTokensOriginalStrings(String line) throws Exception {
+		return getTokensStrings(line, "getOriginal");
+	}
+	public List<String> getTokensStrings(String line,String method) throws Exception {
 		BuildTrainingData b = getBTD();
-		String processedText=(getConfiguration().getApplyTransformationsToInputText())?b.prepareUtteranceForClassification(line,topicTokenTypes):line;
-		List<Token> tokens = b.tokenize(processedText, topicTokenTypes);
-		List<String> ts=(List<String>) FunctionalLibrary.map(tokens, Pair.class.getMethod("getName"));
+		String processedText=(getConfiguration().getApplyTransformationsToInputText())?b.prepareUtteranceForClassification(line):line;
+		List<Token> tokens = BuildTrainingData.tokenize(processedText);
+		List<String> ts=(List<String>) FunctionalLibrary.map(tokens, Token.class.getMethod(method));
 		return ts;
 	}
 
