@@ -1,0 +1,54 @@
+Copyright [2011-2015] [USC Institute of Creative Technologies]
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+licenses and URL (as of May 2015) of 3rd party libraries:
+kylm.jar: LGPL http://www.phontron.com/kylm/
+libsvm-3.18.jar: http://www.csie.ntu.edu.tw/~cjlin/libsvm/COPYRIGHT http://www.csie.ntu.edu.tw/~cjlin/libsvm/
+log4j-1.2.14.jar: apache v2 http://logging.apache.org/log4j/2.x/license.html
+lucene-core-3.6.1.jar: Apache v2 https://lucene.apache.org/core/
+mallet.jar: http://mallet.cs.umass.edu/
+mallet-deps.jar: http://mallet.cs.umass.edu/
+mcNLU.jar,mcNLU-small.jar: deprecated, will be removed.
+opennlp-maxent-3.0.3.jar: Apache v2 https://opennlp.apache.org/
+poi-3.10-FINAL-20140208.jar: Apache v2 https://poi.apache.org/
+poi-ooxml-3.10-FINAL-20140208.jar: Apache v2 https://poi.apache.org/
+poi-ooxml-schemas-3.10-FINAL-20140208.jar: Apache v2 https://poi.apache.org/
+prefuse.jar: https://github.com/prefuse/Prefuse
+scxml.jar: A modified version of an earlier release of apache SCXML library. Inquire for obtaining the source code. http://commons.apache.org/proper/commons-scxml/
+spring-aop-3.2.9.RELEASE.jar: Apache v2 https://github.com/spring-projects/spring-framework
+spring-beans-3.2.9.RELEASE.jar
+spring-context-3.2.9.RELEASE.jar
+spring-core-3.2.9.RELEASE.jar
+spring-expression-3.2.9.RELEASE.jar
+spring-jdbc-3.2.9.RELEASE.jar
+spring-jms-3.2.9.RELEASE.jar
+spring-orm-3.2.9.RELEASE.jar
+spring-tx-3.2.9.RELEASE.jar
+utilities.jar: contact for details
+VHBridge.jar: contact for details
+vhmsg-java.jar: LGPL v2 http://sourceforge.net/projects/vhmsg/
+xbean.jar: Apache v2 http://geronimo.apache.org/xbean/
+xml-apis-1.4.01.jar: http://xerces.apache.org/xml-commons/components/external/
+xstream-1.4.5.jar: BSD http://xstream.codehaus.org/license.html
+args4j-2.0.23.jar: MIT http://www.kohsuke.org/
+ASRAudio.jar: contacts for details
+clearnlp-2.0.2.jar: Apache v2 https://github.com/clir/clearnlp
+commons-cli-1.2.jar: Apache v2 https://commons.apache.org/proper/commons-cli/
+commons-jexl-1.1.jar: Apache v2 https://commons.apache.org/proper/commons-jexl/
+dom4j-1.6.1.jar: BSD http://sourceforge.net/projects/dom4j/
+guava-14.0.1.jar: Apache v2 https://github.com/google/guava
+hppc-0.5.2.jar: Apache v2 http://labs.carrotsearch.com/hppc.html
+JavaLibs.jar: contact for details
+jregex1.2_01.jar: BSD http://sourceforge.net/projects/jregex/
+Json.jar: https://github.com/douglascrockford/JSON-java
