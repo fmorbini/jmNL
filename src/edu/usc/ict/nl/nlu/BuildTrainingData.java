@@ -822,16 +822,15 @@ public class BuildTrainingData {
 		boolean generalized=false;
 		if (nes!=null) {
 			for(NamedEntityExtractorI ne:nes) {
-				ne.generalize(ret);
+				generalized|=ne.generalize(ret);
 			}
 		}
-		for (Token t:ret) {
-			if (!generalized) {
+		if (!generalized && getConfiguration().getGeneralizeNumbers()) {
+			for(int i=0;i<ret.size();i++) {
+				Token t=ret.get(i);
 				type=t.getType();
-				if ((type==TokenTypes.NUM) && getConfiguration().getGeneralizeNumbers()) {
-					ret.add(new Token("<"+TokenTypes.NUM.toString()+">", TokenTypes.NUM,t.getOriginal()));
-				} else {
-					ret.add(t);
+				if ((type==TokenTypes.NUM)) {
+					ret.set(i,new Token("<"+TokenTypes.NUM.toString()+">", TokenTypes.NUM,t.getOriginal()));
 				}
 			}
 		}

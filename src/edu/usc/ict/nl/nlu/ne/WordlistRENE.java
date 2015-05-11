@@ -6,8 +6,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.usc.ict.nl.bus.NLBusBase;
+import edu.usc.ict.nl.bus.modules.NLU;
+import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
+import edu.usc.ict.nl.nlu.BuildTrainingData;
+import edu.usc.ict.nl.nlu.directablechar.LFNLU2;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher.TopicMatcherRE;
 
@@ -49,7 +54,7 @@ public class WordlistRENE extends BasicNE {
 					TopicMatcherRE tm = matcher.getLastMatchMatcher();
 					String match=tm.getMatchedString(text);
 					if (payload==null) payload=new ArrayList<NE>();
-					payload.add(new NE(tm.getTopicID(),DialogueKBFormula.generateStringConstantFromContent(match)));
+					payload.add(new NE(tm.getTopicID(),DialogueKBFormula.generateStringConstantFromContent(match),tm.getTopicID(),tm.getStart(),tm.getEnd(),match));
 				} while (matcher.findNext());
 			}
 		}
@@ -57,9 +62,18 @@ public class WordlistRENE extends BasicNE {
 	}
 
 	public static void main(String[] args) throws Exception {
+		NLUConfig config = NLU.getNLUConfig("testNLU");
+		config.setForcedNLUContentRoot("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\");
+		NLBusConfig busconfig=(NLBusConfig) NLBusConfig.WIN_EXE_CONFIG.clone();
+		busconfig.setNluConfig(config);
+		NLU component=(NLU) NLBusBase.createSubcomponent(config, config.getNluClass()); 
+		String out=component.getBTD().prepareUtteranceForClassification("i want to eat a pig and an apple but also a lot of chickens");
+		System.out.println(out);
+		/*
 		WordlistRENE t = new WordlistRENE("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\test");
 		List<NE> r = t.extractNamedEntitiesFromText("i want to eat a pig and an apple but also a lot of chickens", null);
 		System.out.println(r);
 		System.out.println(BasicNE.createPayload(r));
+		*/
 	}
 }
