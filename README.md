@@ -1,5 +1,4 @@
-# jmNL
-modular NL platform for dialogue agents
+## jmNL, a modular NL platform for dialogue agents
 
 see the [LICENSE](LICENSE) file for information on the license and 3rd party libraries included in this project.
 
