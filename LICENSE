@@ -36,19 +36,19 @@ spring-jms-3.2.9.RELEASE.jar
 spring-orm-3.2.9.RELEASE.jar
 spring-tx-3.2.9.RELEASE.jar
 utilities.jar: contact for details
-VHBridge.jar: contact for details
+VHBridge.jar: Apache v2 contact for source code
 vhmsg-java.jar: LGPL v2 http://sourceforge.net/projects/vhmsg/
 xbean.jar: Apache v2 http://geronimo.apache.org/xbean/
 xml-apis-1.4.01.jar: http://xerces.apache.org/xml-commons/components/external/
 xstream-1.4.5.jar: BSD http://xstream.codehaus.org/license.html
 args4j-2.0.23.jar: MIT http://www.kohsuke.org/
-ASRAudio.jar: contacts for details
+ASRAudio.jar: Apache v2, contacts for source code
 clearnlp-2.0.2.jar: Apache v2 https://github.com/clir/clearnlp
 commons-cli-1.2.jar: Apache v2 https://commons.apache.org/proper/commons-cli/
 commons-jexl-1.1.jar: Apache v2 https://commons.apache.org/proper/commons-jexl/
 dom4j-1.6.1.jar: BSD http://sourceforge.net/projects/dom4j/
 guava-14.0.1.jar: Apache v2 https://github.com/google/guava
 hppc-0.5.2.jar: Apache v2 http://labs.carrotsearch.com/hppc.html
-JavaLibs.jar: contact for details
+JavaLibs.jar: Apache v2 contact for source code
 jregex1.2_01.jar: BSD http://sourceforge.net/projects/jregex/
 Json.jar: https://github.com/douglascrockford/JSON-java
