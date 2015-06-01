@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Javadoc|Win32">
+      <Configuration>Javadoc</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{74BC2630-3BF9-4A92-A61B-ECB5D04B2300}</ProjectGuid>
+    <RootNamespace>jmnl</RootNamespace>
+    <Keyword>MakeFileProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">temp\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">temp\</IntDir>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">if %PROCESSOR_ARCHITECTURE%==AMD64 GOTO AMD64
+if !%PROCESSOR_ARCHITEW6432%==!AMD64 GOTO AMD64
+if %PROCESSOR_ARCHITECTURE%==x86 GOTO x86
+
+:AMD64
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre
+goto endProcessorDetection
+
+:x86
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre32
+goto endProcessorDetection
+
+:endProcessorDetection
+
+
+set ANT_PATH=$(SolutionDir)\tools\ant\bin\ant
+if defined ANT_HOME set ANT_PATH="%ANT_HOME%\bin\ant"
+
+call %ANT_PATH% deploy 2&gt;&amp;1 | $(SolutionDir)\tools\JavaOutputToVS\JavaOutputToVS.exe
+exit /B 0
+</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">if %PROCESSOR_ARCHITECTURE%==AMD64 GOTO AMD64
+if !%PROCESSOR_ARCHITEW6432%==!AMD64 GOTO AMD64
+if %PROCESSOR_ARCHITECTURE%==x86 GOTO x86
+
+:AMD64
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre
+goto endProcessorDetection
+
+:x86
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre32
+goto endProcessorDetection
+
+:endProcessorDetection
+
+
+set ANT_PATH=$(SolutionDir)\tools\ant\bin\ant
+if defined ANT_HOME set ANT_PATH="%ANT_HOME%\bin\ant"
+call %ANT_PATH% clean 2&gt;&amp;1 | $(SolutionDir)\tools\JavaOutputToVS\JavaOutputToVS.exe
+call %ANT_PATH% deploy 2&gt;&amp;1 | $(SolutionDir)\tools\JavaOutputToVS\JavaOutputToVS.exe
+exit /B 0
+</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">if %PROCESSOR_ARCHITECTURE%==AMD64 GOTO AMD64
+if !%PROCESSOR_ARCHITEW6432%==!AMD64 GOTO AMD64
+if %PROCESSOR_ARCHITECTURE%==x86 GOTO x86
+
+:AMD64
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre
+goto endProcessorDetection
+
+:x86
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre32
+goto endProcessorDetection
+
+:endProcessorDetection
+
+
+set ANT_PATH=$(SolutionDir)\tools\ant\bin\ant
+if defined ANT_HOME set ANT_PATH="%ANT_HOME%\bin\ant"
+call %ANT_PATH% clean 2&gt;&amp;1 | $(SolutionDir)\tools\JavaOutputToVS\JavaOutputToVS.exe
+exit /B 0
+</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">temp\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">temp\</IntDir>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">if %PROCESSOR_ARCHITECTURE%==AMD64 GOTO AMD64
+if !%PROCESSOR_ARCHITEW6432%==!AMD64 GOTO AMD64
+if %PROCESSOR_ARCHITECTURE%==x86 GOTO x86
+
+:AMD64
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre
+goto endProcessorDetection
+
+:x86
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre32
+goto endProcessorDetection
+
+:endProcessorDetection
+
+
+set ANT_PATH=$(SolutionDir)\tools\ant\bin\ant
+if defined ANT_HOME set ANT_PATH="%ANT_HOME%\bin\ant"
+
+call %ANT_PATH% javadoc 2&gt;&amp;1 | $(SolutionDir)\tools\JavaOutputToVS\JavaOutputToVS.exe
+exit /B 0
+</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">if %PROCESSOR_ARCHITECTURE%==AMD64 GOTO AMD64
+if !%PROCESSOR_ARCHITEW6432%==!AMD64 GOTO AMD64
+if %PROCESSOR_ARCHITECTURE%==x86 GOTO x86
+
+:AMD64
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre
+goto endProcessorDetection
+
+:x86
+if not defined JAVA_HOME set JAVA_HOME=$(SolutionDir)\tools\java\jre32
+goto endProcessorDetection
+
+:endProcessorDetection
+
+
+set ANT_PATH=$(SolutionDir)\tools\ant\bin\ant
+if defined ANT_HOME set ANT_PATH="%ANT_HOME%\bin\ant"
+
+call %ANT_PATH% javadoc 2&gt;&amp;1 | $(SolutionDir)\tools\JavaOutputToVS\JavaOutputToVS.exe
+exit /B 0
+</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">%40rem nothing</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'" />
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <BuildLog>
+      <Path>$(IntDir)$(ProjectName).htm</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Javadoc|Win32'">
+    <BuildLog>
+      <Path>$(IntDir)$(ProjectName).htm</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
