@@ -7,7 +7,6 @@
 	<property name="NLModule.sources"   location="${NLModule}/src"/>
 	<property name="NLModule.resources" location="${NLModule}/resources"/>
 	<property name="NLModule.libraries" location="${NLModule}/lib"/>
-	<property name="NLModule.mxnluEXE" location="${NLModule}/mxnlu"/>
 	<property name="NLModule.binaries"  location="${NLModule}/bin"/>
 	<property name="Binaries.nlmodule"  location="${NLModule}/deployed"/>
 	<property name="Binaries.nlmodule.bin"  location="${Binaries.nlmodule}/bin"/>
@@ -15,7 +14,6 @@
 	<property name="Binaries.nlmodule-logs"  location="${Binaries.nlmodule}/logs"/>
 	<property name="Binaries.nlmodule-src"  location="${Binaries.nlmodule}/src"/>
 	<property name="Binaries.nlmodule-res"  location="${Binaries.nlmodule}/resources"/>
-	<property name="Binaries.nlmodule-mxnluEXE"  location="${Binaries.nlmodule}/mxnlu"/>
 
 	<!-- files -->
 	<property name="NLModule.file.classpath" location="${NLModule}/.classpath"/>
@@ -107,7 +105,6 @@
 		<delete dir="${Binaries.nlmodule-lib}"    includeemptydirs="true"    failonerror="false"/>
 		<delete dir="${Binaries.nlmodule-src}"    includeemptydirs="true"    failonerror="false"/>
 		<delete dir="${Binaries.nlmodule-res}"    includeemptydirs="true"    failonerror="false"/>
-		<delete dir="${Binaries.nlmodule-mxnluEXE}"    includeemptydirs="true"    failonerror="false"/>
 		<delete dir="${Binaries.nlmodule.bin}"    includeemptydirs="true"    failonerror="false"/>
 		<delete dir="${Binaries.nlmodule}"        includeemptydirs="true"    failonerror="false"/>
         <mkdir dir="${Binaries.nlmodule-logs}"/>
@@ -120,9 +117,6 @@
                 </copy>
                 <copy todir="${Binaries.nlmodule-res}" overwrite="true" includeEmptyDirs="false">
                     <fileset dir="${NLModule.resources}"/>
-                </copy>
-                <copy todir="${Binaries.nlmodule-mxnluEXE}" overwrite="true" includeEmptyDirs="false">
-                    <fileset dir="${NLModule.mxnluEXE}"/>
                 </copy>
                 <copy todir="${Binaries.nlmodule-lib}" overwrite="true" enablemultiplemappings="false" includeEmptyDirs="false" flatten="true">
                     <fileset dir="${NLModule.libraries}"/>
