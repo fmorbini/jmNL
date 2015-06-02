@@ -5,9 +5,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.clearnlp.component.AbstractComponent;
 import com.clearnlp.dependency.DEPNode;
@@ -24,6 +28,8 @@ import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.sps.test.NLUTest;
 import edu.usc.ict.nl.nlu.fst.train.Aligner;
 import edu.usc.ict.nl.util.StringUtils;
+import edu.usc.ict.nl.util.graph.Edge;
+import edu.usc.ict.nl.util.graph.Node;
 
 public class DepNLU
 {
@@ -79,11 +85,65 @@ public class DepNLU
 		}
 		return (ret!=null)?ret.toString():null;
 	}
+	
+	private List<Node> getSubject(DEPTree depTree) {
+		List<Node> ret=null;
+		try {
+			CONLL conll = new CONLL(depTree);
+			List<DepEdge> root=conll.getAllEdgesNamed("root");
+			if (root!=null) {
+				for(DepEdge r:root) {
+					List<Edge> oes = r.getTarget().getOutgoingEdges();
+					if (oes!=null) {
+						for(Edge oe:oes) {
+							if (oe.getConsume().equals("nsubj")) {
+								Node target = oe.getTarget();
+								return getLeavesInOrder(target);
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
+	public List<Node> getLeavesInOrder(Node start) {
+		List<Node> ret=null;
+		Deque<Node> q=new ArrayDeque<Node>();
+		Set<Node> visited=new HashSet<Node>();
+		q.add(start);
+		while(!q.isEmpty()) {
+			Node n=q.pop();
+			if (!visited.contains(n)) {
+				visited.add(n);
+				if (n.hasChildren()) {
+					List<Edge> oes = n.getOutgoingEdges();
+					if (oes!=null) {
+						for(Edge oe:oes) {
+							Node target=oe.getTarget();
+							if (target!=null) q.add(target);
+						}
+					}
+				} else {
+					if (ret==null) ret=new ArrayList<Node>();
+					ret.add(n);
+				}
+			}
+		}
+		return ret;
+	}
 
 	public static void main(String[] args) throws Exception
 	{
 		DepNLU parser=new DepNLU();
 		List<DEPTree> result = parser.parse("A small triangle and a big triangle argue inside the room.", System.out);
+		List subject=parser.getSubject(result.get(0));
+		System.out.println(subject);
+		//List verb=parser.getVerb();
+		
 		System.out.println(parser.enrichedInputString(result,"_"));
 		int id=1;
 		if (result!=null) {
@@ -92,6 +152,7 @@ public class DepNLU
 				id++;
 			}
 		}
+		
 		/*
 		List<TrainingDataFormat> test = Aligner.extractTrainingDataFromSingleStep1and3GoogleXLSXForSPS(NLUTest.ros9);
 		
@@ -108,5 +169,6 @@ public class DepNLU
 		}
 */
 	}
+
 
 }

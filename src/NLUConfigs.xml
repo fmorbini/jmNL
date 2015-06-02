@@ -204,7 +204,7 @@
 	
 	<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
 		<constructor-arg>
- 			<value type="java.lang.String">"filename of model"</value>
+ 			<value type="java.lang.String">test</value>
 		</constructor-arg>
 		<!-- 
  		<constructor-arg index="0" value=".*number"/>
@@ -234,6 +234,16 @@
 		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
 		<property name="acceptanceThreshold" value="0.0"/>
 		<property name="maximumNumberOfLabels"><null/></property>
+	</bean>
+	<bean id="testNLU" parent="openNLU">
+		<property name="nluNamedEntityExtractors">
+			<list>
+				<ref bean="NumberNE"/>
+				<ref bean="TimeDurationNE"/>
+				<ref bean="TimeFrequencyNE"/>
+				<ref bean="KeywordNE"/>
+			</list>
+		</property>
 	</bean>
 	
 	<bean id="CascadeMerger" class="edu.usc.ict.nl.nlu.multi.merger.Cascade">

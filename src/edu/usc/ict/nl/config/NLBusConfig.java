@@ -88,7 +88,10 @@ public class NLBusConfig extends NLConfig {
 	private boolean strictNLG=false;
 	private boolean allowEmptyNLGOutput=true;
 	private boolean displayFormAnswerInNlg=true;
-	
+	private String lfNlgLexiconFile;
+	public String getLfNlgLexiconFile() {return getXLSXContentRoot()+lfNlgLexiconFile;}
+	public void setLfNlgLexiconFile(String file) {this.lfNlgLexiconFile = removeAbsolutePath(file);}
+
 	private String visualizerConfig=null,visualizerClass=null;
 
 	
