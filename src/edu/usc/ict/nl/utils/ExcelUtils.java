@@ -88,6 +88,7 @@ public class ExcelUtils {
 							String tmp=null;
 							if (type == Cell.CELL_TYPE_STRING) tmp=cell.getStringCellValue();
 							else if (type == Cell.CELL_TYPE_NUMERIC) tmp=cell.getNumericCellValue()+"";
+							else if (type == Cell.CELL_TYPE_BOOLEAN) tmp=cell.getBooleanCellValue()+"";
 							tmp=StringUtils.cleanupSpaces(tmp);
 							if (!StringUtils.isEmptyString(tmp)) ret.put(row.getRowNum(),tmp);
 						}
@@ -193,6 +194,36 @@ public class ExcelUtils {
 		}
 		return ret;
 	}
+	public static Map<Integer,List<String>> extractRowsAndColumnWiseData(String file,int sheetNum,int skip,int start,int end,boolean cleanupSpaces,boolean skipBlanks) {
+		Map<Integer,List<String>> ret=null;
+		Sheet sheet = getSpreadSheet(file, sheetNum);
+		if (sheet != null)
+		{
+			for(Iterator<Row> rowIter = sheet.rowIterator(); rowIter.hasNext(); ) {
+				Row row = rowIter.next();
+				int rown=row.getRowNum();
+				if (rown>skip) {
+					for(Iterator<Cell> cellIter = row.cellIterator(); cellIter.hasNext(); ) {
+						Cell cell = cellIter.next();
+						if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+							int column=cell.getColumnIndex();
+							if ((column<=end || end<0) && (column>=start || start<0)) {
+								String tmp=cell.getStringCellValue();
+								if (cleanupSpaces) tmp=StringUtils.cleanupSpaces(tmp);
+								if (!skipBlanks || !StringUtils.isEmptyString(tmp)) {
+									if (ret==null) ret=new HashMap<Integer, List<String>>();
+									List<String> list = ret.get(rown);
+									if (list==null) ret.put(rown, list=new ArrayList<String>());
+									list.add(tmp);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return ret;
+	}
 	public static List<Pair<String,String>> extractListOfPairsBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn,boolean noAutofillLabels,boolean cleanupSpaces) throws InvalidFormatException, FileNotFoundException, IOException {
 		List<Pair<String,String>> ret=new ArrayList<Pair<String,String>>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file, 0);
@@ -243,9 +274,14 @@ public class ExcelUtils {
 		}
 		return null;
 	}
-	public static Sheet getSpreadSheet(String file, int sheetIndex) throws InvalidFormatException, FileNotFoundException, IOException {
-		Workbook wb = WorkbookFactory.create(new FileInputStream(file));
-		return wb.getSheetAt(sheetIndex);
+	public static Sheet getSpreadSheet(String file, int sheetIndex) {
+		try {
+			Workbook wb = WorkbookFactory.create(new FileInputStream(file));
+			return wb.getSheetAt(sheetIndex);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public static XSSFWorkbook buildBaseWorkbook(String[] headers, String worksheetName) {

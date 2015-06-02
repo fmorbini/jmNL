@@ -1,9 +1,17 @@
 package edu.usc.ict.nl.nlu.clearnlp;
 
 import java.io.BufferedReader;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.clearnlp.dependency.DEPArc;
 import com.clearnlp.dependency.DEPNode;
@@ -11,6 +19,7 @@ import com.clearnlp.dependency.DEPTree;
 
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.graph.Edge;
+import edu.usc.ict.nl.util.graph.GraphElement;
 import edu.usc.ict.nl.util.graph.Node;
 
 public class CONLL extends Node {
@@ -47,6 +56,37 @@ public class CONLL extends Node {
 		p.addEdge(e, false, false);
 	}
 
+	public List<DepEdge> getAllEdgesNamed(String edgeName) {
+		List<DepEdge> ret=null;
+		Set<GraphElement> visited=new HashSet<GraphElement>();
+		LinkedList<Node> q=new LinkedList<Node>(); // breath first
+		q.add(this);
+		while (!q.isEmpty()) {
+			Node c=q.poll();
+			if (!visited.contains(c)) {
+				visited.add(c);
+				Collection<Edge> oes = c.getEdges();
+				if (oes!=null) {
+					for(Edge oe:oes) {
+						if (!visited.contains(oe)) {
+							visited.add(oe);
+							String label=oe.getConsume();
+							if (label!=null && label.equals(edgeName)) {
+								if (ret==null) ret=new ArrayList<DepEdge>();
+								ret.add((DepEdge) oe);
+							}
+							Node target=oe.getOtherSide(c);
+							if (target!=null) {
+								q.addLast(target);
+							}
+						}
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
 	public CONLL(DEPTree tree) throws Exception {
 		super();
 		dictionary=new HashMap<Integer, Node>();
@@ -61,6 +101,7 @@ public class CONLL extends Node {
 			}
 		}
 	}
+	
 
 	private Node updateNode(Integer id) {
 		return updateNode(id, null);

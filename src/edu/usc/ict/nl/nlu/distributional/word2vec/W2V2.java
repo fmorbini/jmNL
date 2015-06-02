@@ -20,9 +20,13 @@ import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -52,6 +56,14 @@ public class W2V2 {
 		@Override
 		public int compareTo(ElementG<T> o) {
 			return Float.compare(similarity, o.similarity);
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (obj!=null && obj instanceof Element) {
+				if (thing!=null) return thing.equals(((ElementG)obj).thing);
+				else return thing==((ElementG)obj).thing;
+			}
+			return false;
 		}
     }
     public class Element extends ElementG<Integer> {
@@ -306,6 +318,45 @@ public class W2V2 {
 	}
 
 	/**
+	 * combines all lists, sorts by number of lists that contain a certain element and break ties by using the average similarity score.
+	 * @param lists
+	 * @return
+	 */
+	public List<Element> intersect(Collection<Element>... lists) {
+		Map<Integer,List<Element>> things=new HashMap<Integer, List<Element>>();
+		for(Collection<Element> l:lists) {
+			for(Element e:l) {
+				Integer id=e.thing;
+				List<Element> sameThings=things.get(id);
+				if (sameThings==null) things.put(id, sameThings=new ArrayList<W2V2.Element>());
+				sameThings.add(e);
+			}
+		}
+		List<List<Element>> all=new ArrayList<List<Element>>(things.values());
+		Collections.sort(all, new Comparator<List<Element>>() {
+			@Override
+			public int compare(List<Element> o1, List<Element> o2) {
+				int l1=o1.size(),l2=o2.size();
+				int d=l1-l2;
+				if (d==0) {
+					float avg1=0,avg2=0;
+					for(Element e1:o1) avg1+=e1.similarity;
+					avg1/=(float)l1;
+					for(Element e2:o2) avg2+=e2.similarity;
+					avg2/=(float)l2;
+					return (int)Math.signum(avg1-avg2);
+				}
+				return d;
+			}
+		});
+		List<Element> ret=new ArrayList<W2V2.Element>();
+		for(List<Element> l:all) {
+			ret.add(l.get(0));
+		}
+		return ret;
+	}
+	
+	/**
      * @param args
      *            the input C vectors file, output Java vectors file
      */
@@ -315,6 +366,10 @@ public class W2V2 {
     	//System.out.println(w2v.similarity("it", "this"));
     	//System.out.println(w2v.similarity("cans", "container"));
     	//System.out.println(w2v.getWord(10));
-    	System.out.println(w2v.getTopSimilarTo(20, "black","and","white"));
+    	PriorityQueue<Element> l1=w2v.getTopSimilarTo(10, "cake");
+    	PriorityQueue<Element> l2=w2v.getTopSimilarTo(10, "fruit");
+    	PriorityQueue<Element> l3=w2v.getTopSimilarTo(10, "sugar");
+    	List<Element> r = w2v.intersect(l1,l2,l3);
+    	System.out.println(r);
     }
 }

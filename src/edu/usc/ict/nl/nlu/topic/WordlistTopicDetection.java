@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sun.security.acl.WorldGroupImpl;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.BuildTrainingData;

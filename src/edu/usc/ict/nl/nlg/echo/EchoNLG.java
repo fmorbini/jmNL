@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -20,12 +19,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
-import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.config.NLBusConfig;
-import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface;
 import edu.usc.ict.nl.kb.template.NoTemplateFoundException;
@@ -101,8 +98,8 @@ public class EchoNLG extends NLG {
 		NLGEvent result=null;
 		String evName=ev.getName();
     	DMEventsListenerInterface nl = getNLModule();
-    	DM dm = nl.getPolicyDMForSession(sessionID);
-    	DialogueKBInterface is = dm.getInformationState();
+    	DM dm = (nl!=null)?nl.getPolicyDMForSession(sessionID):null;
+    	DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
 
 		String text=getTextForSpeechAct(evName,is,simulate);
 		if (StringUtils.isEmptyString(text)) {
@@ -111,8 +108,9 @@ public class EchoNLG extends NLG {
 
 		result=new NLGEvent(text, sessionID, ev);
 
-		Logger logger=dm.getLogger();
-		if (logger.isTraceEnabled()) logger.trace("Echo NLG, returning: "+result);
+		if (logger.isTraceEnabled()) {
+			logger.trace("Echo NLG, returning: "+result);
+		}
 
 		return result;
 	}
@@ -213,9 +211,7 @@ public class EchoNLG extends NLG {
 	public static Map<String, List<Pair<String,String>>> getFormsResponses(String file,int skip) throws InvalidFormatException, FileNotFoundException, IOException {
 		HashMap<String,List<Pair<String,String>>> ret=new HashMap<String, List<Pair<String,String>>>();
 		Sheet sheet = null;
-		try {
-			sheet=ExcelUtils.getSpreadSheet(file, 0);
-		} catch (FileNotFoundException e) {}
+		sheet=ExcelUtils.getSpreadSheet(file, 0);
 		if (sheet != null)
 		{
 			String speechAct=null,responseKey=null;
@@ -266,9 +262,7 @@ public class EchoNLG extends NLG {
 	public Map<String, List<Pair<String,String>>> getResources(String file,int skip) throws InvalidFormatException, FileNotFoundException, IOException {
 		HashMap<String, List<Pair<String,String>>> ret=new HashMap<String, List<Pair<String,String>>>();
 		Sheet sheet = null;
-		try {
-			sheet=ExcelUtils.getSpreadSheet(file, 0);
-		} catch (FileNotFoundException e) {}
+		sheet=ExcelUtils.getSpreadSheet(file, 0);
 		if (sheet != null)
 		{
 			String speechAct=null;
