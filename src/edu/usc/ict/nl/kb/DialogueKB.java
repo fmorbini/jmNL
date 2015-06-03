@@ -175,8 +175,8 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 
 	@Override
 	public Collection<DialogueOperatorEffect> dumpKB(File dumpFile)	throws Exception {
-		Collection<DialogueOperatorEffect> content = dumpKB();
-		if (content!=null) {
+		Collection<DialogueOperatorEffect> content=dumpKB();
+		if (dumpFile!=null && content!=null) {
 			BufferedWriter out=new BufferedWriter(new FileWriter(dumpFile));
 			out.write("<"+XMLConstants.INITISID+">\n");
 			for(DialogueOperatorEffect e:content) {

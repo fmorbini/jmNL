@@ -40,7 +40,9 @@ import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKB;
+import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.VariableProperties;
+import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.util.StringUtils;
@@ -231,7 +233,8 @@ public abstract class NLBusBase implements NLBusInterface {
 		if (dm!=null) {
 			DialogueKB is = dm.getInformationState();
 			if (is!=null) {
-				is.dumpKB(dumpFile);
+				is.setValueOfVariable(NLBusBase.timeLastSessionVarName,DialogueKBFormula.create(Math.round(System.currentTimeMillis()/1000)+"", null),ACCESSTYPE.AUTO_OVERWRITEAUTO);
+				if (dumpFile!=null) is.dumpKB(dumpFile);
 			}
 		}
 	}
@@ -588,13 +591,8 @@ public abstract class NLBusBase implements NLBusInterface {
 	public static final String lengthOfLastUserTurnVarName="userTurnSeconds";
 	public static final String systemSpeakingStateVarName="systemNowSpeaking";
 	public static final String systemSpeakingCompletionVarName="systemFractionSpoke";
-	public static final String timeSinceLastUserActionVariableName="timeSinceLastUserAction";
-	public static final String timeSinceLastSystemActionVariableName="timeSinceLastSystemAction";
 	public static final String counterConsecutiveUnhandledUserActionsVariableName="consecutiveUnhandledUserActions";
 	public static final String counterConsecutiveUnhandledUserActionsSinceLastSystemActionVariableName="consecutiveUnhandledUserActionsInTurn";
-	public static final String timeSinceLastActionVariableName="timeSinceLastAction";
-	public static final String timeSinceLastResourceVariableName="timeSinceLastResource";
-	public static final String timeSinceStartVariableName="timeSinceStart";
 	public static final String lastEventVariableName="event";
 	public static final String hasUserSaidSomethingVariableName="lastUserSpeechAct";
 	public static final String lastNonNullOperatorVariableName="lastNonNullSubdialog";
@@ -607,6 +605,12 @@ public abstract class NLBusBase implements NLBusInterface {
 	public static final String tmpEventVariableName="tmpEvent";
 	public static final String userEventsHistory="uEventsHistory";
 	public static final String lastUserText="lastUserUtterance";
+	public static final String timeSinceLastUserActionVariableName="timeSinceLastUserAction";
+	public static final String timeSinceLastSystemActionVariableName="timeSinceLastSystemAction";
+	public static final String timeSinceLastActionVariableName="timeSinceLastAction";
+	public static final String timeLastSessionVarName="timeOfLastSession";
+	public static final String timeSinceLastResourceVariableName="timeSinceLastResource";
+	public static final String timeSinceStartVariableName="timeSinceStart";
 
 	
 	public void loadSpecialVariablesForSession(Long sid) {
@@ -632,6 +636,8 @@ public abstract class NLBusBase implements NLBusInterface {
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,timeSinceLastActionVariableName,"Time in seconds since anyone said something (user or system).","0",Number.class,
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+		new SpecialVar(svs,timeLastSessionVarName,"Time in seconds since 1970 of the end of last session (when information state was saved).","0",Number.class,
+				VariableProperties.getDefault(PROPERTY.PERSISTENT),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,timeSinceLastResourceVariableName,"Time in seconds since the last resource link/video was given.","0",Number.class,
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,timeSinceStartVariableName,"Time in seconds since the login event.","null",Number.class,
