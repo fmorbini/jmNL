@@ -78,6 +78,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		String input=fromTokensToOriginalString(inputTokens);
 		try {
 			List<NE> nes = extractNamedEntitiesFromText(input, null);
+			filterOverlappingNES(nes);
 			if (nes!=null) {
 				for(NE ne:nes) {
 					int start=ne.getStart();
@@ -91,7 +92,11 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 							Token newToken=null;
 							if (j==startToken) {
 								Token original=inputTokens.get(j);
-								newToken=new Token("<"+ne.getType().toUpperCase()+">", original.getType(), ne.getMatchedString(), start, end);
+								if (original!=null) {
+									newToken=new Token("<"+ne.getType().toUpperCase()+">", original.getType(), ne.getMatchedString(), start, end);
+								} else {
+									logger.error("Trying to generalize null NE ("+ne+"). NE list: "+nes);
+								}
 							}
 							inputTokens.set(j, newToken);
 						}
@@ -110,6 +115,45 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 		return generalized;
 	}
+	private class Interval {
+		int start,end;
+		public Interval(int start,int end) {
+			this.start=start;
+			this.end=end;
+		}
+		public boolean inside(int point) {
+			return (point>=start && point<=end);
+		}
+	}
+	/**
+	 * processes the list from first to last. If a later NE overlaps an earlier NE it'll be discarded.
+	 * The order of NE recognizers is important.
+	 * @param nes
+	 */
+	private void filterOverlappingNES(List<NE> nes) {
+		List<Interval> intervals=null;
+		if (nes!=null) {
+			Iterator<NE> it=nes.iterator();
+			while(it.hasNext()) {
+				NE ne=it.next();
+				int start=ne.getStart();
+				if (intervals!=null) {
+					boolean inside=false;
+					for(Interval i:intervals) if (i.inside(start)) {
+						inside=true;
+						break;
+					}
+					if (inside) {
+						it.remove();
+						continue;
+					}
+				}
+				if (intervals==null) intervals=new ArrayList<BasicNE.Interval>();
+				intervals.add(new Interval(start, ne.getEnd()));
+			}
+		}
+	}
+	
 	private int getTokenAtPosition(int chPos, List<Integer> tokenStarts) {
 		int token=0;
 		for(int tokenStartPos:tokenStarts) {
