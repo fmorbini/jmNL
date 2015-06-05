@@ -60,4 +60,7 @@ public interface DMInterface {
 	public boolean isWaitingForUser();
 	
 	public Logger getLogger();
+	
+	public void addOperator(String xml) throws Exception;
+	public void removeOperator(String name) throws Exception;
 }

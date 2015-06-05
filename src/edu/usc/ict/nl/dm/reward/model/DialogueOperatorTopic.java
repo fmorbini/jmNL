@@ -10,6 +10,7 @@ import edu.usc.ict.nl.util.StringUtils;
 public class DialogueOperatorTopic extends edu.usc.ict.nl.util.graph.Node {
 
 	public static final String separator=".";
+	private boolean mark=false;
 	
 	public DialogueOperatorTopic(String id) {
 		super(id);
@@ -82,4 +83,8 @@ public class DialogueOperatorTopic extends edu.usc.ict.nl.util.graph.Node {
 		}
 		return false;
 	}
+	
+	public void setMark() {mark=true;}
+	public void resetMark() {mark=false;}
+	public boolean isMark() {return mark;}
 }

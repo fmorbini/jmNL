@@ -79,6 +79,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 	private boolean daemonOperator=false;
 	public void setDaemon(boolean f) {this.daemonOperator=f;}
 	public boolean isDaemon() {return this.daemonOperator;}
+	public boolean isNormal() {return !isDaemon();}
 
 	private class OperatorForgetInfo {
 		Integer seconds;

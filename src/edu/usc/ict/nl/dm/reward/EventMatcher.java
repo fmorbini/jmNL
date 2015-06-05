@@ -2,9 +2,14 @@ package edu.usc.ict.nl.dm.reward;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -53,6 +58,43 @@ public class EventMatcher<T> {
 			if (payload==null) payload=new HashSet<T>();
 			payload.add(p);
 		}
+		/**
+		 * should be called only on the State that is the root of the event matcher. 
+		 * @param path
+		 * @param p
+		 */
+		public void removePayloadAndPath(String path,T p) {
+			Deque<State> statesInPath=new LinkedList<EventMatcher<T>.State>();
+			State current=this;
+			statesInPath.push(current);
+			Deque<Character> pathc=new LinkedList<Character>();
+			for(char c:path.toCharArray()) {
+				pathc.push(c);
+				if (current.next!=null && current.next.containsKey(c)) {
+					current=current.next.get(c);
+					statesInPath.push(current);
+				}
+			}
+			boolean first=true;
+			while(statesInPath!=null && !statesInPath.isEmpty()) {
+				State s=statesInPath.pop();
+				char c=pathc.pop();
+				State parent=statesInPath.peek();
+				if (first) {
+					if (p!=null) {
+						if (s.payload==null || !s.payload.contains(p)) logger.error("Error removing path '"+path+"', no payload found.");
+						else s.payload.remove(p);
+					}
+					first=false;
+				}
+				if ((s.next==null || s.next.isEmpty()) && (s.payload==null || s.payload.isEmpty())) {
+					if (parent!=null && parent.next!=null) {
+						if (!parent.next.containsKey(c)) logger.error("Char not found in next where is supposed to be.");
+						else parent.next.remove(c);
+					}
+				} else break;
+			}
+		}
 		public List<State> getNext(char c) {
 			List<State>l=null;
 			State n=null;
@@ -72,6 +114,9 @@ public class EventMatcher<T> {
 		public String toString() {
 			return (isStarState)?"*":((hasChar)?c+"":"");
 		}
+		public Set<T> getPayload() {
+			return payload;
+		}
 	}
 	public EventMatcher() {
 		root=new State();
@@ -85,12 +130,12 @@ public class EventMatcher<T> {
 	private Set<T> search(char[] charArray, int i,State as,Set<T>result) {
 		int inputLen=charArray.length;
 		if (i>=inputLen) {
-			if (as.withPayload()) result.addAll(as.payload);
+			if (as.withPayload()) result.addAll(as.getPayload());
 			return result;
 		}
 		char currentChar=charArray[i];
 		if (as.isStar()) {
-			if (as.withPayload()) result.addAll(as.payload);
+			if (as.withPayload()) result.addAll(as.getPayload());
 			// continue recursion only if the star is not the last char in this chain
 			if ((as.next!=null) && !as.next.isEmpty()) {
 				for (int j=i;j<inputLen;j++) {
@@ -117,6 +162,18 @@ public class EventMatcher<T> {
 			next.attachPayload(payload);
 		}
 	}
+	public void removeEvent(String event, T payload) {
+		T p=storedEvents.get(event);
+		if (!storedEvents.containsKey(event)) logger.warn("ignoring removing event '"+event+"' because event not found.");
+		else {
+			if (p!=payload) logger.warn("ignoring removing event '"+event+"' because associated payload not found.");
+			else {
+				storedEvents.remove(event);
+				root.removePayloadAndPath(event, payload);
+			}
+		}
+	}
+
 	public void addEventToList(String event, Object update) {
 		T payload=storedEvents.get(event);
 		if (payload==null) {
@@ -130,6 +187,21 @@ public class EventMatcher<T> {
 			next.attachPayload(payload);
 		} else {
 			((List<Object>) payload).add(update);
+		}
+	}
+	public void removeEventFromList(String event, Object update) {
+		if (!storedEvents.containsKey(event)) logger.warn("ignoring removing event '"+event+"' because event not found.");
+		else {
+			T payload=storedEvents.get(event);
+			if (payload!=null) {
+				List<Object> ps=(List) payload;
+				if (ps.contains(update)) {
+					ps.remove(update);
+					root.removePayloadAndPath(event, (T) ((ps.isEmpty())?ps:null));
+				} else {
+					logger.warn("ignoring removing event '"+event+"' because associated payload not found.");
+				}
+			}
 		}
 	}
 
@@ -146,28 +218,6 @@ public class EventMatcher<T> {
 		return result;
 	}
 
-	public static void main(String[] args) throws Exception {
-		EventMatcher<Integer> em = new EventMatcher<Integer>();
-		em.addEvent("a.b", 1);
-		em.addEvent("a.b.c", 2);
-		System.out.println(em.compare("a.*.c", "a.b.*.b"));
-
-		//em.addEvent("internal.timer", 1);
-		//em.addEvent("answer.observable.*", 2);
-		//em.addEvent("*", 3);
-		//em.addEvent("a*d*f", 4);
-		//em.addEvent("a*d", 4);
-		em.addEvent("a*", 5);
-		em.addEvent("ab*", 9);
-		//em.addEvent("ab", 6);
-		//em.addEvent("ab", 7);
-		//em.addEvent("b", 8);
-		Set<Integer> r = em.match("a*");
-		System.out.println(r);
-		System.out.println(em.getAllMatchedEvents());
-		System.out.println(compare("a***","ac"));
-	}
-	
 	public static boolean doPatternsIntersect(String p1,String p2) {
 		int start=findMaximumErosion(p1,p2,false);
 		if (start<0) return false;
@@ -245,5 +295,33 @@ public class EventMatcher<T> {
 				else return -2;
 			}
 		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		EventMatcher<Integer> em = new EventMatcher<Integer>();
+		em.addEvent("a.b", 1);
+		em.addEvent("a.b.c", 2);
+		System.out.println(em.compare("a.*.c", "a.b.*.b"));
+
+		//em.addEvent("internal.timer", 1);
+		//em.addEvent("answer.observable.*", 2);
+		//em.addEvent("*", 3);
+		//em.addEvent("a*d*f", 4);
+		//em.addEvent("a*d", 4);
+		em.addEvent("a*", 5);
+		em.addEvent("ab*", 9);
+		//em.addEvent("ab", 6);
+		//em.addEvent("ab", 7);
+		//em.addEvent("b", 8);
+		Set<Integer> r = em.match("a*");
+		System.out.println(r);
+		r = em.match("ab");
+		System.out.println(r);
+		System.out.println(em.getAllMatchedEvents());
+		em.removeEvent("ab", 1);
+		r = em.match("ab");
+		System.out.println(r);
+		System.out.println(em.getAllMatchedEvents());
+		System.out.println(compare("a***","ac"));
 	}
 }

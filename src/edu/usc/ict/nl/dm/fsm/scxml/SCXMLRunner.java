@@ -532,5 +532,15 @@ public class SCXMLRunner extends DM {
 		}
 		return false;
 	}
+
+	@Override
+	public void addOperator(String xml) throws Exception {
+		throw new Exception("unhandled");
+	}
+
+	@Override
+	public void removeOperator(String name) throws Exception {
+		throw new Exception("unhandled");
+	}
 }
 

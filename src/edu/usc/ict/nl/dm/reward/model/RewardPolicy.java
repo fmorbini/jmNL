@@ -8,10 +8,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -200,6 +202,7 @@ public class RewardPolicy {
 		File f=FileUtils.getFileFromStringInResources(fileName);
 		Document doc = XMLUtils.parseXMLFile(f, true, true);
 		Node rootNode = doc.getDocumentElement();
+		List<DialogueOperator> operatorsToBeAdded=null;
 		if (isDialoguePolicy(rootNode)) {
 			dp.setPolicyDirectory(f.getParentFile());
 			Queue<Node> q=new LinkedList<Node>();
@@ -213,7 +216,10 @@ public class RewardPolicy {
 					for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
 				} else if (DialogueOperator.isOperatorNode(c)) {
 					DialogueOperator o = new DialogueOperator().parseOperator(c);
-					if (o!=null) dp.addOperator(o);
+					if (o!=null) {
+						if (operatorsToBeAdded==null) operatorsToBeAdded=new ArrayList<DialogueOperator>();
+						operatorsToBeAdded.add(o);
+					}
 					else throw new Exception("parse of operator failed: "+XMLUtils.prettyPrintDom(c, " ", true, true));
 				} else if (isInitsNode(c)) {
 					cs = c.getChildNodes();
@@ -271,15 +277,22 @@ public class RewardPolicy {
 				}
 			}
 			String policyID=fileName.replaceAll("[\\W]", "_");
-			if (logger.getLevel()==Level.DEBUG) dp.toGDLGraph("policy_"+policyID+".gdl");
-			dp.postProcessOperators();
-			if (logger.getLevel()==Level.DEBUG) dp.toGDLGraph("policy-postprocessed"+policyID+".gdl");
-			if (logger.getLevel()==Level.DEBUG) getRootTopic().toGDLGraph("topics"+policyID+".gdl");
+			if (operatorsToBeAdded!=null) {
+				for(DialogueOperator o:operatorsToBeAdded) {
+					if (logger.isDebugEnabled()) dp.toGDLGraph("policy_"+policyID+"_operator_"+o.getName()+".gdl");
+					dp.addOperator(o);
+					if (logger.isDebugEnabled()) dp.toGDLGraph("policy-postprocessed"+policyID+"_operator_"+o.getName()+".gdl");
+				}
+			}
+			if (logger.isDebugEnabled()) {
+				getRootTopic().toGDLGraph("topics"+policyID+".gdl");
+				mightEnableTableToGDLGraph("might-"+getPolicyDirectory().getName()+".gdl",true);
+			}
 			return dp;
 		}
 		return null;
 	}
-
+	
 	private static final Pattern macroLinePattern=Pattern.compile("^[\\s]*([^\\s]+)\t(.*)$");
 	private HashMap<String, String> readUserMacros(String macroFile) throws IOException {
 		HashMap<String,String> ret=null;
@@ -721,14 +734,99 @@ public class RewardPolicy {
 		}
 	}
 
+	public void addOperator(DialogueOperator o) throws Exception {
+		justAddOperator(o);
+		postProcessOperator(o);
+	}
+	public void removeOperator(String name) throws Exception {
+		DialogueOperator o=getOperatorNamed(name, OpType.ALL);
+		justRemoveOperator(o);
+		postProcessRemovedOperator(o);
+	}
+	private void justRemoveOperator(DialogueOperator o) throws Exception {
+		if (o!=null) {
+			
+			HashMap<String, DialogueOperator> ops=null;
+			EventMatcher<List<DialogueOperator>> userOps=null;
+			Set<DialogueOperator> sysOps=null;
+
+			if (o!=null && o.isNormal()) {
+				ops=operators;
+				userOps=eventMatcher4UserInitiativeOperators;
+				sysOps=systemInitiativeOperators;
+			} else if (o.isDaemon()) {
+				ops=daemonOperators;
+				userOps=eventMatcher4UserInitiativeDaemonOperators;
+				sysOps=systemInitiativeDaemonOperators;
+			}
+			
+			ops.remove(o);
+			if (o.isUserTriggerable()) {
+				EventMatcher<List<DialogueOperatorEntranceTransition>> operatorEventMatcher = o.getEventMatcher();
+				if (operatorEventMatcher!=null) {
+					Set<String> events = operatorEventMatcher.getAllMatchedEvents();
+					if (events!=null) {
+						for (String event:events) {
+							userOps.removeEventFromList(event, o);
+						}
+					}
+				}
+			}
+			if (o.isSystemTriggerable()) {
+				sysOps.remove(o);
+			}
+		} else throw new Exception("null operator.");
+	}
+	private void justAddOperator(DialogueOperator o) throws Exception {
+		String name=null;
+		if (o!=null && !StringUtils.isEmptyString(name=o.getName())) {
+			
+			HashMap<String, DialogueOperator> ops=null;
+			EventMatcher<List<DialogueOperator>> userOps=null;
+			Set<DialogueOperator> sysOps=null;
+			
+			if (o.isDaemon()) {
+				if (daemonOperators==null) daemonOperators=new HashMap<String,DialogueOperator>();
+				ops=daemonOperators;
+				if (o.isUserTriggerable() && eventMatcher4UserInitiativeDaemonOperators==null) eventMatcher4UserInitiativeDaemonOperators=new EventMatcher<List<DialogueOperator>>();
+				userOps=eventMatcher4UserInitiativeDaemonOperators;
+				if (o.isSystemTriggerable() && systemInitiativeDaemonOperators==null) systemInitiativeDaemonOperators=new HashSet<DialogueOperator>();
+				sysOps=systemInitiativeDaemonOperators;
+			} else {
+				if (operators==null) operators=new HashMap<String,DialogueOperator>();
+				ops=operators;
+				if (o.isUserTriggerable() && eventMatcher4UserInitiativeOperators==null) eventMatcher4UserInitiativeOperators=new EventMatcher<List<DialogueOperator>>();
+				userOps=eventMatcher4UserInitiativeOperators;
+				if (o.isSystemTriggerable() && systemInitiativeOperators==null) systemInitiativeOperators=new HashSet<DialogueOperator>();
+				sysOps=systemInitiativeOperators;
+			}
+			if (daemonOperators!=null && daemonOperators.containsKey(name)) throw new Exception("Duplicated operator: "+name);
+			if (operators!=null && operators.containsKey(name)) throw new Exception("Duplicated operator: "+name);
+			
+			ops.put(name,o);
+			if (o.isUserTriggerable()) {
+				EventMatcher<List<DialogueOperatorEntranceTransition>> operatorEventMatcher = o.getEventMatcher();
+				if (operatorEventMatcher!=null) {
+					Set<String> events = operatorEventMatcher.getAllMatchedEvents();
+					if (events!=null) {
+						for (String event:events) userOps.addEventToList(event, o);
+					}
+				}
+			}
+			if (o.isSystemTriggerable()) {
+				sysOps.add(o);
+			}
+		} else throw new Exception("null operator.");
+	}
+
 	private HashMap<DialogueOperatorEntranceTransition,Set<DialogueOperatorEntranceTransition>> mightEnableTable=null;
-	private void postProcessOperators() throws Exception {
-		for(DialogueOperator op:getOperators(OpType.NORMAL)) {
+	
+	private void postProcessOperator(DialogueOperator op) throws Exception {
+		if (op!=null && op.isNormal()) {
 			op.postProcessOperator(getISUpdatesMatcher(),this);
 		}
-		if (logger.isDebugEnabled()) {
-			computeMightEnableTable();
-			mightEnableTableToGDLGraph("might-"+getPolicyDirectory().getName()+".gdl",true);
+		if (getConfiguration().getApproximatedForwardSearch()) {
+			updateMightEnableTableWith(op);
 		}
 		/*System.out.println(mightEnableTable.size());
 		for(DialogueOperatorEntranceTransition ec1:mightEnableTable.keySet()) {
@@ -737,7 +835,78 @@ public class RewardPolicy {
 			System.out.println();
 		}*/
 	}
-
+	private void postProcessRemovedOperator(DialogueOperator o) {
+		//topics graph
+		DialogueOperatorTopic rt = getRootTopic();
+		Set<edu.usc.ict.nl.util.graph.Node> nodes = rt.getAllNodes();
+		if (nodes!=null) {
+			//reset mark on all topics nodes
+			for(edu.usc.ict.nl.util.graph.Node n:nodes) {
+				DialogueOperatorTopic t=(DialogueOperatorTopic)n;
+				t.resetMark();
+			}
+			//get all topics of all operators (other operators)
+			// mark all visited nodes
+			for(DialogueOperator op:getOperators(OpType.ALL)) {
+				List<DialogueOperatorTopic> ts = op.getTopics();
+				if (ts!=null) {
+					Deque<DialogueOperatorTopic> q=new LinkedList<DialogueOperatorTopic>();
+					q.addAll(ts);
+					while(!q.isEmpty()) {
+						DialogueOperatorTopic t=q.pop();
+						t.setMark();
+						try {
+							Collection parents = t.getImmediateParents();
+							if (parents!=null) q.addAll(parents);
+						} catch (Exception e) {
+						}
+					}
+				}
+			}
+			//keep only visited nodes
+			for(edu.usc.ict.nl.util.graph.Node n:nodes) {
+				DialogueOperatorTopic t=(DialogueOperatorTopic)n;
+				if (!t.isMark()) {
+					try {
+						Collection<edu.usc.ict.nl.util.graph.Node> parents = t.getImmediateParents();
+						if (parents!=null) {
+							for(edu.usc.ict.nl.util.graph.Node np:parents) {
+								np.removeEdgeTo(t);
+							}
+						}
+						Collection<edu.usc.ict.nl.util.graph.Node> children = t.getImmediateChildren();
+						if (children!=null) {
+							for(edu.usc.ict.nl.util.graph.Node nc:children) {
+								nc.removeEdgeFrom(t);
+							}
+						}
+					} catch (Exception e) {
+					}
+				}
+			}
+		}
+		
+		//updateMightEnableTableWith
+		if (mightEnableTable!=null) {
+			LinkedHashSet<DialogueOperatorEntranceTransition> ecs = o.getEntranceConditions();
+			if (ecs!=null) {
+				for(DialogueOperatorEntranceTransition ec:ecs) {
+					mightEnableTable.remove(ec);
+				}
+				for(DialogueOperatorEntranceTransition ec:mightEnableTable.keySet()) {
+					Set<DialogueOperatorEntranceTransition> enabled=mightEnableTable.get(ec);
+					if (enabled!=null) {
+						for(DialogueOperatorEntranceTransition oec:ecs) {
+							enabled.remove(oec);
+						}
+						if (enabled.isEmpty()) {
+							mightEnableTable.remove(ec);
+						}
+					}
+				}
+			}
+		}
+	}
 
 	private void mightEnableTableToGDLGraph(String filename,boolean compress) throws IOException {
 		FileWriter out=new FileWriter(filename);
@@ -812,6 +981,11 @@ public class RewardPolicy {
 	}
 	private void computeMightEnableTable() {
 		for(DialogueOperator op:getOperators(OpType.NORMAL)) {
+			updateMightEnableTableWith(op);
+		}
+	}
+	private void updateMightEnableTableWith(DialogueOperator op) {
+		if (op!=null && op.isNormal()) {
 			HashMap<DialogueOperatorEntranceTransition, Set<DialogueKBFormula>> modVars = op.getSetOfModifiedVariables();
 			for(DialogueOperatorEntranceTransition ec:modVars.keySet()) {
 				Set<DialogueKBFormula> modVarsForEC=modVars.get(ec);
@@ -919,47 +1093,6 @@ public class RewardPolicy {
 		return (n.getNodeType()==Node.ELEMENT_NODE) && n.getNodeName().toLowerCase().equals(XMLConstants.POLICYID);
 	}
 
-	private void addOperator(DialogueOperator o) throws Exception {
-		String name=null;
-		if (o!=null && !StringUtils.isEmptyString(name=o.getName())) {
-			
-			HashMap<String, DialogueOperator> ops=null;
-			EventMatcher<List<DialogueOperator>> userOps=null;
-			Set<DialogueOperator> sysOps=null;
-			
-			if (o.isDaemon()) {
-				if (daemonOperators==null) daemonOperators=new HashMap<String,DialogueOperator>();
-				ops=daemonOperators;
-				if (o.isUserTriggerable() && eventMatcher4UserInitiativeDaemonOperators==null) eventMatcher4UserInitiativeDaemonOperators=new EventMatcher<List<DialogueOperator>>();
-				userOps=eventMatcher4UserInitiativeDaemonOperators;
-				if (o.isSystemTriggerable() && systemInitiativeDaemonOperators==null) systemInitiativeDaemonOperators=new HashSet<DialogueOperator>();
-				sysOps=systemInitiativeDaemonOperators;
-			} else {
-				if (operators==null) operators=new HashMap<String,DialogueOperator>();
-				ops=operators;
-				if (o.isUserTriggerable() && eventMatcher4UserInitiativeOperators==null) eventMatcher4UserInitiativeOperators=new EventMatcher<List<DialogueOperator>>();
-				userOps=eventMatcher4UserInitiativeOperators;
-				if (o.isSystemTriggerable() && systemInitiativeOperators==null) systemInitiativeOperators=new HashSet<DialogueOperator>();
-				sysOps=systemInitiativeOperators;
-			}
-			if (daemonOperators!=null && daemonOperators.containsKey(name)) throw new Exception("Duplicated operator: "+name);
-			if (operators!=null && operators.containsKey(name)) throw new Exception("Duplicated operator: "+name);
-			
-			ops.put(name,o);
-			if (o.isUserTriggerable()) {
-				EventMatcher<List<DialogueOperatorEntranceTransition>> operatorEventMatcher = o.getEventMatcher();
-				if (operatorEventMatcher!=null) {
-					Set<String> events = operatorEventMatcher.getAllMatchedEvents();
-					if (events!=null) {
-						for (String event:events) userOps.addEventToList(event, o);
-					}
-				}
-			}
-			if (o.isSystemTriggerable()) {
-				sysOps.add(o);
-			}
-		} else throw new Exception("null operator.");
-	}
 	
 	@Override
 	public String toString() {

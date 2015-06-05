@@ -1871,4 +1871,29 @@ public class RewardDM extends DM {
 		if (p!=null) return p.getAllPossibleSystemLines();
 		return super.getAllPossibleSystemLines();
 	}
+	@Override
+	public void addOperator(String xml) throws Exception {
+		DialogueOperator o=new DialogueOperator().parse(xml);
+		RewardPolicy dp=getPolicy();
+		if (dp!=null) {
+			DialogueOperator oo=dp.getOperatorNamed(o.getName(), OpType.ALL);
+			if (oo!=null) dp.removeOperator(o.getName());
+			dp.addOperator(o);
+		} else {
+			logger.warn("Ignoring adding operator as policy is null.");
+		}
+	}
+	@Override
+	public void removeOperator(String name) throws Exception {
+		RewardPolicy dp=getPolicy();
+		if (dp!=null) {
+			DialogueOperator o=dp.getOperatorNamed(name, OpType.ALL);
+			if (o!=null) dp.removeOperator(name);
+			else {
+				logger.warn("Ignoring removing operator named '"+name+"' as it doesn't exist.");
+			}
+		} else {
+			logger.warn("Ignoring removing operator as policy is null.");
+		}
+	}
 }
