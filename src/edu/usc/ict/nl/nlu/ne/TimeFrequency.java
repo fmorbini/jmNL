@@ -13,7 +13,7 @@ public class TimeFrequency extends Numbers {
 	@Override
 	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
 		List<NE> payloads = null;
-		if (speechAct.equals("answer.number-in-period")) {
+		if (speechAct!=null && speechAct.equals("answer.number-in-period")) {
 			TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),text);
 			Double num=ts.getTimesEachDay();
 			if (num!=null) {
@@ -24,5 +24,4 @@ public class TimeFrequency extends Numbers {
 		}
 		return payloads;
 	}
-
 }

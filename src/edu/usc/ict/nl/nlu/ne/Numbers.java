@@ -30,7 +30,7 @@ public class Numbers extends BasicNE {
 	@Override
 	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
 		List<NE> payloads = null;
-		if (sas!=null) {
+		if (speechAct!=null && sas!=null) {
 			boolean match=false;
 			for(int i=0;i<sas.length;i++) {
 				Matcher m=sas[i].matcher(speechAct);

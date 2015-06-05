@@ -24,7 +24,7 @@ public class TimeDuration extends BasicNE {
 	@Override
 	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
 		List<NE> payloads = null;
-		if (speechAct.equals("answer.time-period")) {
+		if (speechAct!=null && speechAct.equals("answer.time-period")) {
 			TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),text);
 			Long num=ts.getTimePeriodInSeconds();
 			if (num!=null) {
