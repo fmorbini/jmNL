@@ -52,3 +52,4 @@ hppc-0.5.2.jar: Apache v2 http://labs.carrotsearch.com/hppc.html
 JavaLibs.jar: Apache v2 contact for source code
 jregex1.2_01.jar: BSD http://sourceforge.net/projects/jregex/
 Json.jar: https://github.com/douglascrockford/JSON-java
+simplenlg: MPL v1.1 https://github.com/simplenlg/simplenlg/blob/master/LICENSE.md
