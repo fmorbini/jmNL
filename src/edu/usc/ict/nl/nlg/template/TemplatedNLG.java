@@ -46,11 +46,11 @@ public class TemplatedNLG extends EchoNLG {
 		}
 	}
 
-	private Object functionGet(DialogueKBInterface is,VHBridge vhBridge,String vname,boolean simulate) {
+	public Object functionGet(DialogueKBInterface is,VHBridge vhBridge,String vname,boolean simulate) {
 		if (!simulate) return is.get(vname);
 		else return null;
 	}
-	private Object functionGetSA(DialogueKBInterface is,VHBridge vhBridge,String sa,boolean simulate) {
+	public Object functionGetSA(DialogueKBInterface is,VHBridge vhBridge,String sa,boolean simulate) {
 		if (!simulate) {
 			try {
 				return getTextForSpeechAct(sa, is, false);
@@ -82,10 +82,11 @@ public class TemplatedNLG extends EchoNLG {
 					String functionArgs=f.getArguments(text);
 					Object obj=m.invoke(this, is,vhBridge,functionArgs,simulate);
 					String replacement=getReplacement(obj);
-					int functionLength=f.getEnd()-f.getStart()+1;
+					int start=f.getStart();
+					int functionLength=f.getEnd()-start+1;
 					int delta=replacement.length()-functionLength;
 					text=text.substring(0, f.getStart())+replacement+text.substring(f.getEnd()+1, text.length());
-					for(Function x:functions) x.updateIndexes(delta, f.getStart());
+					for(Function x:functions) x.updateIndexes(delta, start);
 				}
 			}
 		}
