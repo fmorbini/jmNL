@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -206,8 +205,8 @@ public class NLUUtils {
 		return ret;
 	}
 	public static Object parse(String nlu,boolean normalizePrimes,boolean normalizeCOPAConstants) {
-		SimpleSExprStream si = new SimpleSExprStream(new ByteArrayInputStream(nlu.getBytes(StandardCharsets.UTF_8)));
 		try {
+			SimpleSExprStream si = new SimpleSExprStream(new ByteArrayInputStream(nlu.getBytes("UTF8")));
 			Object root = si.parse();
 			Map<String,Symbol> sys=si.getSymbols();
 			Stack<Object> s=new Stack<Object>();
