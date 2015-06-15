@@ -46,9 +46,19 @@ public class TemplatedNLG extends EchoNLG {
 		}
 	}
 
-	private static Object functionGet(DialogueKBInterface is,VHBridge vhBridge,String vname,boolean simulate) {
+	private Object functionGet(DialogueKBInterface is,VHBridge vhBridge,String vname,boolean simulate) {
 		if (!simulate) return is.get(vname);
 		else return null;
+	}
+	private Object functionGetSA(DialogueKBInterface is,VHBridge vhBridge,String sa,boolean simulate) {
+		if (!simulate) {
+			try {
+				return getTextForSpeechAct(sa, is, false);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 	
 	/**

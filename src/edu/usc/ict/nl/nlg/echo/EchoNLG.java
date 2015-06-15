@@ -10,12 +10,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
+import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
@@ -31,6 +31,7 @@ import edu.usc.ict.nl.kb.template.PrimaryTemplateDefinitionException;
 import edu.usc.ict.nl.kb.template.TemplateProcessing;
 import edu.usc.ict.nl.kb.template.TemplateText;
 import edu.usc.ict.nl.kb.template.util.TemplateVerifier;
+import edu.usc.ict.nl.ui.chat.ChatInterface;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
@@ -163,7 +164,8 @@ public class EchoNLG extends NLG {
 					}
 				}
 			}
-			String text=(String) FunctionalLibrary.pickRandomElement(ts);
+			String text=(String) NLBusBase.pickEarliestUsedOrStillUnused(null, ts);
+			//String text=(String) FunctionalLibrary.pickRandomElement(ts);
 
 			if (!StringUtils.isEmptyString(text)) {
 				text=resolveTemplates(text, is);
@@ -192,7 +194,8 @@ public class EchoNLG extends NLG {
 					}
 				}
 			}
-			Pair<String,String> r=(Pair<String, String>) FunctionalLibrary.pickRandomElement(rs);
+			Pair<String,String> r=(Pair<String, String>) NLBusBase.pickEarliestUsedOrStillUnused(null, rs);
+			//Pair<String,String> r=(Pair<String, String>) FunctionalLibrary.pickRandomElement(rs);
 			String text="";
 			if (r!=null) {
 				String rt=r.getFirst();
