@@ -184,7 +184,7 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 				if (ps.getProperty(PROPERTY.PERSISTENT)) {
 					out.write(e.toString(false,XMLConstants.LOADISID)+"\n");
 				} else {
-					if (logger.isDebugEnabled()) logger.debug("skipping saving variable '"+e.getAssignedVariable()+"' ad it not persistent.");
+					if (logger.isDebugEnabled()) logger.debug("skipping saving variable '"+e.getAssignedVariable()+"' as it is not persistent.");
 				}
 			}
 			out.write("</"+XMLConstants.INITISID+">\n");

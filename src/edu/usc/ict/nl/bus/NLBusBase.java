@@ -636,8 +636,8 @@ public abstract class NLBusBase implements NLBusInterface {
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,timeSinceLastActionVariableName,"Time in seconds since anyone said something (user or system).","0",Number.class,
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
-		new SpecialVar(svs,timeLastSessionVarName,"Time in seconds since 1970 of the end of last session (when information state was saved).","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.PERSISTENT),VariableProperties.getDefault(PROPERTY.READONLY),false);
+		new SpecialVar(svs,timeLastSessionVarName,"Time in seconds since 1970 of the end of last session (when information state was saved).","null",Number.class,
+				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
 		new SpecialVar(svs,timeSinceLastResourceVariableName,"Time in seconds since the last resource link/video was given.","0",Number.class,
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,timeSinceStartVariableName,"Time in seconds since the login event.","null",Number.class,
