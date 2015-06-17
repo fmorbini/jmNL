@@ -106,6 +106,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private static final long serialVersionUID = 1L;
 
 	private static final int hSize=400,vSize=600;
+	private static boolean startMinimized=false;
 
 	private static final KeyStroke reloadKey=KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK);
 	private static final KeyStroke trainKey=KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK);
@@ -938,6 +939,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		//Create and set up the window.
 		window = new JFrame(buildTitleString(sid));
 		window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		window.setState(startMinimized?JFrame.ICONIFIED:JFrame.NORMAL);
 
 		ChatInterface newContentPane = getInstance();
 
@@ -1050,12 +1052,13 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		}
 	}
 
-	private static final String TRAIN_NLU_OPTION="t",HELP_OPTION="h",SPRING_CONFIG="s";
+	private static final String TRAIN_NLU_OPTION="t",HELP_OPTION="h",SPRING_CONFIG="s",START_MINIMIZED="m";
 	private static final Options options = new Options();
 	static {
 		options.addOption(TRAIN_NLU_OPTION, false, "re-trains the NLU on the files specified in the spring config file.");
 		options.addOption(SPRING_CONFIG, true, "specifies the spring config file to load.");
 		options.addOption(HELP_OPTION, false, "Request this help message to be printed.");
+		options.addOption(START_MINIMIZED, false, "Request the gui to start minimized.");
 	}
 	private static void printUsageHelp() {
 		HelpFormatter f = new HelpFormatter();
@@ -1065,8 +1068,10 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		CommandLineParser parser = new PosixParser();
 		try {
 			CommandLine cmd = parser.parse( options, args);
-			if ( cmd.hasOption('h') ) {
+			if ( cmd.hasOption(HELP_OPTION) ) {
 				printUsageHelp();
+			} else if ( cmd.hasOption(START_MINIMIZED) ) {
+				startMinimized=true;
 			} else {
 				doRetraining=cmd.hasOption(TRAIN_NLU_OPTION);
 				if (cmd.hasOption(SPRING_CONFIG)) {
@@ -1078,23 +1083,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		}
 	}
 
-	public static void main(final String[] args) throws Exception {
-		digestCommandLineArguments(args);
-		init();
-		//Schedule a job for the event-dispatching thread:
-		//creating and showing this application's GUI.
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ChatInterface ui = createAndShowGUI();
-					ui.startupDM();
-					ui.startDefaultCharacter();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 	@Override
 	public void windowActivated(WindowEvent e) {
 		// TODO Auto-generated method stub
@@ -1173,4 +1161,23 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				JOptionPane.QUESTION_MESSAGE,null,null,init);
 		return s;
 	}
+
+	public static void main(final String[] args) throws Exception {
+		digestCommandLineArguments(args);
+		init();
+		//Schedule a job for the event-dispatching thread:
+		//creating and showing this application's GUI.
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					ChatInterface ui = createAndShowGUI();
+					ui.startupDM();
+					ui.startDefaultCharacter();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
 }
