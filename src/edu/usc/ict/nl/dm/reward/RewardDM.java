@@ -559,6 +559,7 @@ public class RewardDM extends DM {
 				} catch (Exception e) {};
 				if (value==null || value<0) localIS.store(DialogueOperatorEffect.createAssignment(NLBusBase.timeSinceStartVariableName,DialogueKBFormula.create("0", null)),ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 			} else if (ev instanceof NLUEvent) {
+				updateISwithNLUvariablesFromEvent(baseIS,ev);
 				updateUserEventsHistory(ev);
 				NLUOutput sa=(NLUOutput) ev.getPayload();
 				if (sa==null) {
@@ -592,7 +593,6 @@ public class RewardDM extends DM {
 				Float sv=Float.parseFloat(localIS.getValueOfVariable(NLBusBase.timeSinceLastSystemActionVariableName,ACCESSTYPE.AUTO_OVERWRITEAUTO,null).toString());
 				localIS.store(DialogueOperatorEffect.createAssignment(NLBusBase.timeSinceLastActionVariableName,Math.min(uv,sv)),ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 
-				updateISwithNLUvariablesFromEvent(baseIS,ev);
 			} else if (isTimerEvent(ev)) {
 				DialogueAction currentAction=getCurrentActiveAction();
 				if (currentAction!=null) currentAction.incrementTimerEventsInCurrentState();
