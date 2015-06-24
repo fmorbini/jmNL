@@ -68,7 +68,7 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFtoUnit());
 		addCustomFunction(new CFTrace());
 	}
-	private static void addCustomFunction(CustomFunctionInterface cf) {
+	public static void addCustomFunction(CustomFunctionInterface cf) {
 		customFunctions.put(cf.getName(),cf);
 	}
 
