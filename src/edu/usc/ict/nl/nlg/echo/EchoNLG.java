@@ -319,9 +319,9 @@ public class EchoNLG extends NLG {
 	@Override
 	public void reloadData() throws Exception {
 		logger.info("re-loading data.");
-		loadSystemUtterances();
-		loadSystemForms();
-		loadSystemResources();
+		try {loadSystemUtterances();}catch (Exception e) {e.printStackTrace();}
+		try {loadSystemForms();}catch (Exception e) {e.printStackTrace();}
+		try {loadSystemResources();}catch (Exception e) {e.printStackTrace();}
 		logger.info("done loading data.");
 	}
 }

@@ -101,12 +101,16 @@ public class TemplatedNLG extends EchoNLG {
 				replacement=(String)obj;
 			} else if (obj instanceof DialogueKBFormula) {
 				DialogueKBFormula f=(DialogueKBFormula)obj;
-				if (f.isString())
+				if (f.isString()) {
 					try {
 						replacement=f.getStringValue(f.getName());
 					} catch (Exception e) {
 						replacement=f.toString();
 					}
+				} else if (f.isNumber()) {
+					Float n=f.getNumber();
+					if (n!=null) return Math.round(n)+"";
+				}
 			} else if (obj instanceof List) {
 				int last=((List) obj).size()-1;
 				int i=0;
