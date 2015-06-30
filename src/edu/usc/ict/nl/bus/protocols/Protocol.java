@@ -58,5 +58,12 @@ public abstract class Protocol implements ExternalListenerInterface {
 	@Override
 	public void handleTextUtteranceEvent(Long sessionId, String text) throws Exception {
 	}
+	@Override
+	public Long startSession(String characterName,Long sid){
+		return null;
+	}
+	@Override
+	public void terminateSession(Long sid) {
+	}
 
 }

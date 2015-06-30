@@ -115,24 +115,56 @@ public class Wikidata {
 		return null;
 	}
 
-	public static String prettyPrintAllInfoForContent(JSONObject json) {
+	public static String getDescriptionForContent(JSONObject json) {
+		StringBuffer ret=new StringBuffer();
 		if (json!=null) {
 			List<Object> entities = getEntities(json);
 			if (entities!=null) {
 				int l=entities.size();
 				for(int i=0;i<l;i++) {
 					Object t=entities.get(i);
-					List<String> labels=getAllValuesForProperty(t,"labels","value");
-					try {
-						System.out.println("labels: "+FunctionalLibrary.printCollection(labels, "", "", ", "));
-					} catch (Exception e) {}
-					List<String> descriptions=getAllValuesForProperty(t,"descriptions","value");
-					try {
-						System.out.println("descriptions: "+FunctionalLibrary.printCollection(descriptions, "", "", ", "));
-					} catch (Exception e) {}
+					if (t!=null && t instanceof JSONObject) {
+						List<String> descriptions=getAllValuesForProperty(t,"descriptions","value");
+						try {
+							ret.append("descriptions: "+FunctionalLibrary.printCollection(descriptions, "", "", ", ")+"\n");
+						} catch (Exception e) {}
+					}
 				}
 			}
 		}
+		return (ret.length()==0)?null:ret.toString();
+	}
+	public static String prettyPrintAllInfoForContent(JSONObject json) {
+		StringBuffer ret=new StringBuffer();
+		if (json!=null) {
+			List<Object> entities = getEntities(json);
+			if (entities!=null) {
+				int l=entities.size();
+				for(int i=0;i<l;i++) {
+					Object t=entities.get(i);
+					if (t!=null && t instanceof JSONObject) {
+						Object name=get((JSONObject) t,"id");
+						ret.append("id: "+name+"\n");
+						List<String> labels=getAllValuesForProperty(t,"labels","value");
+						try {
+							ret.append("labels: "+FunctionalLibrary.printCollection(labels, "", "", ", ")+"\n");
+						} catch (Exception e) {}
+						List<String> descriptions=getAllValuesForProperty(t,"descriptions","value");
+						try {
+							ret.append("descriptions: "+FunctionalLibrary.printCollection(descriptions, "", "", ", ")+"\n");
+						} catch (Exception e) {}
+					}
+				}
+			}
+		}
+		return (ret.length()==0)?null:ret.toString();
+	}
+
+	private static Object get(JSONObject t, String key) {
+		try {
+			Object value=t.get(key);
+			return value;
+		} catch (Exception e) {}
 		return null;
 	}
 
@@ -140,25 +172,23 @@ public class Wikidata {
 		List<Object> ret=null;
 		if (json!=null && json instanceof JSONObject) {
 			List<Object> things = new ArrayList<Object>();
-			try {
-				addThings(things,json.get("entities"));
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
+			addThings(things,get(json,"entities"));
 			for(Object x:things) {
 				if (x!=null && x instanceof JSONObject) {
 					Iterator it=((JSONObject)x).keys();
 					while(it.hasNext()) {
 						Object key = it.next();
-						try {
-							Object value = ((JSONObject) x).get((String) key);
-							if (value!=null && value instanceof JSONObject) {
-								if (ret==null) ret=new ArrayList<Object>();
-								ret.add(value);
-							}
-						} catch (JSONException e) {
-							e.printStackTrace();
-						} 
+						Object value = get((JSONObject) x,(String) key);
+						if (value!=null && value instanceof JSONObject) {
+							try {
+								if (((JSONObject)value).has("id") && ((JSONObject)value).get("id").equals(key)) {
+									if (ret==null) ret=new ArrayList<Object>();
+									ret.add(value);
+								} else {
+									System.err.println("entity with key "+key+" different from id "+((JSONObject)value).get("id"));
+								}
+							} catch (Exception e) {}
+						}
 					}
 				}
 			}
@@ -169,21 +199,16 @@ public class Wikidata {
 	private static List<String> getAllValuesForProperty(Object json,String property,String propertyValue) {
 		List<String> ret=null;
 		if (json!=null && json instanceof JSONObject) {
-			try {
-				Object labels = ((JSONObject) json).get(property);
-				List<JSONObject> things=getAllObjectsWithKey(labels,propertyValue);
-				if (things!=null) {
-					for(JSONObject o:things) {
-						if (o!=null && o.has(propertyValue)) {
-							if (ret==null) ret=new ArrayList<String>();
-							ret.add(o.get(propertyValue).toString());
-						}
+			Object labels = get((JSONObject) json,property);
+			List<JSONObject> things=getAllObjectsWithKey(labels,propertyValue);
+			if (things!=null) {
+				for(JSONObject o:things) {
+					if (o!=null && o.has(propertyValue)) {
+						if (ret==null) ret=new ArrayList<String>();
+						ret.add(get(o,propertyValue).toString());
 					}
 				}
-			} catch (JSONException e) {
-				e.printStackTrace();
 			}
-
 		}
 		return ret;
 	}
@@ -204,12 +229,8 @@ public class Wikidata {
 						Iterator it = ((JSONObject) t).keys();
 						while(it.hasNext()) {
 							Object x = it.next();
-							try {
-								Object o=((JSONObject) t).get((String) x);
-								addThings(s, o);
-							} catch (JSONException e) {
-								e.printStackTrace();
-							}
+							Object o=get((JSONObject) t,(String) x);
+							addThings(s, o);
 						}
 					}
 				}
@@ -226,15 +247,14 @@ public class Wikidata {
 			for(int i=0;i<l;i++) {
 				try {
 					s.add(((JSONArray) o).get(i));
-				} catch (JSONException e) {
-				}
+				} catch (JSONException e) {}
 			}
 		}
 	}
 
 	public static void main(String[] args) {
 		JSONObject desc = getInfoForEntity("Q2164820");
-		System.out.println(desc);
+		//System.out.println(desc);
 		System.out.println(prettyPrintAllInfoForContent(desc));
 
 	}

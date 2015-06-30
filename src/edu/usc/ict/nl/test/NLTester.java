@@ -45,8 +45,7 @@ public class NLTester {
 	
 	
 	public Long initDM(String characterName) throws Exception {
-		Long sid = nlModule.startSession(characterName);
-		if (sid!=null) nlModule.getPolicyDMForSession(sid);
+		Long sid = nlModule.startSession(characterName,999l);
 		return sid;
 	}
 	public boolean batchDM(String characterName,String inputFile, boolean fakeNLU) throws Exception {
@@ -133,7 +132,7 @@ public class NLTester {
 			}
 		}
 		out.close();
-		nlModule.terminateSession(sid, true);
+		nlModule.terminateSession(sid);
 		return success;
 	}
 	public Pair<NLUOutput, List<NLGEvent>> sendLoginAndGetReplies(long sid) throws Exception {

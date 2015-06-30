@@ -22,7 +22,6 @@ public interface NLBusInterface extends DMEventsListenerInterface,ExternalListen
 
 	public String getCharacterName4Session(Long sid);
 	
-	public Long startSession(String characterName);
 	void refreshPolicyForCharacter(String characterName) throws Exception;
 
 	/**

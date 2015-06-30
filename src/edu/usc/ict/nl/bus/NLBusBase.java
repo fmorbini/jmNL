@@ -29,6 +29,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
+import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
@@ -221,10 +222,24 @@ public abstract class NLBusBase implements NLBusInterface {
 		} else
 			return false;
 	}
-	public Long startSession(String characterName) {
-		Long sid=new Long(999);
+	@Override
+	public synchronized Long startSession(String characterName,Long sid) {
+		try {
+			if (sid!=null && getPolicyDMForSession(sid, false)!=null) {
+				terminateSession(sid);
+			}
+		} catch (Exception e) {}
+		if (sid==null) sid=new Long(999);
 		setCharacter4Session(sid,characterName);
 		loadSpecialVariablesForSession(sid);
+		try {
+			getPolicyDMForSession(sid,true);
+		} catch (Exception e) {logger.error("Error while starting policy.",e);}
+		if (hasListeners()) {
+			for(ExternalListenerInterface l:getListeners()) {
+				l.startSession(characterName,sid);
+			}
+		}
 		return sid;
 	}
 	@Override
@@ -266,10 +281,11 @@ public abstract class NLBusBase implements NLBusInterface {
 	}
 	public void cleanSessions() {
 		for (Long sid : getTerminatedSessions(null)) {
-			terminateSession(sid, true);
+			terminateSession(sid);
 		}
 	}
-	public synchronized void terminateSession(Long sessionId, Boolean endInteraction) {
+	@Override
+	public synchronized void terminateSession(Long sessionId) {
 		if (sessionId!=null) {
 			DM dm=null;
 			try {
@@ -277,7 +293,7 @@ public abstract class NLBusBase implements NLBusInterface {
 			} catch (Exception e) {
 				logger.warn("no dm available for session: "+sessionId+"  (probably it's already been terminated).");
 			}
-			if (dm!=null) dm.kill();
+			if (dm!=null && !dm.isSessionDone()) dm.kill();
 			try {
 				killNlu(sessionId);
 			} catch (Exception e) {
@@ -293,6 +309,11 @@ public abstract class NLBusBase implements NLBusInterface {
 				handledEvents.clear();
 			session2HandledEvents.remove(sessionId);
 			logger.info("REMOVED terminated session: "+sessionId);
+			if (hasListeners()) {
+				for(ExternalListenerInterface l:getListeners()) {
+					l.terminateSession(sessionId);
+				}
+			}
 		}
 	}
 	public synchronized boolean isThisEventNewForThisSession(Long eventID,Long sessionID) {
@@ -382,13 +403,13 @@ public abstract class NLBusBase implements NLBusInterface {
 			NLBusConfig.RunningMode mode=config.getRunningMode();
 			try {
 				for(String cn:charactersNames2ParsedPolicy.keySet()) {
-					Long sid=startSession(cn);
+					Long sid=startSession(cn,null);
 					if (sid!=null) {
 						DM dm=getPolicyDMForSession(sid);
 						dm.setPauseEventProcessing(true);
 						dm.validatePolicy(this);
 						dm.kill();
-						terminateSession(sid, true);
+						terminateSession(sid);
 					}
 				}
 			} catch (Exception e) {

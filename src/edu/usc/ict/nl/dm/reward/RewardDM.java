@@ -1693,6 +1693,7 @@ public class RewardDM extends DM {
 		this.done=d;
 		if (d) {
 			killTimerThreads();
+			getMessageBus().terminateSession(getSessionID());
 		}
 	}
 	@Override

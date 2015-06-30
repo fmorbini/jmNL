@@ -15,6 +15,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -104,6 +105,8 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	public static final long chatInterfaceSingleSessionID=999l;
 
 	private static final int hSize=400,vSize=600;
 	private static boolean startMinimized=false;
@@ -127,9 +130,12 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 					String msg=(String) map.get("dm");
 					if (msg!=null && msg.equals("reset")) {
 						try {
-							reStartNLWithCharacter(nlModule.getCharacterName4Session(sid));
+							reloadLock.acquire();
+							sid=nlModule.startSession(nlModule.getCharacterName4Session(sid),chatInterfaceSingleSessionID);
 						} catch (Exception e1) {
 							displayError(e1,false);
+						} finally {
+							reloadLock.release();
 						}
 					} else if (msg!=null && msg.equals("login")) {
 						handleLoginEvent();
@@ -496,38 +502,35 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	public void handleDMInterruptionRequestEvent(DMInterruptionRequest arg0) throws Exception {
 		addTextToList("interrupt", MessageType.SPECIALDM);
 	}
-
-	private class Loop extends Thread {
-		@Override
-		public void run() {
-			try {
-				boolean finishedSession=false;
-				boolean alreadyAskedFeedbackAtEnd=false;
-				while(true) {
-					reloadLock.acquire();
-					String cn=nlModule.getCharacterName4Session(sid);
-					DM dm = null;
-					if (cn==null || (((dm=nlModule.getPolicyDMForSession(sid))!=null) && dm.isSessionDone())) {
-						if (input.isEnabled() && !finishedSession) {
-							disableInput("");
-							addTextToList("END SESSION",MessageType.SYSTEM);
-							finishedSession=true;
-						}
-						if (!alreadyAskedFeedbackAtEnd) {
-							alreadyAskedFeedbackAtEnd=true;
-							displayState=MainDisplayStatus.FEEDBACK;
-							setDisplayAccordingToState();
-						}
-					} else {
-						finishedSession=false;
-						alreadyAskedFeedbackAtEnd=false;
-					}
-					reloadLock.release();
-					Thread.sleep(100);
-				}
-			} catch (Exception e) {
-				displayError(e,true);
+	@Override
+	public Long startSession(String characterName,Long sid) {
+		try {
+			this.sid=sid;
+			setInterfaceForSessionRestarted(characterName);
+		} catch (Exception e) {
+			NLBus.logger.error("Error while restarting the session.",e);
+		}
+		return null;
+	}
+	boolean finishedSession=false;
+	boolean alreadyAskedFeedbackAtEnd=false;
+	@Override
+	public void terminateSession(Long sid) {
+		try {
+			if (ChatInterface.sid!=sid) NLBus.logger.warn("chat interface received a terminated session with id ("+sid+") different from chat session id: "+ChatInterface.sid);
+			ChatInterface.sid=null;
+			if (input.isEnabled() && !finishedSession) {
+				disableInput("");
+				addTextToList("END SESSION",MessageType.SYSTEM);
+				finishedSession=true;
 			}
+			if (!alreadyAskedFeedbackAtEnd) {
+				alreadyAskedFeedbackAtEnd=true;
+				displayState=MainDisplayStatus.FEEDBACK;
+				setDisplayAccordingToState();
+			}
+		} catch (Exception e) {
+			displayError(e,true);
 		}
 	}
 
@@ -587,33 +590,32 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			}
 		}
 	}
-	private void reStartNLWithCharacter(String character) throws Exception {
+	private void setInterfaceForSessionRestarted(String character) throws Exception {
 		if (!StringUtils.isEmptyString(character)) {
-			reloadLock.acquire();
+			finishedSession=false;
+			alreadyAskedFeedbackAtEnd=false;
 			try {
 				String pid=(getPersonalizedSessionID())?getPersonalSessionID():"";
 				enableInput("");
-				boolean restart=(sid!=null);
-				if (restart) {
-					nlModule.terminateSession(sid, false);
-					doc.remove(0, doc.getLength());
-					displayState=MainDisplayStatus.CHAT;
-					setDisplayAccordingToState();
-				}
+				
+				doc.remove(0, doc.getLength());
+				displayState=MainDisplayStatus.CHAT;
+				setDisplayAccordingToState();
+
 				line=0;
-				sid=nlModule.startSession(character);
 				if (sid!=null) {
-					DM dm = nlModule.getPolicyDMForSession(sid);
-					dm.setPersonalSessionID(pid);
-					chatLogFileName=dm.getCurrentChatLogFile();
+					DM dm = nlModule.getPolicyDMForSession(sid,false);
+					if (dm!=null) {
+						dm.setPersonalSessionID(pid);
+						chatLogFileName=dm.getCurrentChatLogFile();
+					}
 
 					window.setTitle(buildTitleString(sid));
 
-					if (!restart) new Loop().start();
 					displayState=MainDisplayStatus.CHAT;
 					setDisplayAccordingToState();
-					chatLogFileName=nlModule.getPolicyDMForSession(sid).getCurrentChatLogFile();
 				} else {
+					System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
 					JOptionPane.showMessageDialog(getInstance(),
 							"No character data was found for name '"+character+"'.",
 							"No Character found",
@@ -629,8 +631,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				 */
 			} catch (Exception e) {
 				throw(e);
-			} finally {
-				reloadLock.release();
 			}
 		} else {
 			NLBus.logger.warn("Restart session called in chat interface with empty character: '"+character+"'");
@@ -710,10 +710,13 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						try {
-							reStartNLWithCharacter(c);
+							reloadLock.acquire();
+							sid=nlModule.startSession(c,chatInterfaceSingleSessionID);
 							pauseEventsMenuItem.setSelected(false);
 						} catch (Exception e1) {
 							displayError(e1,false);
+						} finally {
+							reloadLock.release();
 						}
 					}
 				});
@@ -982,9 +985,12 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			}
 		} else if (key==reloadKey.getKeyCode() && ((mod&reloadKey.getModifiers())>0)) {			
 			try {
-				reStartNLWithCharacter(nlModule.getCharacterName4Session(sid));
+				reloadLock.acquire();
+				sid=nlModule.startSession(nlModule.getCharacterName4Session(sid),chatInterfaceSingleSessionID);
 			} catch (Exception e1) {
 				displayError(e1,false);
+			} finally {
+				reloadLock.release();
 			}
 		}
 	}
@@ -1094,7 +1100,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	@Override
 	public void windowClosing(WindowEvent e) {
 		if (nlModule!=null) {
-			nlModule.terminateSession(sid, false);
+			nlModule.terminateSession(sid);
 			//displayState=MainDisplayStatus.FEEDBACK;
 			//setDisplayAccordingToState();
 			try {
@@ -1127,7 +1133,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 	}
 
-	private DM getDM(long sid) {
+	private DM getDM(Long sid) {
 		if (nlModule!=null) {
 			try {
 				DM dm=nlModule.getPolicyDMForSession(sid);
