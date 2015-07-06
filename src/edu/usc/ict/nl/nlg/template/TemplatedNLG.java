@@ -3,6 +3,7 @@ package edu.usc.ict.nl.nlg.template;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -111,7 +112,7 @@ public class TemplatedNLG extends EchoNLG {
 					Float n=f.getNumber();
 					if (n!=null) return Math.round(n)+"";
 				}
-			} else if (obj instanceof List) {
+			} else if (obj instanceof Collection) {
 				int last=((List) obj).size()-1;
 				int i=0;
 				for(Object x:(List)obj) {
@@ -124,6 +125,8 @@ public class TemplatedNLG extends EchoNLG {
 					}
 					i++;
 				}
+			} else {
+				replacement=obj.toString();
 			}
 		}
 		return replacement;
