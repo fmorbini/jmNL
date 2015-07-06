@@ -1076,12 +1076,13 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			CommandLine cmd = parser.parse( options, args);
 			if ( cmd.hasOption(HELP_OPTION) ) {
 				printUsageHelp();
-			} else if ( cmd.hasOption(START_MINIMIZED) ) {
-				startMinimized=true;
 			} else {
 				doRetraining=cmd.hasOption(TRAIN_NLU_OPTION);
 				if (cmd.hasOption(SPRING_CONFIG)) {
 					springConfig=cmd.getOptionValue(SPRING_CONFIG);
+				}
+				if ( cmd.hasOption(START_MINIMIZED) ) {
+					startMinimized=true;
 				}
 			}
 		} catch (ParseException e) {
