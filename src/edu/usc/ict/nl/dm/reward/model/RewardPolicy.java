@@ -279,9 +279,9 @@ public class RewardPolicy {
 			String policyID=fileName.replaceAll("[\\W]", "_");
 			if (operatorsToBeAdded!=null) {
 				for(DialogueOperator o:operatorsToBeAdded) {
-					if (logger.isDebugEnabled()) dp.toGDLGraph("policy_"+policyID+"_operator_"+o.getName()+".gdl");
+					if (logger.isDebugEnabled()) o.toGDLGraph("policy_"+policyID+"_operator_"+o.getName()+".gdl");
 					dp.addOperator(o);
-					if (logger.isDebugEnabled()) dp.toGDLGraph("policy-postprocessed"+policyID+"_operator_"+o.getName()+".gdl");
+					if (logger.isDebugEnabled()) o.toGDLGraph("policy-postprocessed"+policyID+"_operator_"+o.getName()+".gdl");
 				}
 			}
 			if (logger.isDebugEnabled()) {

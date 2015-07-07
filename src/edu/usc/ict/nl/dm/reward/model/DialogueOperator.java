@@ -621,7 +621,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 	}
 	
 	public void postProcessOperator(EventMatcher<List<DialogueOperatorEffect>> eventMatcher, RewardPolicy dp) throws Exception {
-		logger.debug("post processing operator: "+getName());
+		if (logger.isDebugEnabled()) logger.debug("post processing operator: "+getName());
 		updateListenTransitionsWithEventBasedUpdates(eventMatcher);
 		// for every entrance condition
 		//  traverse the nodes breadth first

@@ -123,7 +123,7 @@ public class SearchSpace {
 	WeightedDialogueOperatorEntranceTransition computeRewardForIgnoringEvent() throws Exception {
 		WeightedDialogueOperatorEntranceTransition ec = dm.getBestEntranceCondition4Operator(rootIgnore);
 		if (logger.getLevel()==Level.DEBUG) rootIgnore.toGDLGraph("drop-ignore.gdl");
-		logger.info("   IGNORE: "+((endState!=null)?endState.getFirst():null)+" level reached: "+((endState!=null)?endState.getSecond():null)+" result: "+ec);
+		if (logger.isInfoEnabled()) logger.info("   IGNORE: "+((endState!=null)?endState.getFirst():null)+" level reached: "+((endState!=null)?endState.getSecond():null)+" result: "+ec);
 		return ec;
 	}
 	WeightedDialogueOperatorEntranceTransition[] computeRewardsForHandlingEvents() throws Exception {
@@ -133,10 +133,8 @@ public class SearchSpace {
 				ecs[i] = dm.getBestEntranceCondition4Operator(rootHandle[i]);
 				Event ev=rootHandle[i].getInputEvent();
 				
-				if (logger.getLevel()==Level.DEBUG) {
-					rootHandle[i].toGDLGraph("drop-handle-"+"(event_index="+i+")-"+ev.getName().replace('|', '_')+".gdl");
-				}
-				logger.info("   HANDLE[event_index="+i+"]("+ev.getName()+"): "+((endState!=null)?endState.getFirst():null)+" level reached: "+((endState!=null)?endState.getSecond():null)+" result: "+ecs[i]);
+				if (logger.isDebugEnabled()) rootHandle[i].toGDLGraph("drop-handle-"+"(event_index="+i+")-"+ev.getName().replace('|', '_')+".gdl");
+				if (logger.isInfoEnabled()) logger.info("   HANDLE[event_index="+i+"]("+ev.getName()+"): "+((endState!=null)?endState.getFirst():null)+" level reached: "+((endState!=null)?endState.getSecond():null)+" result: "+ecs[i]);
 			}
 			return ecs;
 		} else {

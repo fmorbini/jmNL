@@ -264,7 +264,7 @@ public class DialogueOperatorNode extends edu.usc.ict.nl.util.graph.Node{
 			final long sid=dm.getSessionID();
 			for(final DialogueOperatorEffect eff:effects) {
 				if (eff.isGoalAchievement()) {
-					double r = eff.evaluateGoalValueIn(is);
+					float r = eff.evaluateGoalValueIn(is);
 					reward+=r;
 				} else if (eff.isSwapOut()) {
 					doSwapOut(action,new SwapoutReason(Reason.EFFECT));

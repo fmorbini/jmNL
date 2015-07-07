@@ -297,7 +297,11 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 			if (f!=null) {
 				//System.out.println(f+" "+is.evaluateNumericTerm(f));
 				Object v = is.evaluate(f,null);
-				if (v!=null && v instanceof Float) return (Float)v;
+				if (v!=null) {
+					if (v instanceof Long) return ((Long) v).floatValue();
+					else if (v instanceof Float) return (Float)v;
+					else throw new Exception("Invalid goal value type.");
+				}
 				else return 0;
 			}
 		}
