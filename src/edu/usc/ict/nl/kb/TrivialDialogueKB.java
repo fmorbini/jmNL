@@ -269,7 +269,7 @@ public class TrivialDialogueKB extends DialogueKB {
 			else return null;
 		} else if (f.isCustomFormula()) {
 			Object r=evaluate(f,forSimplification,context);
-			if (r!=null && r instanceof Number) return ((Number) r).floatValue();
+			if (r!=null && r instanceof Number) return (Number) r;
 			else return null;
 		} else return null;
 	}
