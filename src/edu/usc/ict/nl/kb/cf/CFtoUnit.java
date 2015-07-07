@@ -64,6 +64,8 @@ public class CFtoUnit implements CustomFunctionInterface {
 					if (factor!=null) {
 						if (var instanceof Integer) {
 							return ((Integer)var)*factor;
+						} else if (var instanceof Long) {
+							return ((Long)var)*factor;
 						} else if (var instanceof Float) {
 							return ((Float)var)*factor;
 						} else if (var instanceof Double) {
@@ -88,10 +90,12 @@ public class CFtoUnit implements CustomFunctionInterface {
 		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
 		DialogueKB is=dm.getInformationState();
 		is.store(DialogueOperatorEffect.parse("assign(a,currentTime)"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
-		Number r=eval(DialogueKBFormula.parse(getName()+"(a,'milliseconds','years')"),is,false,null);
+		DialogueKBFormula f = DialogueKBFormula.parse(getName()+"(a,'milliseconds','years')");
+		Number r=eval(f,is,false,null);
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 		if (r==null || (Math.floor((Double)r))!=(year-1970)) return false;
-		r=eval(DialogueKBFormula.parse(getName()+"(a,'milliseconds','hours')"),is,false,null);
+		f=DialogueKBFormula.parse(getName()+"(a,'milliseconds','hours')");
+		r=eval(f,is,false,null);
 		double h=Math.floor(System.currentTimeMillis()/3600000f);
 		if (r==null || (Math.floor((Double)r))!=h) return false;
 		return true;

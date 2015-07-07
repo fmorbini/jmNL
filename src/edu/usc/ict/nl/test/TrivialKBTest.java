@@ -14,6 +14,7 @@ import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.TrivialDialogueKB;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.kb.cf.TestRewardDM;
+import edu.usc.ict.nl.utils.FloatAndLongUtils;
 
 
 public class TrivialKBTest extends TestCase {
@@ -56,7 +57,7 @@ public class TrivialKBTest extends TestCase {
 		config.setCaseSensitive(false);
 		f=parseWithCheck("+(A,1)");
 		r=evaluate(mykb,f);
-		assertTrue(r!=null && ((Float)r)==3);
+		assertTrue(r!=null && (Long)r==3);
 		
 		config.setCaseSensitive(true);
 		e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("A", null),-1);
@@ -65,10 +66,10 @@ public class TrivialKBTest extends TestCase {
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		f=parseWithCheck("a");
 		r=evaluate(mykb,f);
-		assertTrue(r!=null && ((Float)r)==0);
+		assertTrue(r!=null && ((Long)r)==0);
 		f=parseWithCheck("A");
 		r=evaluate(mykb,f);
-		assertTrue(r!=null && ((Float)r)==-1);
+		assertTrue(r!=null && ((Long)r)==-1);
 		
 		e=DialogueOperatorEffect.parse("assign(d,'low')");
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
@@ -115,7 +116,7 @@ public class TrivialKBTest extends TestCase {
 		assertTrue(r==null);
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		r=evaluate(mykb,f);
-		assertTrue(r!=null && ((Float)r)==3);
+		assertTrue(r!=null && ((Long)r)==3);
 		f=parseWithCheck("+(b,1)");
 		r=evaluate(mykb,f);
 		assertTrue(r==null);
@@ -123,10 +124,10 @@ public class TrivialKBTest extends TestCase {
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		f=parseWithCheck("+(a,1)");
 		r=evaluate(mykb,f);
-		assertTrue(r!=null && ((Float)r)==4);
+		assertTrue(r!=null && ((Long)r)==4);
 		f=parseWithCheck("+(A,1)");
 		r=evaluate(mykb,f);
-		assertTrue(r!=null && ((Float)r)==4);
+		assertTrue(r!=null && ((Long)r)==4);
 		e=DialogueOperatorEffect.parse("assign(d,'low\\'high')");
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		f=parseWithCheck("d");
@@ -167,19 +168,19 @@ public class TrivialKBTest extends TestCase {
 		e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("a", null),parseWithCheck("*(a,2)"));
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		r=mykb.get("a");
-		assertTrue(r!=null && r.equals(4f));
+		assertTrue(r!=null && r.equals(4l));
 		e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("a", null),parseWithCheck("/(a,2)"));
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		r=mykb.get("a");
-		assertTrue(r!=null && r.equals(2f));
+		assertTrue(r!=null && r.equals(2l));
 
 		e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("a", null),2);
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		Object v = mykb.getValueOfVariable("a",ACCESSTYPE.AUTO_OVERWRITEAUTO,null);
-		assertEquals(v, 2f);
+		assertEquals(v, 2l);
 		assertTrue(mykb.hasVariableNamed("a",ACCESSTYPE.AUTO_OVERWRITEAUTO));
 		v = evaluate(mykb,DialogueKBFormula.create("a",null));
-		assertEquals(v, 2f);
+		assertEquals(v, 2l);
 		
 		e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("a", null),DialogueKBFormula.create("'b'", null));
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
@@ -383,8 +384,9 @@ public class TrivialKBTest extends TestCase {
 		HashMap<String, CustomFunctionInterface> fns = DialogueKBFormula.getCustomfunctions();
 		if(fns!=null) {
 			for(CustomFunctionInterface fn:fns.values()) {
-				System.out.println(fn.getName());
-				assertTrue(fn.test());
+				boolean result=fn.test();
+				System.out.println(fn.getName()+" test method has returned: "+result);
+				assertTrue(result);
 			}
 		}
 	}
@@ -524,7 +526,7 @@ public class TrivialKBTest extends TestCase {
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		f=parseWithCheck("e");
 		r=evaluate(mykb,f);
-		assertTrue(r instanceof Number && r.equals(1f));
+		assertTrue(r instanceof Number && r.equals(1l));
 		e=DialogueOperatorEffect.createAssignment(parseWithCheck("e"),new HashMap<String,String>());
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		f=parseWithCheck("e");
@@ -562,11 +564,11 @@ public class TrivialKBTest extends TestCase {
 		e=DialogueOperatorEffect.parse("e=2");
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 		v=mykb.get("e");
-		assertTrue(v.equals(3f));
+		assertTrue(v.equals(3l));
 		e=DialogueOperatorEffect.parse("e=5");
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 		v=mykb.get("e");
-		assertTrue(v.equals(4f));
+		assertTrue(v.equals(4l));
 
 		mykb.clearKBTree();
 		e=DialogueOperatorEffect.createImplication(DialogueKBFormula.parse("e==2"), DialogueOperatorEffect.parse("e=3"), null);
@@ -574,11 +576,11 @@ public class TrivialKBTest extends TestCase {
 		e=DialogueOperatorEffect.parse("e=2");
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 		v=mykb.get("e");
-		assertTrue(v.equals(3f));
+		assertTrue(v.equals(3l));
 		e=DialogueOperatorEffect.parse("e=5");
 		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 		v=mykb.get("e");
-		assertTrue(v.equals(5f));
+		assertTrue(v.equals(5l));
 
 		mykb.clearKBTree();
 		boolean rr=false;
@@ -677,7 +679,7 @@ public class TrivialKBTest extends TestCase {
 		mykb.store(e1, ACCESSTYPE.AUTO_OVERWRITEAUTO, true);
 		mykb.store(e2, ACCESSTYPE.AUTO_OVERWRITEAUTO, true);
 		DialogueKBFormula f = parseWithCheck("secondsSinceLast");
-		Float r = (Float)evaluate(mykb,f);
+		Float r = FloatAndLongUtils.numberToFloat((Number) evaluate(mykb,f));
 		assertTrue(r==2.0f);
 	}
 	
@@ -690,7 +692,7 @@ public class TrivialKBTest extends TestCase {
 		mykb.store(e1, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 		DialogueKBFormula f = parseWithCheck("a");
 		Object r=evaluate(mykb3,f);
-		assertTrue(r.equals(2f));
+		assertTrue((Long)r==2);
 		mykb3.removeVariable("a", ACCESSTYPE.AUTO_OVERWRITEAUTO);
 		r=evaluate(mykb3,f);
 		assertTrue(r==null);
@@ -773,6 +775,15 @@ public class TrivialKBTest extends TestCase {
 		assertTrue((Boolean)r);
 	}
 
+	public void test15() throws Exception {
+		TrivialDialogueKB mykb = new TrivialDialogueKB();
+		DialogueOperatorEffect e=DialogueOperatorEffect.parse("a=currenttime()");
+		mykb.store(e, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		DialogueKBFormula f = parseWithCheck("a");
+		Object r=evaluate(mykb,f);
+		System.out.println(r);
+	}
+	
 	private DialogueKBFormula parseWithCheck(String fs) throws Exception {
 		DialogueKBFormula f=DialogueKBFormula.parse(fs);
 		assertTrue(f==DialogueKBFormula.parse(f.toString()));
@@ -784,7 +795,7 @@ public class TrivialKBTest extends TestCase {
 	
 	public static void main(String[] args) throws Exception {
 		TrivialKBTest t = new TrivialKBTest();
-		t.test8();
+		t.test15();
 		System.exit(0);
 	}
 }

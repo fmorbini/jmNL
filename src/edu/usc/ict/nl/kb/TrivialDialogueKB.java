@@ -22,6 +22,7 @@ import edu.usc.ict.nl.kb.DialogueKBFormula.NumOp;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.util.graph.Edge;
+import edu.usc.ict.nl.utils.FloatAndLongUtils;
 
 public class TrivialDialogueKB extends DialogueKB {
 	
@@ -229,30 +230,30 @@ public class TrivialDialogueKB extends DialogueKB {
 		else return null;
 	}
 
-	private Float evaluateNumericTerm(DialogueKBFormula fv, boolean forSimplification,EvalContext context) throws Exception {
-		Float num;
+	private Number evaluateNumericTerm(DialogueKBFormula fv, boolean forSimplification,EvalContext context) throws Exception {
+		Number num;
 		DialogueKBFormula f=(DialogueKBFormula)fv;
 		if (f.isNumericFormula()) {
 			NumOp p=f.getTypeOfNumericOperator();
 			List<Edge> args = f.getOutgoingEdges();
 			Iterator<Edge> argsi = args.iterator();
-			Float fa=evaluateNumericTerm((DialogueKBFormula) argsi.next().getTarget(),forSimplification,context);
+			Number fa=evaluateNumericTerm((DialogueKBFormula) argsi.next().getTarget(),forSimplification,context);
 			if (fa!=null) {
-				if ((p==NumOp.SUB) && (args.size()==1)) return -fa;
+				if ((p==NumOp.SUB) && (args.size()==1)) return FloatAndLongUtils.subFloatAndOrLong(0l, fa);
 				while(argsi.hasNext()) {
-					Float oa=evaluateNumericTerm((DialogueKBFormula) argsi.next().getTarget(),forSimplification,context);
+					Number oa=evaluateNumericTerm((DialogueKBFormula) argsi.next().getTarget(),forSimplification,context);
 					if (oa==null) return null;
 					else {
 						try {
 							switch(p) {
 							case MUL:
-								fa*=oa;break;
+								fa=FloatAndLongUtils.mulFloatAndOrLong(fa, oa);break;
 							case DIV:
-								fa/=oa;break;
+								fa=FloatAndLongUtils.divFloatAndOrLong(fa, oa);break;
 							case ADD:
-								fa+=oa;break;
+								fa=FloatAndLongUtils.sumFloatAndOrLong(fa, oa);break;
 							case SUB:
-								fa-=oa;break;
+								fa=FloatAndLongUtils.subFloatAndOrLong(fa, oa);break;
 							}
 						} catch (Exception e) {return null;}
 					}
@@ -360,36 +361,25 @@ public class TrivialDialogueKB extends DialogueKB {
 			} else return null;
 		} else throw new Exception("Called cutom formula evaluation on the non-custom formula: "+f);
 	}
-	
-	public static Float numberToFloat(Number n) {
-		if (n!=null) {
-			if (n instanceof Integer) return ((Integer)n).floatValue();
-			else if (n instanceof Float) return ((Float)n);
-			else if (n instanceof Double) return ((Double)n).floatValue();
-			else if (n instanceof Short) return ((Short)n).floatValue();
-			else if (n instanceof Long) return ((Long)n).floatValue();
-			else return (Float)n;
-		}
-		return null;
-	}
-	
+		
 	public Boolean doComparison(Object v1,Object v2,CmpOp op) {
 		if (v1!=null && v2!=null && (v1 instanceof Number || v1 instanceof Number)) {
-			return doNumericComparison(numberToFloat((Number) v1), numberToFloat((Number) v2), op);
+			return doNumericComparison((Number) v1, (Number) v2, op);
 		} else if (v1!=null && v2!=null && (v1 instanceof String || v1 instanceof String)) {
 			return doStringComparison((String)v1, (String)v2, op);
 		} else {
 			return doObjectComparison(v1, v2, op);
 		}
 	}
-	public Boolean doNumericComparison(double v1,double v2,CmpOp op) {
+	public Boolean doNumericComparison(Number v1,Number v2,CmpOp op) {
+		Float result=FloatAndLongUtils.numberToFloat(FloatAndLongUtils.subFloatAndOrLong(v1, v2));
 		switch (op) {
-		case EQ: return v1==v2;
-		case NE: return v1!=v2;
-		case LE: return v1<=v2;
-		case GE: return v1>=v2;
-		case LT: return v1<v2;
-		case GT: return v1>v2;
+		case EQ: return result==0;
+		case NE: return result!=0;
+		case LE: return result<=0;
+		case GE: return result>=0;
+		case LT: return result<0;
+		case GT: return result>0;
 		}
 		return null;
 	}

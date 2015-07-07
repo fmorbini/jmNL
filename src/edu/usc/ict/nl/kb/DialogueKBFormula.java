@@ -39,10 +39,12 @@ import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.kb.parser.FormulaGrammar;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.util.FunctionalLibrary;
+import edu.usc.ict.nl.util.NumberUtils;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.graph.Edge;
 import edu.usc.ict.nl.util.graph.Node;
+import edu.usc.ict.nl.utils.FloatAndLongUtils;
 
 public class DialogueKBFormula extends Node {
 
@@ -147,7 +149,9 @@ public class DialogueKBFormula extends Node {
 			predValue=getTypeOfCMPOperator(pred);
 			break;
 		case NUMBER:
-			predValue=Float.parseFloat(pred);
+			String num=NumberUtils.makeLongIfPossible(pred);
+			if (num!=null) predValue=Long.parseLong(num);
+			else predValue=Float.parseFloat(pred);
 			break;
 		case PRED:
 			//predValue=predValue;//pred.toLowerCase();
@@ -201,10 +205,7 @@ public class DialogueKBFormula extends Node {
 			CmpOp.valueOf(pred.toUpperCase());
 			return Type.CMP;
 		} catch (IllegalArgumentException e) {}
-		try {
-			Float.parseFloat(pred);
-			return Type.NUMBER;
-		} catch (NumberFormatException e) {}
+		if (NumberUtils.isNumber(pred)) return Type.NUMBER;
 		if (pred.matches("^[\\*\\+\\-/]$")) return Type.NUMPRED;
 		else if (pred.matches("^(==|<=|>=|!=|<|>)$")) return Type.CMP;
 		else if (pred.compareToIgnoreCase("true")==0) return Type.TRUE;
@@ -314,11 +315,13 @@ public class DialogueKBFormula extends Node {
 			boolean cont=true;
 			while(cont) {
 				cont=false;
-				Pair<Float,DialogueKBFormula>pair1;
+				Pair<Number,DialogueKBFormula>pair1;
 				if ((pair1=f.isConstantIncrement())!=null) {
-					Pair<Float,DialogueKBFormula>pair2;
+					Pair<Number,DialogueKBFormula>pair2;
 					if ((pair2=pair1.getSecond().isConstantIncrement())!=null) {
-						Float number=pair1.getFirst()+pair2.getFirst();
+						Number n1=pair1.getFirst();
+						Number n2=pair2.getFirst();
+						Number number=FloatAndLongUtils.sumFloatAndOrLong(n1,n2);
 						List<DialogueKBFormula> args=new ArrayList<DialogueKBFormula>();
 						args.add(pair2.getSecond());
 						args.add(DialogueKBFormula.create(number.toString(), null));
@@ -341,9 +344,13 @@ public class DialogueKBFormula extends Node {
 	public boolean isNumber() {return getType()==Type.NUMBER;}
 	public boolean isString() {return getType()==Type.STRING;}
 	public boolean isQuoted() {return getType()==Type.QUOTED;}
-	public Float getNumber() {
+	public Number getNumber() {
 		if (isNumber()) {
-			return Float.parseFloat(getName());
+			try {
+				return Long.parseLong(getName());
+			} catch (Exception e) {
+				return Float.parseFloat(getName());
+			}
 		} else return null;
 	}
 	public boolean isVariable() {
@@ -503,25 +510,31 @@ public class DialogueKBFormula extends Node {
 		return ret;
 	}
 
-	public Pair<Float,DialogueKBFormula> isConstantIncrement() {
+	public Pair<Number,DialogueKBFormula> isConstantIncrement() {
 		if (isNumericFormula()) {
 			NumOp op=getTypeOfNumericOperator();
-			Float number;
+			Number number;
 			if (op==NumOp.ADD) {
 				if ((number=getArg(2).getNumber())!=null) {
-					return new Pair<Float, DialogueKBFormula>(number, getArg(1));
+					return new Pair<Number, DialogueKBFormula>(number, getArg(1));
 				} else if ((number=getArg(1).getNumber())!=null) {
-					return new Pair<Float, DialogueKBFormula>(number, getArg(2));
+					return new Pair<Number, DialogueKBFormula>(number, getArg(2));
 				}
 			} else if (op==NumOp.SUB) {
 				if ((number=getArg(2).getNumber())!=null) {
-					return new Pair<Float, DialogueKBFormula>(-number, getArg(1));
+					if (number instanceof Long) {
+						return new Pair<Number, DialogueKBFormula>(-(Long)number, getArg(1));						
+					} else if (number instanceof Float) {
+						return new Pair<Number, DialogueKBFormula>(-(Float)number, getArg(1));
+					}
+					
 				}
 			}
 		}
 		return null;
 	}
-	public Float isIncrementForVariable(DialogueKBFormula pl) {
+
+	public Number isIncrementForVariable(DialogueKBFormula pl) {
 		if (isNumericFormula()) {
 			NumOp op=getTypeOfNumericOperator();
 			if (op==NumOp.ADD) {
@@ -532,8 +545,11 @@ public class DialogueKBFormula extends Node {
 				}
 			} else if (op==NumOp.SUB) {
 				if (getArg(1)==pl) {
-					Float dec=getArg(2).getNumber();
-					if (dec!=null) return -dec;
+					Number dec=getArg(2).getNumber();
+					if (dec!=null) {
+						if (dec instanceof Long) return -(Long)dec;
+						else if (dec instanceof Float) return -(Float)dec;
+					}
 				}
 			}
 		}
@@ -584,7 +600,7 @@ public class DialogueKBFormula extends Node {
 	}
 
 	public static void main(String[] args) throws Exception {
-		DialogueKBFormula rrr = parse("'high\\'low'");
+		DialogueKBFormula rrr = parse("currentTime()");
 		System.out.println(rrr);
 		//DialogueKBFormula f9=parse("or(queryNLU('cGDA','Conventional-opening',1),queryNLU('cGDA','Acknowledge-backchannel-agree-accept',1),and(queryNLU('cGDA','Statement',1),!queryNLU('cV','negative',1)),queryNLU('cV','positive',1)");
 		//DialogueKBFormula f9=parse("and(timeSinceLastAction>=qwait,ipuNumber()>0)");

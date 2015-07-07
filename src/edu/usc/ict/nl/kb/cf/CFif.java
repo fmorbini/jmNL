@@ -46,11 +46,14 @@ public class CFif implements CustomFunctionInterface {
 		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
 		DialogueKB is=dm.getInformationState();
 		is.store(DialogueOperatorEffect.parse("assign(a,2)"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
-		Object r=eval(DialogueKBFormula.parse(getName()+"(a!=0,1,2)"),dm.getInformationState(),false,null);
-		if (!r.equals(1f)) return false;
-		r=eval(DialogueKBFormula.parse(getName()+"(a>2,1,2)"),dm.getInformationState(),false,null);
-		if (!r.equals(2f)) return false;
-		r=eval(DialogueKBFormula.parse(getName()+"(b>2,1,2)"),dm.getInformationState(),false,null);
+		DialogueKBFormula f = DialogueKBFormula.parse(getName()+"(a!=0,1,2)");
+		Object r=eval(f,dm.getInformationState(),false,null);
+		if (!r.equals(1l)) return false;
+		f=DialogueKBFormula.parse(getName()+"(a>2,1,2)");
+		r=eval(f,dm.getInformationState(),false,null);
+		if (!r.equals(2l)) return false;
+		f=DialogueKBFormula.parse(getName()+"(b>2,1,2)");
+		r=eval(f,dm.getInformationState(),false,null);
 		if (r!=null) return false;
 		return true;
 	}

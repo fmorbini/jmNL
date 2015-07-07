@@ -10,7 +10,7 @@ import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.EvalContext;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
-import edu.usc.ict.nl.kb.TrivialDialogueKB;
+import edu.usc.ict.nl.utils.FloatAndLongUtils;
 
 public class CFRandom implements CustomFunctionInterface {
 
@@ -51,15 +51,15 @@ public class CFRandom implements CustomFunctionInterface {
 		int tot=1000;
 		for(int i=0;i<tot;i++) {
 			Number r=eval(f1,dm.getInformationState(),false,null);
-			Float v=TrivialDialogueKB.numberToFloat(r);
+			Float v=FloatAndLongUtils.numberToFloat(r);
 			avg1+=v;
 			if (!(v<1 && v>=0)) return false;
 			r=eval(f2,dm.getInformationState(),false,null);
-			v=TrivialDialogueKB.numberToFloat(r);
+			v=FloatAndLongUtils.numberToFloat(r);
 			avg2+=v;
 			if (!(v<11 && v>=0)) return false;
 			r=eval(f3,dm.getInformationState(),false,null);
-			v=TrivialDialogueKB.numberToFloat(r);
+			v=FloatAndLongUtils.numberToFloat(r);
 			avg3+=v;
 			if (!(v<21 && v>=0)) return false;
 		}

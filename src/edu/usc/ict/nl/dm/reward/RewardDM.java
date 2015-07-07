@@ -21,6 +21,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
+import org.apache.log4j.Logger;
+
 import edu.usc.ict.nl.audio.util.Audio;
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.NLBusInterface;
@@ -36,6 +38,7 @@ import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceLengthEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
+import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLBusConfig;
@@ -195,7 +198,7 @@ public class RewardDM extends DM {
 		Collection<DialogueOperator> ops = dp.getOperators(OpType.DAEMON);
 		if (ops!=null) {
 			if ((dormantDaemonActions!=null) && dormantDaemonActions.getDormantOperators()!=null && !dormantDaemonActions.getDormantOperators().isEmpty()) {
-				logger.info("dormant daemon actions '"+((dormantDaemonActions!=null)?dormantDaemonActions.getDormantOperators():null)+"'");
+				if (logger.isDebugEnabled()) logger.info("dormant daemon actions '"+((dormantDaemonActions!=null)?dormantDaemonActions.getDormantOperators():null)+"'");
 			}
 			EvalContext context=getContext();
 			List<DialogueOperatorEntranceTransition> ecs = getOperatorsThatCanBeStartedByThisEvent(context, ev, OpType.DAEMON);
@@ -230,7 +233,7 @@ public class RewardDM extends DM {
 
 					if (ec.isReEntrable()) {
 						if (dormantDaemonActions.isThisDormant(op)) {
-							logger.info("Restarting daemon operator with re-entrance option: "+ec);
+							if (logger.isDebugEnabled()) logger.info("Restarting daemon operator with re-entrance option: "+ec);
 							DialogueAction a=dormantDaemonActions.getDormantActionOf(op);
 							a.setAsReentered(ec);
 							a.execute(ev, getRootInformationState());
@@ -238,7 +241,7 @@ public class RewardDM extends DM {
 							logger.error("Selected reentrance condition for non-dormant daemon operator: "+op.getName());
 						}
 					} else {
-						logger.info("New execution of daemon operator with entrance condition: "+ec);
+						if (logger.isDebugEnabled()) logger.info("New execution of daemon operator with entrance condition: "+ec);
 						DialogueAction a=new DialogueAction(ec, this);
 						a.execute(ev, getRootInformationState());
 					}

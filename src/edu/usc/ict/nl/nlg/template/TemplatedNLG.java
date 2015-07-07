@@ -109,8 +109,11 @@ public class TemplatedNLG extends EchoNLG {
 						replacement=f.toString();
 					}
 				} else if (f.isNumber()) {
-					Float n=f.getNumber();
-					if (n!=null) return Math.round(n)+"";
+					Number n=f.getNumber();
+					if (n!=null) {
+						if (n instanceof Long) return n.toString();
+						else if (n instanceof Float) return Math.round((Float)n)+"";
+					}
 				}
 			} else if (obj instanceof Collection) {
 				int last=((List) obj).size()-1;
