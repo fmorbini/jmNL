@@ -26,7 +26,7 @@ public class CFnluQuery implements CustomFunctionInterface {
 
 	@Override
 	public boolean checkArguments(Collection<DialogueKBFormula> args) {
-		return (args!=null && (args.size()>=3 || args.size()<=4));
+		return (args!=null && args.size()>=3 && args.size()<=4);
 	}
 
 	@Override
