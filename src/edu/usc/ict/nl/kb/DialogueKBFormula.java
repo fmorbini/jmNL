@@ -19,6 +19,7 @@ import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.cf.CFMin;
 import edu.usc.ict.nl.kb.cf.CFPrint;
 import edu.usc.ict.nl.kb.cf.CFRandom;
+import edu.usc.ict.nl.kb.cf.CFRound;
 import edu.usc.ict.nl.kb.cf.CFTrace;
 import edu.usc.ict.nl.kb.cf.CFcurrentTime;
 import edu.usc.ict.nl.kb.cf.CFfollows;
@@ -67,6 +68,7 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFnumberIPUs());
 		addCustomFunction(new CFPrint());
 		addCustomFunction(new CFRandom());
+		addCustomFunction(new CFRound());
 		addCustomFunction(new CFtoUnit());
 		addCustomFunction(new CFTrace());
 	}
@@ -602,6 +604,9 @@ public class DialogueKBFormula extends Node {
 	public static void main(String[] args) throws Exception {
 		DialogueKBFormula rrr = parse("currentTime()");
 		System.out.println(rrr);
+		DialogueKBFormula f40 = parse("isQuestion(a)");
+		System.out.println(f40);
+		System.out.println(f40.getAllArgs());
 		//DialogueKBFormula f9=parse("or(queryNLU('cGDA','Conventional-opening',1),queryNLU('cGDA','Acknowledge-backchannel-agree-accept',1),and(queryNLU('cGDA','Statement',1),!queryNLU('cV','negative',1)),queryNLU('cV','positive',1)");
 		//DialogueKBFormula f9=parse("and(timeSinceLastAction>=qwait,ipuNumber()>0)");
 		DialogueKBFormula f9=parse("print('3')");
@@ -632,6 +637,7 @@ public class DialogueKBFormula extends Node {
 		System.out.println(f2);
 		f2 = parse("isQuestion(a)");
 		System.out.println(f2);
+		System.out.println(f2.getAllArgs());
 		System.out.println(f2.isNumericFormula());
 		DialogueKBFormula f4=create("a", null);
 		Collection<DialogueKBFormula> argss=new ArrayList<DialogueKBFormula>();
