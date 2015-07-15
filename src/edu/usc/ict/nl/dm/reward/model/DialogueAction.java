@@ -357,13 +357,16 @@ public class DialogueAction {
 			}
 			activeStates.transition(startState,endState);
 			if (endState!=startState) resetTimerEventsInCurrentState();
+			if (endState.isFinal()) {
+				// if i reached a final state (not a final operator) then set the DONE time mark.
+				TimemarksTracker tt = dm.getTimemarkTracker();
+				if (tt!=null) tt.setMark(getOperator().getName(),TimemarksTracker.TYPES.DONE,null);
+			}
 
 			rewardAlreadyGot+=endState.execute(this,context,sourceEvent);
 			
 			if (endState.isFinal() && isFinal()) {
 				dm.setDone(true);
-				TimemarksTracker tt = dm.getTimemarkTracker();
-				if (tt!=null) tt.setMark(getOperator().getName(),TimemarksTracker.TYPES.DONE,null);
 				dm.getLogger().info("   reached final state of action '"+this+"' that is a final action. Put DM in DONE state.");
 			}
 

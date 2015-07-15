@@ -27,7 +27,9 @@ public class TimemarksTracker {
 		case ENTER:
 			if (!StringUtils.isEmptyString(op)) {
 				Map<String, Long> tT =getTimeMarksForOperatorAndType(op,type);
-				tT.put(p, System.currentTimeMillis());
+				long time=System.currentTimeMillis();
+				if (logger.isInfoEnabled()) logger.info("setting mark "+type+"("+p+") for "+op+" to "+time);
+				tT.put(p, time);
 			} else {
 				logger.error("empty operator in set time mark call.");
 			}
@@ -47,7 +49,8 @@ public class TimemarksTracker {
 
 	public Long getLastTimeMark(String op,TYPES type,String p) {
 		Map<String, Long> tT =getTimeMarksForOperatorAndType(op,type);
-		if (tT!=null) return tT.get(p);
-		else return null;
+		Long time=tT.get(p);
+		if (logger.isInfoEnabled()) logger.info("getting mark "+type+"("+p+") for "+op+" to "+time);
+		return time;
 	}
 }
