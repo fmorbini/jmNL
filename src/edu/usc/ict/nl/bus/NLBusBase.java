@@ -46,6 +46,7 @@ import edu.usc.ict.nl.kb.VariableProperties;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.ui.chat.ChatInterface;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
 
@@ -229,12 +230,12 @@ public abstract class NLBusBase implements NLBusInterface {
 				terminateSession(sid);
 			}
 		} catch (Exception e) {}
-		if (sid==null) sid=new Long(999);
+		if (sid==null) sid=new Long(ChatInterface.chatInterfaceSingleSessionID);
 		setCharacter4Session(sid,characterName);
 		loadSpecialVariablesForSession(sid);
 		try {
 			getPolicyDMForSession(sid,true);
-		} catch (Exception e) {logger.error("Error while starting policy.",e);}
+		} catch (Exception e) {logger.error("Error when creating dm while starting session "+sid+" for character "+characterName+".",e);}
 		if (hasListeners()) {
 			for(ExternalListenerInterface l:getListeners()) {
 				l.startSession(characterName,sid);

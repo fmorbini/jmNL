@@ -22,6 +22,7 @@ import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.ui.chat.ChatInterface;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 
@@ -45,7 +46,7 @@ public class NLTester {
 	
 	
 	public Long initDM(String characterName) throws Exception {
-		Long sid = nlModule.startSession(characterName,999l);
+		Long sid = nlModule.startSession(characterName,ChatInterface.chatInterfaceSingleSessionID);
 		return sid;
 	}
 	public boolean batchDM(String characterName,String inputFile, boolean fakeNLU) throws Exception {
