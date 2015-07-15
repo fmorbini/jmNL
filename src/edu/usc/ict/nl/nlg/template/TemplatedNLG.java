@@ -68,6 +68,7 @@ public class TemplatedNLG extends EchoNLG {
 	@Override
 	protected String getTextForSpeechAct(String sa, DialogueKBInterface is,boolean simulate) throws Exception {
 		String text=super.getTextForSpeechAct(sa, is, simulate);
+		System.out.println(sa+" "+text);
 		List<Function> functions = getFunctions(text);
 		text=applyFunctions(text,functions,is,simulate);
 		return text;

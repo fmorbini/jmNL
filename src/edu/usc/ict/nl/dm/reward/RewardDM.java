@@ -50,6 +50,7 @@ import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEntranceTransition;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNode;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNodesChain;
 import edu.usc.ict.nl.dm.reward.model.RewardPolicy;
+import edu.usc.ict.nl.dm.reward.model.TimemarksTracker;
 import edu.usc.ict.nl.dm.reward.model.RewardPolicy.OpType;
 import edu.usc.ict.nl.dm.reward.possibilityGraph.OperatorHistoryNode;
 import edu.usc.ict.nl.dm.reward.possibilityGraph.PossibleIS;
@@ -89,6 +90,7 @@ public class RewardDM extends DM {
 	private DMInternalEvent unhandledUserEvent=null,forcedIgnoreUserEvent=null;
 
 	protected SpeakingTracker speakingTracker;
+	protected TimemarksTracker timemarkTracker=null;
 	public SpeakingTracker getSpeakingTracker() {return speakingTracker;}
 	private List<ValueTracker> trackers=null;
 	private SystemFinishedSpeakingTracker systemFinishedSpeakingTracker=null;
@@ -978,6 +980,7 @@ public class RewardDM extends DM {
 
 	private StateTracker stateTracker;
 	private DMVisualizerI visualizer=null;
+
 	private static Rectangle visualizerBounds=null;
 	
 	private static DialogueOperatorEffect incrementUnhandledCounterVariable,incrementUnhandledInTurnCounterVariable,incrementTimeSinceLastResource,incrementTimeSinceStart;
@@ -1395,6 +1398,7 @@ public class RewardDM extends DM {
 					systemFinishedSpeakingTracker=(SystemFinishedSpeakingTracker) vt;
 			}
 		}
+		timemarkTracker=new TimemarksTracker(getLogger());
 	}
 
 	public ValueTracker createTracker(String className) {
@@ -1899,5 +1903,8 @@ public class RewardDM extends DM {
 		} else {
 			logger.warn("Ignoring removing operator as policy is null.");
 		}
+	}
+	public TimemarksTracker getTimemarkTracker() {
+		return this.timemarkTracker;
 	}
 }

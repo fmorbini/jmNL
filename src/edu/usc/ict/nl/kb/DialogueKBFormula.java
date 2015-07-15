@@ -24,6 +24,7 @@ import edu.usc.ict.nl.kb.cf.CFTrace;
 import edu.usc.ict.nl.kb.cf.CFcurrentTime;
 import edu.usc.ict.nl.kb.cf.CFfollows;
 import edu.usc.ict.nl.kb.cf.CFget;
+import edu.usc.ict.nl.kb.cf.CFgetLastTimeMark;
 import edu.usc.ict.nl.kb.cf.CFhasBeenInterrupted;
 import edu.usc.ict.nl.kb.cf.CFif;
 import edu.usc.ict.nl.kb.cf.CFisCurrentTopic;
@@ -55,6 +56,7 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFfollows());
 		addCustomFunction(new CFif());
 		addCustomFunction(new CFget());
+		addCustomFunction(new CFgetLastTimeMark());
 		addCustomFunction(new CFhasBeenInterrupted());
 		addCustomFunction(new CFisCurrentTopic());
 		addCustomFunction(new CFisInterruptible());

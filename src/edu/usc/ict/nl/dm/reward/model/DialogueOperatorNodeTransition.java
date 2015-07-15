@@ -257,6 +257,8 @@ public class DialogueOperatorNodeTransition extends Edge {
 			if (!StringUtils.isEmptyString(say)) {
 				DialogueOperator op=a.getOperator();
 				if (willSay(context)) {
+					TimemarksTracker tt = dm.getTimemarkTracker();
+					if (tt!=null) tt.setMark(getOperator().getName(),TimemarksTracker.TYPES.SAY,say);
 					dm.getLogger().info("Operator '"+op+"' will say: '"+say+"'");
 					//dm.updateSystemSayTracker(say);
 					messageBus.handleDMResponseEvent(new DMSpeakEvent(sourceEvent,say,sid,null,context.getInformationState()));

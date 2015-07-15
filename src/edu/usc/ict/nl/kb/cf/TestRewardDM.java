@@ -13,6 +13,7 @@ import edu.usc.ict.nl.dm.reward.model.DialogueAction;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperator;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEntranceTransition;
 import edu.usc.ict.nl.dm.reward.model.RewardPolicy;
+import edu.usc.ict.nl.dm.reward.model.TimemarksTracker;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.EvalContext;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
@@ -29,14 +30,15 @@ public class TestRewardDM extends RewardDM {
 		logger=Logger.getLogger(TestRewardDM.class.getName());
 		logger.setLevel(Level.OFF);
 		context=new EvalContext(new TrivialDialogueKB(this));
-		op=new TestDialogueOperator();
+		op=new TestDialogueOperator("TestDialogueOperator");
 		ec=new DialogueOperatorEntranceTransition();
 		ec.setOperator(op);
 		aa = new DialogueAction(ec, this);
 		dp=new TestRewardPolicy(config);
 		dormantActions=new DormantActions();
 		speakingTracker=new SpeakingTracker(this,null);
-	
+		timemarkTracker=new TimemarksTracker(getLogger());
+
 		try {
 			getRootInformationState().setValueOfVariable(NLBusBase.dmVariableName, this,ACCESSTYPE.AUTO_OVERWRITEAUTO);
 		} catch (Exception e) {

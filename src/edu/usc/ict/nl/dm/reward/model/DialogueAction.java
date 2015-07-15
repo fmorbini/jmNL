@@ -208,6 +208,8 @@ public class DialogueAction {
 				internalKB=localVarKB;
 			} else internalKB=(DialogueKB)initIS;
 		case RE_ENTERED:
+			TimemarksTracker tt = dm.getTimemarkTracker();
+			if (tt!=null) tt.setMark(getOperator().getName(),TimemarksTracker.TYPES.ENTER,null);
 			assert((getInternalKB()==initIS) || ((getLocalVarKB()!=null) && (getInternalKB().getParent()==initIS)));
 			activeStates.clear();
 
@@ -360,6 +362,8 @@ public class DialogueAction {
 			
 			if (endState.isFinal() && isFinal()) {
 				dm.setDone(true);
+				TimemarksTracker tt = dm.getTimemarkTracker();
+				if (tt!=null) tt.setMark(getOperator().getName(),TimemarksTracker.TYPES.DONE,null);
 				dm.getLogger().info("   reached final state of action '"+this+"' that is a final action. Put DM in DONE state.");
 			}
 
