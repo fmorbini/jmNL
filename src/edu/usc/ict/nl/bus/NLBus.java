@@ -11,15 +11,15 @@ import javax.xml.bind.JAXBContext;
 import org.apache.log4j.PropertyConfigurator;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import edu.usc.ict.nl.bus.events.DMChangeEvent;
-import edu.usc.ict.nl.bus.events.DMChangesEvent;
 import edu.usc.ict.nl.bus.events.DMGeneratedEvent;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
-import edu.usc.ict.nl.bus.events.DMStateChangeEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.bus.events.changes.DMVarChangeEvent;
+import edu.usc.ict.nl.bus.events.changes.DMVarChangesEvent;
+import edu.usc.ict.nl.bus.events.changes.DMStateChangeEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.modules.NLUInterface;
@@ -116,10 +116,10 @@ public class NLBus extends NLBusBase {
 	public void handleDMResponseEvent(DMGeneratedEvent ev) throws Exception {
 		if (ev instanceof DMSpeakEvent) {
 			handleDMSpeakEvent((DMSpeakEvent) ev);
-		} else if (ev instanceof DMChangeEvent) {
-			handleDMChangeEvent((DMChangeEvent) ev);
-		} else if (ev instanceof DMChangesEvent) {
-			handleDMChangesEvent((DMChangesEvent) ev);
+		} else if (ev instanceof DMVarChangeEvent) {
+			handleDMChangeEvent((DMVarChangeEvent) ev);
+		} else if (ev instanceof DMVarChangesEvent) {
+			handleDMChangesEvent((DMVarChangesEvent) ev);
 		} else if (ev instanceof DMInterruptionRequest) {
 			handleDMInterruptionRequestEvent((DMInterruptionRequest) ev);
 		} else if (ev instanceof DMStateChangeEvent) {
@@ -129,11 +129,14 @@ public class NLBus extends NLBusBase {
 		}
 	}
 	
-	protected void handleDMChangeEvent(DMChangeEvent ev) {
+	@Override
+	public void handleDMChangeEvent(DMVarChangeEvent ev) {
 	}
-	protected void handleDMChangesEvent(DMChangesEvent ev) {
+	@Override
+	public void handleDMChangesEvent(DMVarChangesEvent ev) {
 	}
-	protected void handleDMStateChangeEvent(DMStateChangeEvent ev) {
+	@Override
+	public void handleDMStateChangeEvent(DMStateChangeEvent ev) {
 	}
 
 	//##############################################################################

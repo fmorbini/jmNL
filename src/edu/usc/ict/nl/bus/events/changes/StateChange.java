@@ -1,14 +1,14 @@
-package edu.usc.ict.nl.kb;
+package edu.usc.ict.nl.bus.events.changes;
 
 import edu.usc.ict.nl.util.Triple;
 
-public class Change extends Triple<String,Object,Object> {
+public class StateChange extends Triple<String,Object,Object> implements Change {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	public Change(String name, Object oldValue, Object newValue) {
+	public StateChange(String name,Object oldValue, Object newValue) {
 		super(name,oldValue,newValue);
 	}
 	

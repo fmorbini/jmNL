@@ -1,17 +1,18 @@
-package edu.usc.ict.nl.bus.events;
+package edu.usc.ict.nl.bus.events.changes;
 
-import edu.usc.ict.nl.kb.Change;
+import edu.usc.ict.nl.bus.events.DMGeneratedEvent;
+import edu.usc.ict.nl.bus.events.Event;
 
 
 public class DMStateChangeEvent extends DMGeneratedEvent {
 
-	public DMStateChangeEvent(Event se, Long sid, Change c) {
+	public DMStateChangeEvent(Event se, Long sid, StateChange c) {
 		super(se,(c!=null)?c.getName():null, sid, c);
 	}
 	
 	@Override
-	public Change getPayload() {
-		return (Change) super.getPayload();
+	public StateChange getPayload() {
+		return (StateChange) super.getPayload();
 	}
 	
 	public DMStateChangeEvent clone(DMStateChangeEvent sourceEvent) {

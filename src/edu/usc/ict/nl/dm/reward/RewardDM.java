@@ -26,8 +26,6 @@ import org.apache.log4j.Logger;
 import edu.usc.ict.nl.audio.util.Audio;
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.NLBusInterface;
-import edu.usc.ict.nl.bus.events.DMChangeEvent;
-import edu.usc.ict.nl.bus.events.DMChangesEvent;
 import edu.usc.ict.nl.bus.events.DMInternalEvent;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
@@ -36,6 +34,9 @@ import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceLengthEvent;
+import edu.usc.ict.nl.bus.events.changes.VarChange;
+import edu.usc.ict.nl.bus.events.changes.DMVarChangeEvent;
+import edu.usc.ict.nl.bus.events.changes.DMVarChangesEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.bus.modules.NLG;
@@ -58,7 +59,6 @@ import edu.usc.ict.nl.dm.reward.possibilityGraph.PossibleTransition;
 import edu.usc.ict.nl.dm.reward.trackers.SystemFinishedSpeakingTracker;
 import edu.usc.ict.nl.dm.reward.trackers.ValueTracker;
 import edu.usc.ict.nl.dm.visualizer.DMVisualizerI;
-import edu.usc.ict.nl.kb.Change;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
@@ -523,8 +523,8 @@ public class RewardDM extends DM {
 					if(logger.isDebugEnabled()) logger.debug(" firing these event driven updates: "+effs);
 					if (effs!=null) for(List<DialogueOperatorEffect> eff:effs) {
 						if (eff!=null) {
-							Collection<Change> changes = is.saveAssignmentsAndGetUpdates(ACCESSTYPE.AUTO_OVERWRITEAUTO, true, eff);
-							sendChangeEventsCausedby(changes, ev);
+							Collection<VarChange> changes = is.saveAssignmentsAndGetUpdates(ACCESSTYPE.AUTO_OVERWRITEAUTO, true, eff);
+							sendVarChangeEventsCausedby(changes, ev);
 						}
 					}
 				}
@@ -532,15 +532,15 @@ public class RewardDM extends DM {
 			}
 		}
 	}
-	public void sendChangeEventsCausedby(Collection<Change> changes, Event sourceEvent) throws Exception {
+	public void sendVarChangeEventsCausedby(Collection<VarChange> changes, Event sourceEvent) throws Exception {
 		NLBusInterface messageBus = getMessageBus();
 		if (changes!=null && !changes.isEmpty() &&  messageBus!=null) {
 			long sid=getSessionID();
 			if (sourceEvent==DMInternalEvent.INIT) {
-				messageBus.handleDMResponseEvent(new DMChangesEvent(sourceEvent, sid, changes));
+				messageBus.handleDMResponseEvent(new DMVarChangesEvent(sourceEvent, sid, changes));
 			} else {
-				for(Change c:changes) {
-					messageBus.handleDMResponseEvent(new DMChangeEvent(sourceEvent,sid,c));
+				for(VarChange c:changes) {
+					messageBus.handleDMResponseEvent(new DMVarChangeEvent(sourceEvent,sid,c));
 				}
 			}
 		} else if (messageBus==null) {
@@ -1328,8 +1328,8 @@ public class RewardDM extends DM {
 		initializeInformationState(informationState);
 		Collection map = FunctionalLibrary.map(getMessageBus().getSpecialVariables(sessionID),SpecialVar.class.getMethod("getName"));
 		Set<String> specialVarNames = (map == null) ? null : new HashSet<String>(map);
-		Collection<Change> changes = informationState.getCurrentValues(specialVarNames);
-		sendChangeEventsCausedby(changes, DMInternalEvent.INIT);
+		Collection<VarChange> changes = informationState.getCurrentValues(specialVarNames);
+		sendVarChangeEventsCausedby(changes, DMInternalEvent.INIT);
 
 		loadGoalValuesInIS(informationState,dp.getGoals());
 				

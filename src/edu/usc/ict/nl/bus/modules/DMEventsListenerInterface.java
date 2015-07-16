@@ -5,6 +5,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import edu.usc.ict.nl.bus.events.DMGeneratedEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
+import edu.usc.ict.nl.bus.events.changes.DMStateChangeEvent;
+import edu.usc.ict.nl.bus.events.changes.DMVarChangeEvent;
+import edu.usc.ict.nl.bus.events.changes.DMVarChangesEvent;
 
 public interface DMEventsListenerInterface {
 	public void handleDMResponseEvent(DMGeneratedEvent ev) throws Exception;
@@ -17,4 +20,7 @@ public interface DMEventsListenerInterface {
 	public DM getPolicyDMForSession(Long sid) throws Exception;
 	public NLGInterface getNlg(Long sessionID) throws Exception;
 	public NLUInterface getNlu(Long sessionID) throws Exception;
+	void handleDMChangeEvent(DMVarChangeEvent ev);
+	void handleDMChangesEvent(DMVarChangesEvent ev);
+	void handleDMStateChangeEvent(DMStateChangeEvent ev);
 }

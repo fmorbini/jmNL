@@ -7,11 +7,12 @@ import java.util.Queue;
 
 import org.apache.commons.scxml.EventDispatcher;
 
-import edu.usc.ict.nl.bus.events.DMChangeEvent;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
+import edu.usc.ict.nl.bus.events.changes.VarChange;
+import edu.usc.ict.nl.bus.events.changes.DMVarChangeEvent;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
-import edu.usc.ict.nl.kb.Change;
+import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 
 
 public class SystemEventDispatcher implements EventDispatcher, Serializable {
@@ -43,7 +44,13 @@ public class SystemEventDispatcher implements EventDispatcher, Serializable {
 				if (listener!=null) try {listener.handleDMResponseEvent(new DMSpeakEvent(null,event,sessionID,params,null));} catch (Exception e) {e.printStackTrace();}
 			} else if (type.equals("changeEvent")) {
 				System.out.println("received this change event "+event+" with parameters: "+params);
-				if (listener!=null) try {listener.handleDMResponseEvent(new DMChangeEvent(null,sessionID,new Change(event, null, params)));} catch (Exception e) {e.printStackTrace();}
+				DialogueOperatorEffect oldValueAndVar;
+				try {
+					oldValueAndVar = DialogueOperatorEffect.createAssignment(event, null);
+					if (listener!=null) try {listener.handleDMResponseEvent(new DMVarChangeEvent(null,sessionID,new VarChange(oldValueAndVar, params)));} catch (Exception e) {e.printStackTrace();}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}

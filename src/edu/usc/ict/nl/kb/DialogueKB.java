@@ -18,6 +18,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
+import edu.usc.ict.nl.bus.events.changes.VarChange;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
@@ -91,12 +92,12 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 		else return false;
 	}
 
-	public Collection<Change> saveAssignmentsAndGetUpdates(ACCESSTYPE type, boolean doForwardInference, DialogueOperatorEffect... effs) throws Exception {
+	public Collection<VarChange> saveAssignmentsAndGetUpdates(ACCESSTYPE type, boolean doForwardInference, DialogueOperatorEffect... effs) throws Exception {
 		return saveAssignmentsAndGetUpdates(type, doForwardInference, Arrays.asList(effs));
 	}
-	public Collection<Change> saveAssignmentsAndGetUpdates(ACCESSTYPE type, boolean doForwardInference, List<DialogueOperatorEffect> effs) throws Exception {
+	public Collection<VarChange> saveAssignmentsAndGetUpdates(ACCESSTYPE type, boolean doForwardInference, List<DialogueOperatorEffect> effs) throws Exception {
 		effs=processAssignmentListToRemoveImplications(effs);
-		Collection<Change> ret=null;
+		Collection<VarChange> ret=null;
 		DialogueKBInterface tmpKB = storeAll(effs, ACCESSTYPE.AUTO_NEW, doForwardInference);
 		if (tmpKB!=null) {
 			Collection<DialogueOperatorEffect> changes = tmpKB.dumpKB();
@@ -107,8 +108,8 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 						String varName=var.getName();
 						Object newValue=e.getAssignedExpression();
 						Object oldValue=getValueOfVariable(varName,ACCESSTYPE.AUTO_OVERWRITEAUTO,null);
-						if (ret==null) ret=new ArrayList<Change>();
-						ret.add(new Change(varName, oldValue, newValue));
+						if (ret==null) ret=new ArrayList<VarChange>();
+						ret.add(new VarChange(e, oldValue));
 						logger.info("variable "+varName+" changed from "+oldValue+" to "+newValue);
 						// updating information state.
 						// keep track of local variables
@@ -156,17 +157,17 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 		return ret;
 	}
 
-	public Collection<Change> getCurrentValues(Set<String> excludeTheseVars) throws Exception {
+	public Collection<VarChange> getCurrentValues(Set<String> excludeTheseVars) throws Exception {
 		Collection<DialogueOperatorEffect> effs = dumpKB();
-		Collection<Change> ret=null;
+		Collection<VarChange> ret=null;
 		if (effs!=null) {
 			for(DialogueOperatorEffect e:effs) {
 				DialogueKBFormula v = e.getAssignedVariable();
 				String name=v.getName();
 				if (excludeTheseVars==null || !excludeTheseVars.contains(name)) {
-					if (ret==null) ret=new ArrayList<Change>();
+					if (ret==null) ret=new ArrayList<VarChange>();
 					Object newValue=e.getAssignedExpression();
-					ret.add(new Change(name, null, newValue));
+					ret.add(new VarChange(e, null));
 				}
 			}
 		}

@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 
 import edu.usc.ict.nl.bus.NLBusBase;
-import edu.usc.ict.nl.bus.events.DMStateChangeEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.bus.events.changes.DMStateChangeEvent;
+import edu.usc.ict.nl.bus.events.changes.StateChange;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.SwapoutReason;
-import edu.usc.ict.nl.kb.Change;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
@@ -563,7 +563,7 @@ public class DialogueAction {
 					try {
 						String leaveName=(leave!=null)?leave.getName():null;
 						String enterName=(enter!=null)?enter.getName():null;
-						dm.getMessageBus().handleDMResponseEvent(new DMStateChangeEvent(null, dm.getSessionID(), new Change(getOperator().getName(), leaveName, enterName)));
+						dm.getMessageBus().handleDMResponseEvent(new DMStateChangeEvent(null, dm.getSessionID(), new StateChange(getOperator().getName(), leaveName, enterName)));
 					} catch (Exception e) {
 						dm.getLogger().error("while sending the state change event("+leave+"->"+enter+"): "+e);
 					}

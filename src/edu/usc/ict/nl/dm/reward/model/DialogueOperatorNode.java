@@ -15,12 +15,12 @@ import org.w3c.dom.NodeList;
 
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.bus.events.changes.VarChange;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.SwapoutReason;
 import edu.usc.ict.nl.dm.reward.SwapoutReason.Reason;
 import edu.usc.ict.nl.dm.reward.model.RewardPolicy.OpType;
-import edu.usc.ict.nl.kb.Change;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.EvalContext;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
@@ -286,8 +286,8 @@ public class DialogueOperatorNode extends edu.usc.ict.nl.util.graph.Node{
 					}, 1);
 				} else {
 					logger.info("saving IS update in node: "+toString(true)+": "+eff);
-					Collection<Change> changes = is.saveAssignmentsAndGetUpdates(ACCESSTYPE.AUTO_OVERWRITEAUTO,true,eff);
-					dm.sendChangeEventsCausedby(changes,sourceEvent);
+					Collection<VarChange> changes = is.saveAssignmentsAndGetUpdates(ACCESSTYPE.AUTO_OVERWRITEAUTO,true,eff);
+					dm.sendVarChangeEventsCausedby(changes,sourceEvent);
 				}
 			}
 		}
