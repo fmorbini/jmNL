@@ -634,8 +634,8 @@ public class RewardDM extends DM {
 				}
 				
 				NLUOutput sa=(NLUOutput) ev.getPayload();
-				is.store(DialogueOperatorEffect.createAssignment(NLBusBase.lastUserText,sa.getText()),ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 				if (sa!=null) {
+					is.store(DialogueOperatorEffect.createAssignment(NLBusBase.lastUserText,sa.getText()),ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 					lastItem.push(sa);
 				}
 				
