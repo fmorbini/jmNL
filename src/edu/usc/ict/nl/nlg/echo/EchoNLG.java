@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -70,8 +71,27 @@ public class EchoNLG extends NLG {
 				validSpeechActs.putAll(nvb);
 			}
 		}
+		if (getConfiguration().getIsAsciiNLG()) normalize(validSpeechActs);
 	}
-
+	
+	public void normalize(Map<String,List<String>> utterances) {
+		if (utterances!=null) {
+			for(List<String> utts:utterances.values()) {
+				if (utts!=null) {
+					ListIterator<String> it=utts.listIterator();
+					while(it.hasNext()) {
+						String i=it.next();
+						String ni=StringUtils.flattenToAscii(i);
+						if (!i.equals(ni)) {
+							it.set(ni);
+							logger.warn("normalized line: '"+i+"' to '"+ni+"'");
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	@Override
 	public Float getDurationOfThisDMEvent(Long sessionID, NLGEvent ev) throws Exception {
 		if (getConfiguration().getSystemEventsHaveDuration()) {
