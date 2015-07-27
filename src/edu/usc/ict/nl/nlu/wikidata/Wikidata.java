@@ -8,21 +8,20 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 
 public class Wikidata {
-	public static JSONObject getEntitiesForDescription(String description) {
+	public enum TYPE {PROPERTY,ITEM};
+	
+	public static JSONObject getThingForDescription(String description,TYPE type) {
 		try {
-			URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbsearchentities&search="+description+"&language=en&format=json",null);
+			URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbsearchentities&search="+description+"&language=en&format=json&type="+type.toString().toLowerCase(),null);
 			String request = uri.toASCIIString();
 			URL url = new URL(request);
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
@@ -63,7 +62,7 @@ public class Wikidata {
 		return null;
 	}
 
-	public static JSONObject getInfoForEntity(String... ids) {
+	public static JSONObject getWikidataContentForEntity(String... ids) {
 		if (ids!=null) {
 			try {
 				StringBuffer idsb=new StringBuffer();
@@ -124,7 +123,7 @@ public class Wikidata {
 				for(int i=0;i<l;i++) {
 					Object t=entities.get(i);
 					if (t!=null && t instanceof JSONObject) {
-						List<String> descriptions=getAllValuesForProperty(t,"descriptions","value");
+						List<String> descriptions=JsonUtils.getAllValuesForProperty(t,"descriptions","value");
 						try {
 							ret.append("descriptions: "+FunctionalLibrary.printCollection(descriptions, "", "", ", ")+"\n");
 						} catch (Exception e) {}
@@ -134,7 +133,7 @@ public class Wikidata {
 		}
 		return (ret.length()==0)?null:ret.toString();
 	}
-	public static String prettyPrintAllInfoForContent(JSONObject json) {
+	public static String prettyPrintWikidataContent(JSONObject json) {
 		StringBuffer ret=new StringBuffer();
 		if (json!=null) {
 			List<Object> entities = getEntities(json);
@@ -143,13 +142,13 @@ public class Wikidata {
 				for(int i=0;i<l;i++) {
 					Object t=entities.get(i);
 					if (t!=null && t instanceof JSONObject) {
-						Object name=get((JSONObject) t,"id");
+						Object name=JsonUtils.get((JSONObject) t,"id");
 						ret.append("id: "+name+"\n");
-						List<String> labels=getAllValuesForProperty(t,"labels","value");
+						List<String> labels=JsonUtils.getAllValuesForProperty(t,"labels","value");
 						try {
 							ret.append("labels: "+FunctionalLibrary.printCollection(labels, "", "", ", ")+"\n");
 						} catch (Exception e) {}
-						List<String> descriptions=getAllValuesForProperty(t,"descriptions","value");
+						List<String> descriptions=JsonUtils.getAllValuesForProperty(t,"descriptions","value");
 						try {
 							ret.append("descriptions: "+FunctionalLibrary.printCollection(descriptions, "", "", ", ")+"\n");
 						} catch (Exception e) {}
@@ -160,25 +159,18 @@ public class Wikidata {
 		return (ret.length()==0)?null:ret.toString();
 	}
 
-	private static Object get(JSONObject t, String key) {
-		try {
-			Object value=t.get(key);
-			return value;
-		} catch (Exception e) {}
-		return null;
-	}
 
 	private static List<Object> getEntities(JSONObject json) {
 		List<Object> ret=null;
 		if (json!=null && json instanceof JSONObject) {
-			List<Object> things = new ArrayList<Object>();
-			addThings(things,get(json,"entities"));
+			List<JSONObject> things = new ArrayList<JSONObject>();
+			JsonUtils.addThings(things,JsonUtils.get(json,"entities"));
 			for(Object x:things) {
 				if (x!=null && x instanceof JSONObject) {
 					Iterator it=((JSONObject)x).keys();
 					while(it.hasNext()) {
 						Object key = it.next();
-						Object value = get((JSONObject) x,(String) key);
+						Object value = JsonUtils.get((JSONObject) x,(String) key);
 						if (value!=null && value instanceof JSONObject) {
 							try {
 								if (((JSONObject)value).has("id") && ((JSONObject)value).get("id").equals(key)) {
@@ -196,66 +188,54 @@ public class Wikidata {
 		return ret;
 	}
 
-	private static List<String> getAllValuesForProperty(Object json,String property,String propertyValue) {
+
+
+
+	/**
+	 * returns a list of wikidata IDs for a given search string. 
+	 * @param searchString
+	 * @return
+	 */
+	public static List<String> getIdsForMatchingEntities(String searchString) {
 		List<String> ret=null;
-		if (json!=null && json instanceof JSONObject) {
-			Object labels = get((JSONObject) json,property);
-			List<JSONObject> things=getAllObjectsWithKey(labels,propertyValue);
-			if (things!=null) {
-				for(JSONObject o:things) {
-					if (o!=null && o.has(propertyValue)) {
-						if (ret==null) ret=new ArrayList<String>();
-						ret.add(get(o,propertyValue).toString());
-					}
+		JSONObject eso = getThingForDescription(searchString,TYPE.ITEM);
+		Collection<JSONObject> things = JsonUtils.addThings(JsonUtils.get(eso,"search"));
+		if (things!=null) {
+			for(JSONObject e:things) {
+				Object thing = JsonUtils.get(e, "id");
+				if (thing!=null) {
+					if (ret==null) ret=new ArrayList<String>();
+					ret.add(thing.toString());
+				}
+			}
+		}
+		return ret;
+	}
+	public static List<String> getIdsForMatchingProperties(String searchString) {
+		List<String> ret=null;
+		JSONObject eso = getThingForDescription(searchString,TYPE.PROPERTY);
+		Collection<JSONObject> things = JsonUtils.addThings(JsonUtils.get(eso,"search"));
+		if (things!=null) {
+			for(JSONObject e:things) {
+				Object thing = JsonUtils.get(e, "id");
+				if (thing!=null) {
+					if (ret==null) ret=new ArrayList<String>();
+					ret.add(thing.toString());
 				}
 			}
 		}
 		return ret;
 	}
 
-	private static List<JSONObject> getAllObjectsWithKey(Object jsonObject, String key) {
-		List<JSONObject> ret=null;
-		if (jsonObject!=null) {
-			Deque<Object> s=new LinkedList<Object>();
-			addThings(s,jsonObject);
-			while(!s.isEmpty()) {
-				Object t=s.pop();
-				if (t!=null) {
-					if (t instanceof JSONObject) {
-						if (((JSONObject) t).has(key)) {
-							if (ret==null) ret=new ArrayList<JSONObject>();
-							ret.add((JSONObject) t);
-						}
-						Iterator it = ((JSONObject) t).keys();
-						while(it.hasNext()) {
-							Object x = it.next();
-							Object o=get((JSONObject) t,(String) x);
-							addThings(s, o);
-						}
-					}
-				}
-			}
-		}
-		return ret;
-	}
-
-	private static void addThings(Collection<Object> s, Object o) {
-		if (o instanceof JSONObject) {
-			s.add(o);
-		} else if (o instanceof JSONArray) {
-			int l=((JSONArray) o).length();
-			for(int i=0;i<l;i++) {
-				try {
-					s.add(((JSONArray) o).get(i));
-				} catch (JSONException e) {}
-			}
-		}
-	}
 
 	public static void main(String[] args) {
-		JSONObject desc = getInfoForEntity("Q2164820");
-		//System.out.println(desc);
-		System.out.println(prettyPrintAllInfoForContent(desc));
-
+		//List<String> ids = getIdsForMatchingEntities("city");
+		List<String> ids = getIdsForMatchingProperties("author");
+		if (ids!=null) {
+			for(String id:ids) {
+				JSONObject desc = getWikidataContentForEntity(id);
+				System.out.println(prettyPrintWikidataContent(desc));
+			}
+		}
 	}
 }
