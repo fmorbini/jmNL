@@ -87,6 +87,7 @@ public class NLBusConfig extends NLConfig {
 	private String nlgClass;
 	private boolean strictNLG=false;
 	private boolean asciiNLG=false;
+	private boolean normalizeBlanksNLG=false;
 	private boolean allowEmptyNLGOutput=true;
 	private boolean displayFormAnswerInNlg=true;
 	private String lfNlgLexiconFile;
@@ -273,6 +274,8 @@ public class NLBusConfig extends NLConfig {
 	public final void setIsStrictNLG(boolean s) { this.strictNLG = s; }
 	public final boolean getIsAsciiNLG() { return asciiNLG; }
 	public final void setIsAsciiNLG(boolean s) { this.asciiNLG = s; }
+	public final boolean getIsNormalizeBlanksNLG() { return normalizeBlanksNLG; }
+	public final void setIsNormalizeBlanksNLG(boolean s) { this.normalizeBlanksNLG = s; }
 	public boolean getDisplayFormAnswerInNlg() {return displayFormAnswerInNlg;}
 	public void setDisplayFormAnswerInNlg(boolean s) {this.displayFormAnswerInNlg=s;}
 	public boolean getAllowEmptyNLGOutput() {return allowEmptyNLGOutput;}

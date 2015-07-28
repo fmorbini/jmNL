@@ -71,10 +71,11 @@ public class EchoNLG extends NLG {
 				validSpeechActs.putAll(nvb);
 			}
 		}
-		if (getConfiguration().getIsAsciiNLG()) normalize(validSpeechActs);
+		if (getConfiguration().getIsAsciiNLG()) normalizeToASCII(validSpeechActs);
+		if (getConfiguration().getIsNormalizeBlanksNLG()) normalizeBLANKS(validSpeechActs);
 	}
 	
-	public void normalize(Map<String,List<String>> utterances) {
+	public void normalizeToASCII(Map<String,List<String>> utterances) {
 		if (utterances!=null) {
 			for(List<String> utts:utterances.values()) {
 				if (utts!=null) {
@@ -84,7 +85,24 @@ public class EchoNLG extends NLG {
 						String ni=StringUtils.flattenToAscii(i);
 						if (!i.equals(ni)) {
 							it.set(ni);
-							logger.warn("normalized line: '"+i+"' to '"+ni+"'");
+							logger.warn("normalized to ASCII in line: '"+i+"' to '"+ni+"'");
+						}
+					}
+				}
+			}
+		}
+	}
+	public void normalizeBLANKS(Map<String,List<String>> utterances) {
+		if (utterances!=null) {
+			for(List<String> utts:utterances.values()) {
+				if (utts!=null) {
+					ListIterator<String> it=utts.listIterator();
+					while(it.hasNext()) {
+						String i=it.next();
+						String ni=StringUtils.cleanupSpaces(i);
+						if (!i.equals(ni)) {
+							it.set(ni);
+							logger.warn("normalized BLANKS in line: '"+i+"' to '"+ni+"'");
 						}
 					}
 				}

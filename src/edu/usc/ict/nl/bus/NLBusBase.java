@@ -29,7 +29,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
-import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
@@ -42,10 +41,11 @@ import edu.usc.ict.nl.config.NLConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
-import edu.usc.ict.nl.kb.VariableProperties;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
+import edu.usc.ict.nl.kb.VariableProperties;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.ui.chat.ChatInterface;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
@@ -60,7 +60,7 @@ import edu.usc.ict.nl.utils.LogConfig;
  */
 public abstract class NLBusBase implements NLBusInterface {
 	
-	protected Map<Long,SpecialEntitiesRepository> session2specialVars=null;
+	protected Map<String,SpecialEntitiesRepository> character2specialVars=null;
 	
 	public static final Logger logger = Logger.getLogger(NLBusBase.class.getName());
 	static {
@@ -232,7 +232,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		} catch (Exception e) {}
 		if (sid==null) sid=new Long(ChatInterface.chatInterfaceSingleSessionID);
 		setCharacter4Session(sid,characterName);
-		loadSpecialVariablesForSession(sid);
+		getSpecialVariables(characterName, true);
 		try {
 			getPolicyDMForSession(sid,true);
 		} catch (Exception e) {logger.error("Error when creating dm while starting session "+sid+" for character "+characterName+".",e);}
@@ -304,7 +304,7 @@ public abstract class NLBusBase implements NLBusInterface {
 			session2Character.remove(sessionId);
 			session2PolicyDM.remove(sessionId);
 			session2Ignore.remove(sessionId);
-			session2specialVars.remove(sessionId);
+			character2specialVars.remove(sessionId);
 			Set<Long> handledEvents = session2HandledEvents.get(sessionId);
 			if (handledEvents != null)
 				handledEvents.clear();
@@ -603,41 +603,21 @@ public abstract class NLBusBase implements NLBusInterface {
 	}
 
 	@Override
-	public List<SpecialVar> getSpecialVariables(Long sessionId) throws Exception {
-		SpecialEntitiesRepository svs = session2specialVars.get(sessionId);
+	public List<SpecialVar> getSpecialVariables(Long sessionId) {
+		ReferenceToVirtualCharacter ch = getCharacter4Session(sessionId);
+		return getSpecialVariables(ch.getName(), true);
+	}
+	@Override
+	public List<SpecialVar> getSpecialVariables(String characterName, boolean createIfNotThere) {
+		SpecialEntitiesRepository svs = character2specialVars.get(characterName);
+		if (svs==null && createIfNotThere) {
+			svs=getSpecialVariablesForCharacterName(characterName);
+			character2specialVars.put(characterName, svs);
+		}
 		return (svs!=null)?svs.getAllSpecialVariables():null;
 	}
-
-	public static final String userSpeakingStateVarName="nowSpeaking";
-	public static final String lengthOfLastThingUserSaidVarName="userSpokeForSeconds";
-	public static final String lengthOfLastUserTurnVarName="userTurnSeconds";
-	public static final String systemSpeakingStateVarName="systemNowSpeaking";
-	public static final String systemSpeakingCompletionVarName="systemFractionSpoke";
-	public static final String counterConsecutiveUnhandledUserActionsVariableName="consecutiveUnhandledUserActions";
-	public static final String counterConsecutiveUnhandledUserActionsSinceLastSystemActionVariableName="consecutiveUnhandledUserActionsInTurn";
-	public static final String lastEventVariableName="event";
-	public static final String hasUserSaidSomethingVariableName="lastUserSpeechAct";
-	public static final String lastNonNullOperatorVariableName="lastNonNullSubdialog";
-	public static final String lastSystemSayVariableName="systemEvent";
-	public static final String timerIntervalVariableName="timerInterval";
-	public static final String dmVariableName="dmInstance";
-	public static final String activeActionVariableName="activeAction";
-	public static final String dormantActionsVariableName="dormantActions";
-	public static final String preferFormsVariableName="preferForms";
-	public static final String tmpEventVariableName="tmpEvent";
-	public static final String userEventsHistory="uEventsHistory";
-	public static final String lastUserText="lastUserUtterance";
-	public static final String timeSinceLastUserActionVariableName="timeSinceLastUserAction";
-	public static final String timeSinceLastSystemActionVariableName="timeSinceLastSystemAction";
-	public static final String timeSinceLastActionVariableName="timeSinceLastAction";
-	public static final String timeLastSessionVarName="timeOfLastSession";
-	public static final String timeSinceLastResourceVariableName="timeSinceLastResource";
-	public static final String timeSinceStartVariableName="timeSinceStart";
-
-	
-	public void loadSpecialVariablesForSession(Long sid) {
-		SpecialEntitiesRepository svs = session2specialVars.get(sid);
-		if (svs==null) session2specialVars.put(sid, svs=new SpecialEntitiesRepository(getConfiguration()));
+	public SpecialEntitiesRepository getSpecialVariablesForCharacterName(String characterName) {
+		SpecialEntitiesRepository svs=new SpecialEntitiesRepository(getConfiguration());
 		new SpecialVar(svs,userSpeakingStateVarName,"Boolean flag that if true indicates that the user is speacking","false",Boolean.class,
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,lengthOfLastThingUserSaidVarName,"Number of seconds the user has spoken last.","0",Number.class,
@@ -705,7 +685,51 @@ public abstract class NLBusBase implements NLBusInterface {
 				}
 			}
 		}
+		
+		try {
+			NLUConfig config=getNLUConfigurationForCharacter("");
+			List<NamedEntityExtractorI> nes = config.getNluNamedEntityExtractors();
+			if(nes!=null) {
+				for(NamedEntityExtractorI ne:nes) {
+					List<SpecialVar> vs = ne.getSpecialVariables();
+					if (vs!=null) {
+						for(SpecialVar v:vs) svs.addSpecialVariable(v);
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error while adding special variable from named entity extractors.", e);
+		}
+
+		return svs;
 	}
+
+	public static final String userSpeakingStateVarName="nowSpeaking";
+	public static final String lengthOfLastThingUserSaidVarName="userSpokeForSeconds";
+	public static final String lengthOfLastUserTurnVarName="userTurnSeconds";
+	public static final String systemSpeakingStateVarName="systemNowSpeaking";
+	public static final String systemSpeakingCompletionVarName="systemFractionSpoke";
+	public static final String counterConsecutiveUnhandledUserActionsVariableName="consecutiveUnhandledUserActions";
+	public static final String counterConsecutiveUnhandledUserActionsSinceLastSystemActionVariableName="consecutiveUnhandledUserActionsInTurn";
+	public static final String lastEventVariableName="event";
+	public static final String hasUserSaidSomethingVariableName="lastUserSpeechAct";
+	public static final String lastNonNullOperatorVariableName="lastNonNullSubdialog";
+	public static final String lastSystemSayVariableName="systemEvent";
+	public static final String timerIntervalVariableName="timerInterval";
+	public static final String dmVariableName="dmInstance";
+	public static final String activeActionVariableName="activeAction";
+	public static final String dormantActionsVariableName="dormantActions";
+	public static final String preferFormsVariableName="preferForms";
+	public static final String tmpEventVariableName="tmpEvent";
+	public static final String userEventsHistory="uEventsHistory";
+	public static final String lastUserText="lastUserUtterance";
+	public static final String timeSinceLastUserActionVariableName="timeSinceLastUserAction";
+	public static final String timeSinceLastSystemActionVariableName="timeSinceLastSystemAction";
+	public static final String timeSinceLastActionVariableName="timeSinceLastAction";
+	public static final String timeLastSessionVarName="timeOfLastSession";
+	public static final String timeSinceLastResourceVariableName="timeSinceLastResource";
+	public static final String timeSinceStartVariableName="timeSinceStart";
+
 	//##############################################################################
 	//  methods used to create Protocol object
 	//##############################################################################
@@ -720,7 +744,7 @@ public abstract class NLBusBase implements NLBusInterface {
 	}
 	
 	public NLBusBase() throws Exception {
-		session2specialVars=new HashMap<Long,SpecialEntitiesRepository>();
+		character2specialVars=new HashMap<String,SpecialEntitiesRepository>();
 		session2User=new ConcurrentHashMap<Long, String>();
 		session2Character = new HashMap<Long, ReferenceToVirtualCharacter>();
 		character2unparsedPolicy = new HashMap<String, String>();

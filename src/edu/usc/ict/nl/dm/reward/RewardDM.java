@@ -1326,9 +1326,10 @@ public class RewardDM extends DM {
 		
 		DialogueKB informationState=getInformationState();
 		initializeInformationState(informationState);
-		Collection map = FunctionalLibrary.map(getMessageBus().getSpecialVariables(sessionID),SpecialVar.class.getMethod("getName"));
-		Set<String> specialVarNames = (map == null) ? null : new HashSet<String>(map);
-		Collection<VarChange> changes = informationState.getCurrentValues(specialVarNames);
+		Set<String> vars=informationState.getAllVariables();
+		//Collection map = FunctionalLibrary.map(getMessageBus().getSpecialVariables(sessionID),SpecialVar.class.getMethod("getName"));
+		//Set<String> specialVarNames = (map == null) ? null : new HashSet<String>(map);
+		Collection<VarChange> changes = informationState.getCurrentValues(vars);
 		sendVarChangeEventsCausedby(changes, DMInternalEvent.INIT);
 
 		loadGoalValuesInIS(informationState,dp.getGoals());

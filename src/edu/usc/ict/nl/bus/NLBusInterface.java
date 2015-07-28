@@ -10,7 +10,8 @@ import edu.usc.ict.nl.nlu.NLUOutput;
 public interface NLBusInterface extends DMEventsListenerInterface,ExternalListenerInterface {
 	public void setDialogSession2User(Long sessionID,String user);
 
-	public List<SpecialVar> getSpecialVariables(Long sessionId) throws Exception;
+	public List<SpecialVar> getSpecialVariables(Long sessionId);
+	public List<SpecialVar> getSpecialVariables(String characterName, boolean createIfNotThere);
 	public NLUOutput getNLUOutput(Long sessionId,String userUtterance) throws Exception;
 	public void setSpeakingStateVarForSessionAs(Long sessionId,Boolean state) throws Exception;
 	public float getTimeUserHasBeenSpeaking();
