@@ -604,8 +604,7 @@ public abstract class NLBusBase implements NLBusInterface {
 
 	@Override
 	public List<SpecialVar> getSpecialVariables(Long sessionId) {
-		ReferenceToVirtualCharacter ch = getCharacter4Session(sessionId);
-		return getSpecialVariables(ch.getName(), true);
+		return getSpecialVariables(getCharacterName4Session(sessionId), true);
 	}
 	@Override
 	public List<SpecialVar> getSpecialVariables(String characterName, boolean createIfNotThere) {
