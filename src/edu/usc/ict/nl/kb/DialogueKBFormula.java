@@ -83,7 +83,7 @@ public class DialogueKBFormula extends Node {
 	private enum BooleanOp {AND,OR,NOT};
 	public enum NumOp {ADD,SUB,MUL,DIV};
 	public enum CmpOp {EQ,NE,GE,LE,GT,LT};
-	private enum Type {BOOL,NUMBER,STRING,PRED,NUMPRED,CMP,TRUE,FALSE,QUOTED,NULL,CUSTOM};
+	public enum Type {BOOL,NUMBER,STRING,PRED,NUMPRED,CMP,TRUE,FALSE,QUOTED,NULL,CUSTOM};
 	private Type type;
 
 	protected static HashMap<String,LTS> basicElements=new HashMap<String, LTS>();
@@ -196,7 +196,7 @@ public class DialogueKBFormula extends Node {
 		else throw new Exception("invalid input string: "+in+". Doesn't match string pattern: "+stringPattern.toString());
 	}
 	public static String generateStringConstantFromContent(String in) {return "'"+in+"'";}
-	private static Type getTypeOfPredicate(String pred) {
+	public static Type getTypeOfPredicate(String pred) {
 		try {
 			BooleanOp.valueOf(pred.toUpperCase());
 			return Type.BOOL;
