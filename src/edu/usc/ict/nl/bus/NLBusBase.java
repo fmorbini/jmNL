@@ -646,9 +646,9 @@ public abstract class NLBusBase implements NLBusInterface {
 		new SpecialVar(svs,lastEventVariableName,"Name of last speech act received by the system. After the search is done, it contains the single speech act dealt by the selected network.",null,String.class,
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,hasUserSaidSomethingVariableName,"Name of last speech act received by the system. Not affected by search selection.",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
 		new SpecialVar(svs,lastNonNullOperatorVariableName,"Name of last sub-dialog executed by the system.",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
 		new SpecialVar(svs,lastSystemSayVariableName,"Name of the speech act last said by the system.",null,String.class,
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,timerIntervalVariableName,"Time in seconds between 2 consecutive timer events.","1",Number.class,
@@ -660,13 +660,13 @@ public abstract class NLBusBase implements NLBusInterface {
 		new SpecialVar(svs,dormantActionsVariableName,"Current List of dormant actions.",null,String.class,
 				true,VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,preferFormsVariableName,"If true and a form is available for the current system speech act, the form will be selected by the NLG.","true",Boolean.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
 		new SpecialVar(svs,tmpEventVariableName,"Variable used to store the input event that generated one of the internal events (e.g. unhandled, ignore and loop).",null,String.class,
 				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,userEventsHistory,"Stores a list of lists of NLUEvents received by the character. The first is the most recent (stack). When a system event is received the next incoming user events are collected in a new list element.",null,Deque.class,
 				true,VariableProperties.getDefault(PROPERTY.READONLY),false);
 		new SpecialVar(svs,lastUserText,"Stores the last text the user said, as received by the DM.",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
 		
 		if (hasProtocols()) {
 			for(Protocol p:getProtocols()) {
