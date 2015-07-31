@@ -48,6 +48,8 @@ public class WordlistRENE extends BasicNE {
 	@Override
 	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
 		List<NE> payload = null;
+		if (text == null) // special events like 'login'
+			return null;
 		if (matcher!=null) {
 			if (matcher.findIn(text)) {
 				do {
