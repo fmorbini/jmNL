@@ -1,6 +1,7 @@
 package edu.usc.ict.nl.nlu.ne;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -34,7 +35,11 @@ public class WordlistRENE extends BasicNE {
 	public void setConfiguration(NLUConfig configuration) {
 		super.setConfiguration(configuration);
 		try {
-			loadModel(new File(getConfiguration().getNLUContentRoot(),modelName));
+			File model=new File(configuration.getNLUContentRoot(),modelName);
+			if (!model.exists() && configuration.nlBusConfig!=null) model=new File(configuration.nlBusConfig.getContentRoot(),"common/nlu/"+modelName);
+			if (model.exists())
+				loadModel(model);
+			else throw new IOException("File not found: " + model.getAbsolutePath());
 		} catch (Exception e) {
 			logger.error("error loading -with config- file",e);
 		}
