@@ -8,9 +8,12 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
@@ -62,7 +65,7 @@ public class Wikidata {
 		return null;
 	}
 
-	public static JSONObject getWikidataContentForEntity(String... ids) {
+	public static JSONObject getWikidataContentForEntitiesRaw(String... ids) {
 		if (ids!=null) {
 			try {
 				StringBuffer idsb=new StringBuffer();
@@ -109,6 +112,16 @@ public class Wikidata {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	public static JSONObject getWikidataContentForSpecificEntityOnly(String id) {
+		JSONObject desc = getWikidataContentForEntitiesRaw(id);
+		if (desc!=null) {
+			List<JSONObject> entities = getEntities(desc);
+			for(JSONObject e:entities) {
+				if (JsonUtils.get(e, "id").equals(id)) return e;
 			}
 		}
 		return null;
@@ -208,7 +221,7 @@ public class Wikidata {
 
 	public static String getDescriptionOfWikidataId(String id) {
 		StringBuffer ret=null;
-		JSONObject r = getWikidataContentForEntity(id);
+		JSONObject r = getWikidataContentForEntitiesRaw(id);
 		if (r!=null) {
 			List<JSONObject> es = getEntities(r);
 			if (es!=null) {
@@ -231,36 +244,70 @@ public class Wikidata {
 		}
 		return ret!=null?ret.toString():null;
 	}
+
+	public static Map<String,Collection<JSONObject>> getClaims(JSONObject e) {
+		Map<String,Collection<JSONObject>> ret=null;
+		JSONObject claims=(JSONObject) JsonUtils.get(e, "claims");
+		if (claims!=null) {
+			Iterator<String> it = claims.keys();
+			while(it.hasNext()) {
+				String key=it.next();
+				Collection<JSONObject> claimsForP = JsonUtils.addThings(JsonUtils.get(claims, key));
+				if (ret==null) ret=new HashMap<String, Collection<JSONObject>>();
+				ret.put(key, claimsForP);
+			}
+		}
+		return ret;
+	}
 	
+	public static String getValueOfMainSnak(JSONObject p) {
+		JSONObject main=(JSONObject) JsonUtils.get(p, "mainsnak");
+		if (main!=null) {
+			JSONObject dv=(JSONObject) JsonUtils.get(main, "datavalue");
+			String type=(String) JsonUtils.get(main, "datatype");
+			if (type!=null) {
+				if (type.equals("wikibase-item")) {
+					String id=JsonUtils.get(dv,"value","numeric-id").toString();
+					return "Q"+id;
+				} else if (type.equals("wikibase-property")) {
+					String id=JsonUtils.get(dv,"value","numeric-id").toString();
+					return "P"+id;
+				} else if (type.equals("string") || type.equals("commonsMedia") || type.equals("url")) return (String) JsonUtils.get(dv, "value");
+				else if (type.equals("time")) {
+					System.out.println(JsonUtils.get(dv, "value"));
+					return (String) JsonUtils.get(dv, "value","time");
+				} else {
+					System.err.println("unknown type: "+main);
+				}
+			} else {
+				System.err.println("null type: "+main);
+			}
+		}
+		return null;
+	}
+
+
 	public static void main(String[] args) {
-		System.out.println(getDescriptionOfWikidataId("Q195"));
+		//System.out.println(getDescriptionOfWikidataId("Q195"));
 		//System.out.println(getDescriptionOfWikidataId("P143"));
 
-		List<String> ids = getIdsForMatchingEntities("milk chocolate");
+		List<String> ids = getIdsForMatchingEntities("country");
 		//List<String> ids = getIdsForMatchingProperties("author");
 		if (ids!=null) {
 			for(String id:ids) {
-				JSONObject desc = getWikidataContentForEntity(id);
-				List<JSONObject> entities = getEntities(desc);
-				for(JSONObject e:entities) {
-					System.out.println(getDescriptionForContent(e));
-					JSONObject claims=(JSONObject) JsonUtils.get(e, "claims");
-					Iterator<String> it = claims.keys();
-					while(it.hasNext()) {
-						String key=it.next();
-						System.out.println(key+" "+getDescriptionOfWikidataId(key));
-						Collection<JSONObject> claimsForP = JsonUtils.addThings(JsonUtils.get(claims, key));
-						for (JSONObject p:claimsForP) {
-							JSONObject main=(JSONObject) JsonUtils.get(p, "mainsnak");
-							if (main!=null) {
-								JSONObject dv=(JSONObject) JsonUtils.get(main, "datavalue");
-								System.out.println(dv);
-							}
-						}
-						//System.out.println(claimsForP);
+				JSONObject e = getWikidataContentForSpecificEntityOnly(id);
+				Map<String, Collection<JSONObject>> claims = getClaims(e);
+				System.out.println(getDescriptionForContent(e));
+				for(String key:claims.keySet()) {
+					System.out.println(key+" "+getDescriptionOfWikidataId(key));
+					Collection<JSONObject> claimsForP = claims.get(key);
+					for (JSONObject p:claimsForP) {
+						String value=getValueOfMainSnak(p);
+						System.out.println(value);
 					}
 				}
 			}
 		}
 	}
+
 }

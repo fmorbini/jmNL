@@ -73,10 +73,16 @@ public class JsonUtils {
 	 * @param key
 	 * @return
 	 */
-	public static Object get(JSONObject t, String key) {
+	public static Object get(JSONObject t, String... keys) {
 		try {
-			Object value=t.get(key);
-			return value;
+			Object current=t;
+			for(String key:keys) {
+				if (current instanceof JSONObject) {
+					current=((JSONObject) current).get(key);
+					if (current==null) return null;
+				} else return null;
+			}
+			return current;
 		} catch (Exception e) {}
 		return null;
 	}
