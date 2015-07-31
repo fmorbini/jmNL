@@ -16,7 +16,7 @@ public class VariableProperties {
 		switch (p) {
 		case READONLY: return false;
 		case HIDDEN: return false;
-		case PERSISTENT: return true;
+		case PERSISTENT: return false;
 		}
 		return false;
 	}
