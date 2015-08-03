@@ -87,21 +87,32 @@ public class JsonUtils {
 		return null;
 	}
 
-	public static List<String> getAllValuesForProperty(Object json,String property,String propertyValue) {
-		List<String> ret=null;
-		if (json!=null && json instanceof JSONObject) {
-			Object labels = get((JSONObject) json,property);
-			List<JSONObject> things=getAllObjectsWithKey(labels,propertyValue);
-			if (things!=null) {
-				for(JSONObject o:things) {
-					if (o!=null && o.has(propertyValue)) {
-						if (ret==null) ret=new ArrayList<String>();
-						ret.add(get(o,propertyValue).toString());
+	public static List<Object> getAll(JSONObject t,String... path) {
+		List<Object> ret=new ArrayList<Object>();
+		getAllValuesForProperty(t, 0, ret, path);
+		return ret;
+	}
+	
+	private static void getAllValuesForProperty(Object json,int i,List<Object> ret,String... path) {
+		if (json!=null) {
+			if (i>(path.length-1)) ret.add(json);
+			else {
+				if (json instanceof JSONObject) {
+					Object things = get((JSONObject) json,path[i]);
+					getAllValuesForProperty(things, i+1, ret, path);
+				} else if (json instanceof JSONArray) {
+					int l=((JSONArray)json).length();
+					for(int j=0;j<l;j++) {
+						try {
+							Object x=((JSONArray)json).get(j);
+							getAllValuesForProperty(json, i+1, ret, path);
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
 		}
-		return ret;
 	}
 
 }

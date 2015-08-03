@@ -1,123 +1,24 @@
 package edu.usc.ict.nl.nlu.wikidata;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
-import edu.usc.ict.nl.util.FunctionalLibrary;
 
 public class Wikidata {
-	public enum TYPE {PROPERTY,ITEM};
-
-	public static JSONObject getThingForDescription(String description,TYPE type) {
-		try {
-			URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbsearchentities&search="+description+"&language=en&format=json&type="+type.toString().toLowerCase(),null);
-			String request = uri.toASCIIString();
-			URL url = new URL(request);
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
-			connection.setDoOutput(true);
-			connection.setDoInput(true);
-			connection.setConnectTimeout(1000);
-			connection.setReadTimeout(2000);
-			connection.setInstanceFollowRedirects(false); 
-			connection.setRequestMethod("GET"); 
-			connection.setUseCaches(false);
-
-			InputStream is;
-			int code=0;
-			if ((code=connection.getResponseCode()) >= 400) {
-				is = connection.getErrorStream();
-				BufferedReader input=new BufferedReader(new InputStreamReader(is));
-				StringBuffer msg=new StringBuffer();
-				String line=null;
-				while((line=input.readLine())!=null) {
-					msg.append(line);
-				}
-				throw new Exception("response: "+code+". msg="+msg.toString());
-			} else {
-				is = connection.getInputStream();
-				BufferedReader input = new BufferedReader(new InputStreamReader(is));
-				String str;
-				StringBuffer response=new StringBuffer();
-				while (null != ((str = input.readLine()))) {
-					response.append(str);
-				}
-				JSONObject json = new JSONObject(response.toString());
-				if (json!=null && json.has("success") && json.get("success").equals(1))
-					return json;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public static JSONObject getWikidataContentForEntitiesRaw(String... ids) {
-		if (ids!=null) {
-			try {
-				StringBuffer idsb=new StringBuffer();
-				for(String id:ids) {
-					if (idsb.length()==0)
-						idsb.append(id);
-					else
-						idsb.append("|"+id);
-				}
-				URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbgetentities&ids="+idsb.toString()+"&languages=en&format=json",null);
-				String request = uri.toASCIIString();
-				URL url = new URL(request);
-				HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
-				connection.setDoOutput(true);
-				connection.setDoInput(true);
-				connection.setConnectTimeout(1000);
-				connection.setReadTimeout(2000);
-				connection.setInstanceFollowRedirects(false); 
-				connection.setRequestMethod("GET"); 
-				connection.setUseCaches(false);
-
-				InputStream is;
-				int code=0;
-				if ((code=connection.getResponseCode()) >= 400) {
-					is = connection.getErrorStream();
-					BufferedReader input=new BufferedReader(new InputStreamReader(is));
-					StringBuffer msg=new StringBuffer();
-					String line=null;
-					while((line=input.readLine())!=null) {
-						msg.append(line);
-					}
-					throw new Exception("response: "+code+". msg="+msg.toString());
-				} else {
-					is = connection.getInputStream();
-					BufferedReader input = new BufferedReader(new InputStreamReader(is));
-					String str;
-					StringBuffer response=new StringBuffer();
-					while (null != ((str = input.readLine()))) {
-						response.append(str);
-					}
-					JSONObject json = new JSONObject(response.toString());
-					if (json!=null && json.has("success") && json.get("success").equals(1))
-						return json;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return null;
-	}
 	public static JSONObject getWikidataContentForSpecificEntityOnly(String id) {
-		JSONObject desc = getWikidataContentForEntitiesRaw(id);
+		JSONObject desc = Queries.getWikidataContentForEntitiesRaw(id);
 		if (desc!=null) {
 			List<JSONObject> entities = getEntities(desc);
 			for(JSONObject e:entities) {
@@ -127,29 +28,16 @@ public class Wikidata {
 		return null;
 	}
 
-	public static String getDescriptionForContent(JSONObject t) {
-		StringBuffer ret=new StringBuffer();
-		if (t!=null && t instanceof JSONObject) {
-			List<String> descriptions=JsonUtils.getAllValuesForProperty(t,"descriptions","value");
-			try {
-				ret.append("descriptions: "+FunctionalLibrary.printCollection(descriptions, "", "", ", ")+"\n");
-			} catch (Exception e) {}
-		}
-		return (ret.length()==0)?null:ret.toString();
-	}
+
 	public static String prettyPrintWikidataContent(JSONObject t) {
 		StringBuffer ret=new StringBuffer();
 		if (t!=null && t instanceof JSONObject) {
 			String name=(String) JsonUtils.get((JSONObject) t,"id");
 			ret.append("id: "+name+"\n");
-			List<String> labels=JsonUtils.getAllValuesForProperty(t,"labels","value");
-			try {
-				ret.append("labels: "+FunctionalLibrary.printCollection(labels, "", "", ", ")+"\n");
-			} catch (Exception e) {}
-			List<String> descriptions=JsonUtils.getAllValuesForProperty(t,"descriptions","value");
-			try {
-				ret.append("descriptions: "+FunctionalLibrary.printCollection(descriptions, "", "", ", ")+"\n");
-			} catch (Exception e) {}
+			String labels=getLabelsForContent(t);
+			ret.append("labels: "+labels);
+			String descriptions=getDescriptionForContent(t);
+			ret.append("descriptions: "+descriptions);
 			Map<String, List<WikiClaim>> claims = getClaims(name,t);
 			if (claims!=null) {
 				for(String key:claims.keySet()) {
@@ -199,58 +87,64 @@ public class Wikidata {
 	 * @param searchString
 	 * @return
 	 */
-	public static List<String> getIdsForMatchingEntities(String searchString) {
-		List<String> ret=null;
-		JSONObject eso = getThingForDescription(searchString,TYPE.ITEM);
+	public static List<WikiThing> getIdsForString(String searchString,WikiThing.TYPE type) {
+		List<WikiThing> ret=null;
+		JSONObject eso = Queries.getThingForDescription(searchString,type);
 		Collection<JSONObject> things = JsonUtils.addThings(JsonUtils.get(eso,"search"));
 		if (things!=null) {
 			for(JSONObject e:things) {
 				Object thing = JsonUtils.get(e, "id");
 				if (thing!=null) {
-					if (ret==null) ret=new ArrayList<String>();
-					ret.add(thing.toString());
-				}
-			}
-		}
-		return ret;
-	}
-	public static List<String> getIdsForMatchingProperties(String searchString) {
-		List<String> ret=null;
-		JSONObject eso = getThingForDescription(searchString,TYPE.PROPERTY);
-		Collection<JSONObject> things = JsonUtils.addThings(JsonUtils.get(eso,"search"));
-		if (things!=null) {
-			for(JSONObject e:things) {
-				Object thing = JsonUtils.get(e, "id");
-				if (thing!=null) {
-					if (ret==null) ret=new ArrayList<String>();
-					ret.add(thing.toString());
-				}
-			}
-		}
-		return ret;
-	}
-
-	public static String getDescriptionOfWikidataId(String id) {
-		StringBuffer ret=null;
-		JSONObject r = getWikidataContentForEntitiesRaw(id);
-		if (r!=null) {
-			List<JSONObject> es = getEntities(r);
-			if (es!=null) {
-				if (es.size()==1) {
-					List<String> descriptions=JsonUtils.getAllValuesForProperty(es.iterator().next(),"descriptions","value");
-					if (descriptions!=null) {
-						for(String d:descriptions) {
-							if (ret==null) ret=new StringBuffer();
-							ret.append((ret.length()==0?"":" ")+d);
+					if (thing instanceof Integer) {
+						if (ret==null) ret=new ArrayList<WikiThing>();
+						ret.add(new WikiThing(((Integer)thing).longValue(), type));
+					} else if (thing instanceof String) {
+						if (ret==null) ret=new ArrayList<WikiThing>();
+						try {
+							ret.add(new WikiThing(thing.toString()));
+						} catch (Exception e1) {
+							e1.printStackTrace();
 						}
 					}
-				} else if (es.size()>1){
-					System.err.println(id+" returned multiple entities: "+es);
-				} else {
-					System.err.println(id+" returned no entities");
+					
 				}
-			} else {
-				System.err.println(id+" returned no entities");
+			}
+		}
+		return ret;
+	}
+	public static String getDescriptionOfWikidataId(String id) {
+		JSONObject r=getWikidataContentForSpecificEntityOnly(id);
+		return getDescriptionForContent(r);
+	}
+	public static String getDescriptionForContent(JSONObject r) {
+		StringBuffer ret=null;
+		if (r!=null) {
+			String id=(String) JsonUtils.get(r, "id");
+			List<Object> descriptions=JsonUtils.getAll(r,"descriptions","value");
+			if (descriptions!=null) {
+				for(Object d:descriptions) {
+					if (ret==null) ret=new StringBuffer();
+					ret.append((ret.length()==0?"":"| ")+d);
+				}
+			}
+		}
+		return ret!=null?ret.toString():null;
+	}
+	
+	public static String getLabelsForWikidataId(String id) {
+		JSONObject r=getWikidataContentForSpecificEntityOnly(id);
+		return getLabelsForContent(r);
+	}
+	public static String getLabelsForContent(JSONObject r) {
+		StringBuffer ret=null;
+		if (r!=null) {
+			String id=(String) JsonUtils.get(r, "id");
+			List<Object> descriptions=JsonUtils.getAll(r,"labels","en","value");
+			if (descriptions!=null) {
+				for(Object d:descriptions) {
+					if (ret==null) ret=new StringBuffer();
+					ret.append((ret.length()==0?"":"| ")+d);
+				}
 			}
 		}
 		return ret!=null?ret.toString():null;
@@ -304,29 +198,39 @@ public class Wikidata {
 		return null;
 	}
 	
-	public static void main(String[] args) {
-		//System.out.println(getDescriptionOfWikidataId("Q195"));
-		//System.out.println(getDescriptionOfWikidataId("P143"));
-
-		//List<String> ids = getIdsForMatchingEntities("country");
-		List<String> ids = getIdsForMatchingProperties("country");
-		//List<String> ids = getIdsForMatchingProperties("author");
-		if (ids!=null) {
-			for(String id:ids) {
-				JSONObject e = getWikidataContentForSpecificEntityOnly(id);
-				Map<String, List<WikiClaim>> claims = getClaims(id,e);
-				System.out.println(getDescriptionForContent(e));
-				if (claims!=null) {
-					for(String key:claims.keySet()) {
-						System.out.println(key+" "+getDescriptionOfWikidataId(key));
-						List<WikiClaim> claimsForP = claims.get(key);
-						for (WikiClaim p:claimsForP) {
-							System.out.println(p);
+	public static Set<WikiThing> findAllItemsThatAre(WikiThing type) {
+		Set<WikiThing> ret=null;
+		JSONObject result = Queries.runWikidataQuery("claim["+"31"+":"+type.getId()+"]");
+		if (result!=null) {
+			Object r = JsonUtils.get(result, "items");
+			if (r!=null && r instanceof JSONArray) {
+				int l=((JSONArray)r).length();
+				for(int i=0;i<l;i++) {
+					Object item;
+					try {
+						item = ((JSONArray)r).get(i);
+						if (item!=null && item instanceof Integer) {
+							if (ret==null) ret=new HashSet<WikiThing>();
+							ret.add(new WikiThing(((Integer)item).longValue(),TYPE.ITEM));
 						}
+					} catch (JSONException e) {
+						e.printStackTrace();
 					}
 				}
 			}
 		}
+		return ret;
+	}
+	
+	
+	
+	public static void main(String[] args) {
+		//List<WikiThing> ids = getIdsForString("earth",WikiThing.TYPE.ITEM);
+		//JSONObject content = getWikidataContentForSpecificEntityOnly("Q2");
+		//String lbs = getLabelsForWikidataId("Q2");
+		//System.out.println(lbs);
+		Set<WikiThing> items = findAllItemsThatAre(new WikiThing(6256, TYPE.ITEM));
+		System.out.println(items);
 	}
 
 }
