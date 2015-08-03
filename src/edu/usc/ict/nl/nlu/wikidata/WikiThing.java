@@ -3,6 +3,8 @@ package edu.usc.ict.nl.nlu.wikidata;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONObject;
+
 import edu.usc.ict.nl.util.StringUtils;
 
 public class WikiThing {
@@ -46,9 +48,12 @@ public class WikiThing {
 	
 	public String toString(boolean longForm) {
 		String base=(isEntity()?"Q":"P")+id;
-		String desc=Wikidata.getLabelsForWikidataId(base);
+		JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(base);
+		String desc=Wikidata.getDescriptionForContent(content);
+		String label=Wikidata.getLabelsForContent(content);
 		desc=StringUtils.cleanupSpaces(desc);
-		if (!StringUtils.isEmptyString(desc)) return base+": "+desc;
+		label=StringUtils.cleanupSpaces(label);
+		if (!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";
 		return base;
 	}
 

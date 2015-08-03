@@ -119,8 +119,7 @@ public class Wikidata {
 	public static String getDescriptionForContent(JSONObject r) {
 		StringBuffer ret=null;
 		if (r!=null) {
-			String id=(String) JsonUtils.get(r, "id");
-			List<Object> descriptions=JsonUtils.getAll(r,"descriptions","value");
+			List<Object> descriptions=JsonUtils.getAll(r,"descriptions","en","value");
 			if (descriptions!=null) {
 				for(Object d:descriptions) {
 					if (ret==null) ret=new StringBuffer();
@@ -138,7 +137,6 @@ public class Wikidata {
 	public static String getLabelsForContent(JSONObject r) {
 		StringBuffer ret=null;
 		if (r!=null) {
-			String id=(String) JsonUtils.get(r, "id");
 			List<Object> descriptions=JsonUtils.getAll(r,"labels","en","value");
 			if (descriptions!=null) {
 				for(Object d:descriptions) {
@@ -200,7 +198,7 @@ public class Wikidata {
 	
 	public static Set<WikiThing> findAllItemsThatAre(WikiThing type) {
 		Set<WikiThing> ret=null;
-		JSONObject result = Queries.runWikidataQuery("claim["+"31"+":"+type.getId()+"]");
+		JSONObject result = Queries.runWikidataQuery("claim["+"31"+":(tree["+type.getId()+"][][279])]");//claim[31:(tree[3314483][][279])]
 		if (result!=null) {
 			Object r = JsonUtils.get(result, "items");
 			if (r!=null && r instanceof JSONArray) {
@@ -222,14 +220,15 @@ public class Wikidata {
 		return ret;
 	}
 	
-	
-	
 	public static void main(String[] args) {
 		//List<WikiThing> ids = getIdsForString("earth",WikiThing.TYPE.ITEM);
 		//JSONObject content = getWikidataContentForSpecificEntityOnly("Q2");
 		//String lbs = getLabelsForWikidataId("Q2");
 		//System.out.println(lbs);
-		Set<WikiThing> items = findAllItemsThatAre(new WikiThing(6256, TYPE.ITEM));
+		List<WikiThing> ids = getIdsForString("fruit",WikiThing.TYPE.ITEM);
+		System.out.println(ids);
+
+		Set<WikiThing> items = findAllItemsThatAre(new WikiThing(1364, TYPE.ITEM));
 		System.out.println(items);
 	}
 
