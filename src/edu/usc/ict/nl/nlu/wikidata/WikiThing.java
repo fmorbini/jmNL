@@ -43,15 +43,15 @@ public class WikiThing {
 	
 	@Override
 	public String toString() {
-		return toString(true);
+		return toString("en",true);
 	}
 	
-	public String toString(boolean longForm) {
+	public String toString(String lang,boolean longForm) {
 		String base=(isEntity()?"Q":"P")+id;
 		if (longForm) {
-			JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(base);
-			String desc=Wikidata.getDescriptionForContent(content);
-			String label=Wikidata.getLabelsForContent(content);
+			JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(lang,base);
+			String desc=Wikidata.getDescriptionForContent(content,lang);
+			String label=Wikidata.getLabelsForContent(content,lang);
 			desc=StringUtils.cleanupSpaces(desc);
 			label=StringUtils.cleanupSpaces(label);
 			if (!StringUtils.isEmptyString(label)||!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";

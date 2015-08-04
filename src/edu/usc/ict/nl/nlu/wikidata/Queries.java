@@ -13,9 +13,10 @@ import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 
 public class Queries {
-	public static JSONObject getThingForDescription(String description,TYPE type) {
+
+	public static JSONObject getThingForDescription(String description,String lang,TYPE type) {
 		try {
-			URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbsearchentities&search="+description+"&language=en&format=json&type="+type.toString().toLowerCase(),null);
+			URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbsearchentities&search="+description+"&language="+lang+"&format=json&type="+type.toString().toLowerCase(),null);
 			String request = uri.toASCIIString();
 			URL url = new URL(request);
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
@@ -56,7 +57,7 @@ public class Queries {
 		return null;
 	}
 
-	public static JSONObject getWikidataContentForEntitiesRaw(String... ids) {
+	public static JSONObject getWikidataContentForEntitiesRaw(String lang,String... ids) {
 		if (ids!=null) {
 			try {
 				StringBuffer idsb=new StringBuffer();
@@ -66,7 +67,7 @@ public class Queries {
 					else
 						idsb.append("|"+id);
 				}
-				URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbgetentities&ids="+idsb.toString()+"&languages=en&format=json",null);
+				URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbgetentities&ids="+idsb.toString()+"&languages="+lang+"&format=json",null);
 				String request = uri.toASCIIString();
 				URL url = new URL(request);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
@@ -108,10 +109,10 @@ public class Queries {
 		return null;
 	}
 
-	public static JSONObject runWikidataQuery(String query) {
+	public static JSONObject runWikidataQuery(String query,String lang) {
 		if (query!=null) {
 			try {
-				URI uri = new URI("https","wdq.wmflabs.org","/api","q="+query.toString()+"&languages=en&format=json",null);
+				URI uri = new URI("https","wdq.wmflabs.org","/api","q="+query.toString()+"&languages="+lang+"&format=json",null);
 				String request = uri.toASCIIString();
 				URL url = new URL(request);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
@@ -155,7 +156,7 @@ public class Queries {
 	}
 	
 	public static void main(String[] args) {
-		JSONObject r = runWikidataQuery("claim[31:6256]");
+		JSONObject r = runWikidataQuery("en","claim[31:6256]");
 		System.out.println(r);
 	}
 
