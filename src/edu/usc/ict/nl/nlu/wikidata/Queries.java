@@ -14,7 +14,7 @@ import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 
 public class Queries {
 
-	public static JSONObject getThingForDescription(String description,String lang,TYPE type) {
+	public static JSONObject getThingForDescription(String description,WikiLanguage lang,TYPE type) {
 		try {
 			URI uri = new URI("https","www.wikidata.org","/w/api.php","action=wbsearchentities&search="+description+"&language="+lang+"&format=json&type="+type.toString().toLowerCase(),null);
 			String request = uri.toASCIIString();
@@ -57,7 +57,7 @@ public class Queries {
 		return null;
 	}
 
-	public static JSONObject getWikidataContentForEntitiesRaw(String lang,String... ids) {
+	public static JSONObject getWikidataContentForEntitiesRaw(WikiLanguage lang,String... ids) {
 		if (ids!=null) {
 			try {
 				StringBuffer idsb=new StringBuffer();
@@ -109,7 +109,7 @@ public class Queries {
 		return null;
 	}
 
-	public static JSONObject runWikidataQuery(String query,String lang) {
+	public static JSONObject runWikidataQuery(String query,WikiLanguage lang) {
 		if (query!=null) {
 			try {
 				URI uri = new URI("https","wdq.wmflabs.org","/api","q="+query.toString()+"&languages="+lang+"&format=json",null);
@@ -155,8 +155,8 @@ public class Queries {
 		return null;
 	}
 	
-	public static void main(String[] args) {
-		JSONObject r = runWikidataQuery("en","claim[31:6256]");
+	public static void main(String[] args) throws Exception {
+		JSONObject r = runWikidataQuery("claim[31:6256]",WikiLanguage.get("en"));
 		System.out.println(r);
 	}
 

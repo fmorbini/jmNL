@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +24,8 @@ import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 import edu.usc.ict.nl.util.StringUtils;
 
 public class Wikidata {
-	public static JSONObject getWikidataContentForSpecificEntityOnly(String lang,String id) {
+	
+	public static JSONObject getWikidataContentForSpecificEntityOnly(WikiLanguage lang,String id) {
 		JSONObject desc = Queries.getWikidataContentForEntitiesRaw(lang,id);
 		if (desc!=null) {
 			List<JSONObject> entities = getEntities(desc);
@@ -37,7 +37,7 @@ public class Wikidata {
 	}
 
 
-	public static String prettyPrintWikidataContent(JSONObject t,String lang) {
+	public static String prettyPrintWikidataContent(JSONObject t,WikiLanguage lang) {
 		StringBuffer ret=new StringBuffer();
 		if (t!=null && t instanceof JSONObject) {
 			String name=(String) JsonUtils.get((JSONObject) t,"id");
@@ -49,7 +49,7 @@ public class Wikidata {
 			Map<String, List<WikiClaim>> claims = getClaims(name,t);
 			if (claims!=null) {
 				for(String key:claims.keySet()) {
-					System.out.println(key+" "+getDescriptionOfWikidataId(key,lang));
+					System.out.println(key+" "+getDescriptionOfWikidataId(lang,key));
 					Collection<WikiClaim> claimsForP = claims.get(key);
 					for (WikiClaim p:claimsForP) {
 						System.out.println(p);
@@ -95,7 +95,7 @@ public class Wikidata {
 	 * @param searchString
 	 * @return
 	 */
-	public static List<WikiThing> getIdsForString(String searchString,String lang,WikiThing.TYPE type) {
+	public static List<WikiThing> getIdsForString(String searchString,WikiLanguage lang,WikiThing.TYPE type) {
 		List<WikiThing> ret=null;
 		JSONObject eso = Queries.getThingForDescription(searchString,lang,type);
 		Collection<JSONObject> things = JsonUtils.addThings(JsonUtils.get(eso,"search"));
@@ -120,14 +120,14 @@ public class Wikidata {
 		}
 		return ret;
 	}
-	public static String getDescriptionOfWikidataId(String lang,String id) {
+	public static String getDescriptionOfWikidataId(WikiLanguage lang,String id) {
 		JSONObject r=getWikidataContentForSpecificEntityOnly(lang,id);
 		return getDescriptionForContent(r,lang);
 	}
-	public static String getDescriptionForContent(JSONObject r,String lang) {
+	public static String getDescriptionForContent(JSONObject r,WikiLanguage lang) {
 		StringBuffer ret=null;
 		if (r!=null) {
-			List<Object> descriptions=JsonUtils.getAll(r,"descriptions",lang,"value");
+			List<Object> descriptions=JsonUtils.getAll(r,"descriptions",lang.getLcode(),"value");
 			if (descriptions!=null) {
 				for(Object d:descriptions) {
 					if (ret==null) ret=new StringBuffer();
@@ -138,14 +138,14 @@ public class Wikidata {
 		return ret!=null?ret.toString():null;
 	}
 
-	public static String getLabelsForWikidataId(String lang,String id) {
+	public static String getLabelsForWikidataId(WikiLanguage lang,String id) {
 		JSONObject r=getWikidataContentForSpecificEntityOnly(lang,id);
 		return getLabelsForContent(r,lang);
 	}
-	public static String getLabelsForContent(JSONObject r,String lang) {
+	public static String getLabelsForContent(JSONObject r,WikiLanguage lang) {
 		StringBuffer ret=null;
 		if (r!=null) {
-			List<Object> descriptions=JsonUtils.getAll(r,"labels",lang,"value");
+			List<Object> descriptions=JsonUtils.getAll(r,"labels",lang.getLcode(),"value");
 			if (descriptions!=null) {
 				for(Object d:descriptions) {
 					if (ret==null) ret=new StringBuffer();
@@ -204,7 +204,7 @@ public class Wikidata {
 		return null;
 	}
 
-	public static Set<WikiThing> findAllItemsThatAre(WikiThing type,String lang) {
+	public static Set<WikiThing> findAllItemsThatAre(WikiThing type,WikiLanguage lang) {
 		Set<WikiThing> ret=null;
 		JSONObject result = Queries.runWikidataQuery("claim["+"31"+":(tree["+type.getId()+"][][279])]",lang);//claim[31:(tree[3314483][][279])]
 		if (result!=null) {
@@ -228,7 +228,7 @@ public class Wikidata {
 		return ret;
 	}
 
-	public static void dumpInstancesForType(String type,String searchLang,String outputLang,String filePrefix) {
+	public static void dumpInstancesForType(String type,WikiLanguage searchLang,WikiLanguage outputLang,String filePrefix) {
 		List<WikiThing> ids = getIdsForString(type,searchLang,WikiThing.TYPE.ITEM);
 		if (ids!=null && !ids.isEmpty()) {
 			System.out.println(ids);
@@ -270,7 +270,7 @@ public class Wikidata {
 		}
 	}
 
-	private static void dumpAllItemsToFile(WikiThing thing, String lang,File file) {
+	private static void dumpAllItemsToFile(WikiThing thing, WikiLanguage lang,File file) {
 		Set<WikiThing> items = findAllItemsThatAre(thing,lang);
 		if (items!=null) {
 			Set<String> things=null;
@@ -297,7 +297,7 @@ public class Wikidata {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		//List<WikiThing> ids = getIdsForString("red delicious",WikiThing.TYPE.ITEM);
 
 		//JSONObject content = getWikidataContentForSpecificEntityOnly("Q2");
@@ -306,7 +306,7 @@ public class Wikidata {
 		//List<WikiThing> ids = getIdsForString("fruit",WikiThing.TYPE.ITEM);
 		//System.out.println(ids);
 
-		dumpInstancesForType("dress","en","fr","nes");
+		dumpInstancesForType("dress",WikiLanguage.get("en"),WikiLanguage.get("fr"),"nes");
 	}
 
 }
