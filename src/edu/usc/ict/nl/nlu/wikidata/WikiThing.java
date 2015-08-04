@@ -48,12 +48,14 @@ public class WikiThing {
 	
 	public String toString(boolean longForm) {
 		String base=(isEntity()?"Q":"P")+id;
-		JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(base);
-		String desc=Wikidata.getDescriptionForContent(content);
-		String label=Wikidata.getLabelsForContent(content);
-		desc=StringUtils.cleanupSpaces(desc);
-		label=StringUtils.cleanupSpaces(label);
-		if (!StringUtils.isEmptyString(label)||!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";
+		if (longForm) {
+			JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(base);
+			String desc=Wikidata.getDescriptionForContent(content);
+			String label=Wikidata.getLabelsForContent(content);
+			desc=StringUtils.cleanupSpaces(desc);
+			label=StringUtils.cleanupSpaces(label);
+			if (!StringUtils.isEmptyString(label)||!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";
+		}
 		return base;
 	}
 

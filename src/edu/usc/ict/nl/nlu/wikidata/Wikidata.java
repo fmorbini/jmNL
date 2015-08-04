@@ -1,7 +1,14 @@
 package edu.usc.ict.nl.nlu.wikidata;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,6 +22,7 @@ import org.json.JSONObject;
 
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
+import edu.usc.ict.nl.util.StringUtils;
 
 public class Wikidata {
 	public static JSONObject getWikidataContentForSpecificEntityOnly(String id) {
@@ -106,7 +114,7 @@ public class Wikidata {
 							e1.printStackTrace();
 						}
 					}
-					
+
 				}
 			}
 		}
@@ -129,7 +137,7 @@ public class Wikidata {
 		}
 		return ret!=null?ret.toString():null;
 	}
-	
+
 	public static String getLabelsForWikidataId(String id) {
 		JSONObject r=getWikidataContentForSpecificEntityOnly(id);
 		return getLabelsForContent(r);
@@ -169,7 +177,7 @@ public class Wikidata {
 		}
 		return ret;
 	}
-	
+
 	public static String getValueOfMainSnak(JSONObject p) {
 		JSONObject main=(JSONObject) JsonUtils.get(p, "mainsnak");
 		if (main!=null) {
@@ -195,7 +203,7 @@ public class Wikidata {
 		}
 		return null;
 	}
-	
+
 	public static Set<WikiThing> findAllItemsThatAre(WikiThing type) {
 		Set<WikiThing> ret=null;
 		JSONObject result = Queries.runWikidataQuery("claim["+"31"+":(tree["+type.getId()+"][][279])]");//claim[31:(tree[3314483][][279])]
@@ -219,17 +227,60 @@ public class Wikidata {
 		}
 		return ret;
 	}
-	
+
+	public static void dumpInstancesForType(String type,String filePrefix) {
+		List<WikiThing> ids = getIdsForString(type,WikiThing.TYPE.ITEM);
+		if (ids!=null && !ids.isEmpty()) {
+			System.out.println(ids);
+			try{
+				BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
+				String input;
+				while(true){
+					System.out.println("Select an ID to use (just the number, not the P or Q): ");
+					if ((input=br.readLine())!=null) {
+						Set<WikiThing> items = findAllItemsThatAre(new WikiThing(Integer.parseInt(input), TYPE.ITEM));
+						if (items!=null) {
+							Set<String> things=null;
+							for(WikiThing i:items) {
+								String labels=getLabelsForWikidataId(i.toString(false));
+								if (!StringUtils.isEmptyString(labels)) {
+									if (things==null) things=new HashSet<String>();
+									things.add(labels);
+								}
+							}
+							try {
+								if (things!=null && !things.isEmpty()) {
+									BufferedWriter out=new BufferedWriter(new FileWriter(new File(filePrefix+"_"+input)));
+									List<String> sortedThings=new ArrayList<String>(things);
+									Collections.sort(sortedThings);
+									for(String l:things) {
+										out.write(l+"\n");
+										out.flush();
+									}
+									out.close();
+								}
+							} catch (Exception e) {e.printStackTrace();}
+						}
+					} else break;
+				}
+			}catch(IOException io){
+				io.printStackTrace();
+			}
+		} else {
+			System.err.println("no items found with search string: "+type);
+		}
+	}
+
 	public static void main(String[] args) {
-		//List<WikiThing> ids = getIdsForString("earth",WikiThing.TYPE.ITEM);
+		//List<WikiThing> ids = getIdsForString("red delicious",WikiThing.TYPE.ITEM);
+
 		//JSONObject content = getWikidataContentForSpecificEntityOnly("Q2");
 		//String lbs = getLabelsForWikidataId("Q2");
 		//System.out.println(lbs);
-		List<WikiThing> ids = getIdsForString("fruit",WikiThing.TYPE.ITEM);
-		System.out.println(ids);
+		//List<WikiThing> ids = getIdsForString("fruit",WikiThing.TYPE.ITEM);
+		//System.out.println(ids);
 
-		Set<WikiThing> items = findAllItemsThatAre(new WikiThing(1364, TYPE.ITEM));
-		System.out.println(items);
+		dumpInstancesForType("US state","nes");
 	}
 
 }

@@ -113,7 +113,6 @@ public class Queries {
 			try {
 				URI uri = new URI("https","wdq.wmflabs.org","/api","q="+query.toString()+"&languages=en&format=json",null);
 				String request = uri.toASCIIString();
-				System.out.println(request);
 				URL url = new URL(request);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
 				connection.setDoOutput(true);
