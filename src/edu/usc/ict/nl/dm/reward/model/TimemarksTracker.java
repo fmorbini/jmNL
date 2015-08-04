@@ -33,6 +33,7 @@ public class TimemarksTracker {
 			} else {
 				logger.error("empty operator in set time mark call.");
 			}
+			break;
 		default:
 			logger.error("error while setting time mark, unhandled type: "+type);
 		}

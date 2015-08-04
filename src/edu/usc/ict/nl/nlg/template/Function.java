@@ -16,6 +16,7 @@ public class Function implements Comparable<Function> {
 	private BT bracketType=BT.ROUND;
 	private String functionName;
 	private int beforeDelta=0,withinDelta=0;
+	private boolean requiredOutput=false;
 	
 	@Override
 	public int compareTo(Function o) {
@@ -90,11 +91,20 @@ public class Function implements Comparable<Function> {
 		if (StringUtils.isEmptyString(name)) {
 			functionName="get";
 		} else {
+			if (name.endsWith("!")) {
+				setRequiredOutput(true);
+				name=name.substring(0, name.length()-1);
+			}
 			functionName=name;
 		}
 		return findMethod();
 	}
 
+	public void setRequiredOutput(boolean requiredOutput) {
+		this.requiredOutput = requiredOutput;
+	}
+	public boolean getRequiredOutput() {return requiredOutput;}
+	
 	private boolean findMethod() {
 		Map<String, Method> mm=null;
 		if (this.templatedNLG!=null && ((mm=templatedNLG.getMethodMap())!=null)) {

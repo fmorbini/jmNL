@@ -53,7 +53,7 @@ public class WikiThing {
 		String label=Wikidata.getLabelsForContent(content);
 		desc=StringUtils.cleanupSpaces(desc);
 		label=StringUtils.cleanupSpaces(label);
-		if (!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";
+		if (!StringUtils.isEmptyString(label)||!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";
 		return base;
 	}
 

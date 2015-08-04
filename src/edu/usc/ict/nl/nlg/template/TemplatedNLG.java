@@ -15,6 +15,7 @@ import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
+import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.vhmsg.VHBridge;
 
 public class TemplatedNLG extends EchoNLG {
@@ -84,11 +85,21 @@ public class TemplatedNLG extends EchoNLG {
 					String functionArgs=f.getArguments(text);
 					Object obj=m.invoke(this, is,vhBridge,functionArgs,simulate);
 					String replacement=getReplacement(obj);
-					int start=f.getStart();
-					int functionLength=f.getEnd()-start+1;
-					int delta=replacement.length()-functionLength;
-					text=text.substring(0, f.getStart())+replacement+text.substring(f.getEnd()+1, text.length());
-					for(Function x:functions) x.updateIndexes(delta, start);
+					if (f.getRequiredOutput() && StringUtils.isEmptyString(replacement)) {
+						logger.warn("function "+f+" returned null and requires non-null output. Cancelling entire text.");
+						try {
+							logger.warn("IS is: "+is.dumpKB());
+						} catch (Exception e) {
+							logger.error(e);
+						}
+						return null;
+					} else {
+						int start=f.getStart();
+						int functionLength=f.getEnd()-start+1;
+						int delta=replacement.length()-functionLength;
+						text=text.substring(0, f.getStart())+replacement+text.substring(f.getEnd()+1, text.length());
+						for(Function x:functions) x.updateIndexes(delta, start);
+					}
 				}
 			}
 		}
@@ -142,7 +153,7 @@ public class TemplatedNLG extends EchoNLG {
 	 *   for each dollar sign, find if it,s a valid function identifier: $functionName(...) or ${...}
 	 *    if it is, search for the position of the closing bracket (consider escaped brackets)
 	 *    else disregard
-	 * extract the list of function and sert them by inclusion. that is, if f1 is included within the brackets of f2 then f1 must come before f2.
+	 * extract the list of function and sort them by inclusion. that is, if f1 is included within the brackets of f2 then f1 must come before f2.
 	 * this ordered list is the evaluation order.
 	 * @param input
 	 * @throws Exception 
