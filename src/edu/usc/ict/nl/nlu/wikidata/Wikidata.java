@@ -232,44 +232,70 @@ public class Wikidata {
 		List<WikiThing> ids = getIdsForString(type,WikiThing.TYPE.ITEM);
 		if (ids!=null && !ids.isEmpty()) {
 			System.out.println(ids);
-			try{
-				BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
-				String input;
-				while(true){
-					System.out.println("Select an ID to use (just the number, not the P or Q): ");
-					if ((input=br.readLine())!=null) {
-						Set<WikiThing> items = findAllItemsThatAre(new WikiThing(Integer.parseInt(input), TYPE.ITEM));
-						if (items!=null) {
-							Set<String> things=null;
-							for(WikiThing i:items) {
-								String labels=getLabelsForWikidataId(i.toString(false));
-								if (!StringUtils.isEmptyString(labels)) {
-									if (things==null) things=new HashSet<String>();
-									things.add(labels);
-								}
-							}
-							try {
-								if (things!=null && !things.isEmpty()) {
-									BufferedWriter out=new BufferedWriter(new FileWriter(new File(filePrefix+"_"+input)));
-									List<String> sortedThings=new ArrayList<String>(things);
-									Collections.sort(sortedThings);
-									for(String l:things) {
-										out.write(l+"\n");
-										out.flush();
+			long id=-1;
+			if (ids!=null && !ids.isEmpty()) {
+				if (ids.size()>1) {
+					try{
+						BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
+						String input;
+						while(true){
+							System.out.println("Select an ID to use (just the number, not the P or Q): ");
+							if ((input=br.readLine())!=null) {
+								try{
+									id=Long.parseLong(input);
+									boolean found=false;
+									for(WikiThing i:ids) if (i.getId()==id) {
+										found=true;
+										break;
 									}
-									out.close();
+									if (found) break;
+									else {
+										System.err.println("number not found.");
+									}
+								}catch(Exception e){
+									System.err.println("input a number.");
 								}
-							} catch (Exception e) {e.printStackTrace();}
+							} else break;
 						}
-					} else break;
+					}catch(Exception io){
+						io.printStackTrace();
+					}
+				} else {
+					id=ids.get(0).getId();
 				}
-			}catch(IOException io){
-				io.printStackTrace();
+				dumpAllItemsToFile(new WikiThing(id, TYPE.ITEM),new File(filePrefix+"_"+id));
 			}
 		} else {
 			System.err.println("no items found with search string: "+type);
 		}
 	}
+
+	private static void dumpAllItemsToFile(WikiThing thing, File file) {
+		Set<WikiThing> items = findAllItemsThatAre(thing);
+		if (items!=null) {
+			Set<String> things=null;
+			for(WikiThing i:items) {
+				String labels=getLabelsForWikidataId(i.toString(false));
+				if (!StringUtils.isEmptyString(labels)) {
+					if (things==null) things=new HashSet<String>();
+					things.add(labels);
+				}
+			}
+			try {
+				if (things!=null && !things.isEmpty()) {
+					BufferedWriter out=new BufferedWriter(new FileWriter(file));
+					List<String> sortedThings=new ArrayList<String>(things);
+					Collections.sort(sortedThings);
+					for(String l:things) {
+						out.write(l+"\n");
+						out.flush();
+					}
+					out.close();
+				}
+			} catch (Exception e) {e.printStackTrace();}
+		}
+	}
+
 
 	public static void main(String[] args) {
 		//List<WikiThing> ids = getIdsForString("red delicious",WikiThing.TYPE.ITEM);
@@ -280,7 +306,7 @@ public class Wikidata {
 		//List<WikiThing> ids = getIdsForString("fruit",WikiThing.TYPE.ITEM);
 		//System.out.println(ids);
 
-		dumpInstancesForType("US state","nes");
+		dumpInstancesForType("state of the United States","nes");
 	}
 
 }
