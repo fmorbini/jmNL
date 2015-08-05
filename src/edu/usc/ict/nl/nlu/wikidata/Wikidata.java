@@ -347,7 +347,6 @@ public class Wikidata {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		//List<WikiThing> ids = getIdsForString("red delicious",WikiThing.TYPE.ITEM);
 		//Node root=buildPropertyTree("Q18216", "P279");
 		Node root=buildPropertyTree("Q11173", "P171");
 		root.toGDLGraph(root.getName()+".gdl");

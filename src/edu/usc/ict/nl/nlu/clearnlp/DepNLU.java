@@ -67,20 +67,18 @@ public class DepNLU
 		return ret;
 	}
 	
-	public String enrichedInputString(List<DEPTree> result,String separator) {
+	public String enrichedInputString(DEPTree r,String separator) {
 		StringBuffer ret=null;
-		if (result!=null) {
-			for(DEPTree r:result) {
-				int s=r.size();
-				for(int i=1;i<s;i++) {
-					DEPNode n = r.get(i);
-					DEPNode head=n.getHead();
-					String nPos=n.pos,hPos=(head!=null)?head.pos:null;
-					if (ret==null) ret=new StringBuffer();
-					if (ret.length()>0) ret.append(" ");
-					ret.append(n.form+separator+i+separator+n.pos);
-					if (head!=null) ret.append(separator+head.form+separator+hPos);
-				}
+		if (r!=null) {
+			int s=r.size();
+			for(int i=1;i<s;i++) {
+				DEPNode n = r.get(i);
+				DEPNode head=n.getHead();
+				String nPos=n.pos,hPos=(head!=null)?head.pos:null;
+				if (ret==null) ret=new StringBuffer();
+				if (ret.length()>0) ret.append(" ");
+				ret.append(n.form+separator+i+separator+n.pos);
+				if (head!=null) ret.append(separator+head.form+separator+hPos);
 			}
 		}
 		return (ret!=null)?ret.toString():null;
@@ -144,10 +142,10 @@ public class DepNLU
 		System.out.println(subject);
 		//List verb=parser.getVerb();
 		
-		System.out.println(parser.enrichedInputString(result,"_"));
 		int id=1;
 		if (result!=null) {
 			for(DEPTree r:result) {
+				System.out.println(parser.enrichedInputString(r,"_"));
 				new CONLL(r).toGDLGraph("sentence-"+id+".gdl");
 				id++;
 			}
