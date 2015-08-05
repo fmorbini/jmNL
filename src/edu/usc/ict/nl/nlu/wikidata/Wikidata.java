@@ -213,8 +213,11 @@ public class Wikidata {
 	}
 
 	public static Set<WikiThing> findAllItemsThatAre(WikiThing type,WikiLanguage lang) {
+		return runQuery("claim["+"31"+":(tree["+type.getId()+"][][279])]", lang);
+	}
+	public static Set<WikiThing> runQuery(String query,WikiLanguage lang) {
 		Set<WikiThing> ret=null;
-		JSONObject result = Queries.runWikidataQuery("claim["+"31"+":(tree["+type.getId()+"][][279])]",lang);//claim[31:(tree[3314483][][279])]
+		JSONObject result = Queries.runWikidataQuery(query,lang);
 		if (result!=null) {
 			Object r = JsonUtils.get(result, "items");
 			if (r!=null && r instanceof JSONArray) {
@@ -344,10 +347,9 @@ public class Wikidata {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		//List<WikiThing> r = getIdsForString("Salicylic acid", WikiLanguage.get("en"), TYPE.ITEM);
-		//System.out.println(r);
+		//List<WikiThing> ids = getIdsForString("red delicious",WikiThing.TYPE.ITEM);
 		//Node root=buildPropertyTree("Q18216", "P279");
-		Node root=buildPropertyTree("Q193572", "P279");
+		Node root=buildPropertyTree("Q11173", "P171");
 		root.toGDLGraph(root.getName()+".gdl");
 		//System.out.println(prettyPrintWikidataContent(getWikidataContentForSpecificEntityOnly(WikiLanguage.get("en"), "Q18216"), WikiLanguage.get("en")));
 		//JSONObject content = getWikidataContentForSpecificEntityOnly("Q2");
