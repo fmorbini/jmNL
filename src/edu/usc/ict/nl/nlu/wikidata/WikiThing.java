@@ -1,13 +1,15 @@
 package edu.usc.ict.nl.nlu.wikidata;
 
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 
 import edu.usc.ict.nl.util.StringUtils;
+import edu.usc.ict.nl.util.graph.Node;
 
-public class WikiThing {
+public class WikiThing extends Node {
 
 	private TYPE type;
 	private long id=-1;
@@ -18,6 +20,7 @@ public class WikiThing {
 	public WikiThing(long id,TYPE type) {
 		this.id=id;
 		this.type=type;
+		setName((isEntity()?"Q":"P")+id);
 	}
 	
 	public WikiThing(String string) throws Exception {
@@ -27,6 +30,7 @@ public class WikiThing {
 			String t=m.group(1);
 			if (t.equals("P")) this.type=TYPE.PROPERTY;
 			else this.type=TYPE.ITEM;
+			setName((isEntity()?"Q":"P")+id);
 		} else throw new Exception ("unandled string case: "+string);
 	}
 
@@ -43,16 +47,11 @@ public class WikiThing {
 	
 	@Override
 	public String toString() {
-		try {
-			return toString(WikiLanguage.get("en"),true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+		return getName();
 	}
 	
 	public String toString(WikiLanguage lang,boolean longForm) {
-		String base=(isEntity()?"Q":"P")+id;
+		String base=getName();
 		if (longForm) {
 			JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(lang,base);
 			String desc=Wikidata.getDescriptionForContent(content,lang);
@@ -62,6 +61,15 @@ public class WikiThing {
 			if (!StringUtils.isEmptyString(label)||!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";
 		}
 		return base;
+	}
+	
+	@Override
+	public String gdlText() {
+		try {
+			return "node: { shape: "+getShape()+" title: \""+getID()+"\" label: \""+toString()+"\" info1: \""+toString(WikiLanguage.get("en"),true)+"\"}\n";
+		} catch (Exception e) {
+			return "node: { shape: "+getShape()+" title: \""+getID()+"\" label: \""+toString()+"\" info1: \""+Arrays.toString(e.getStackTrace())+"\"}\n";
+		}
 	}
 
 }

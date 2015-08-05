@@ -8,9 +8,11 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +23,9 @@ import org.json.JSONObject;
 
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
+import edu.usc.ict.nl.util.ProgressTracker;
 import edu.usc.ict.nl.util.StringUtils;
+import edu.usc.ict.nl.util.graph.Node;
 
 public class Wikidata {
 	
@@ -156,6 +160,10 @@ public class Wikidata {
 		return ret!=null?ret.toString():null;
 	}
 
+	public static Map<String,List<WikiClaim>> getClaims(JSONObject e) {
+		String name=(String) JsonUtils.get((JSONObject) e,"id");
+		return getClaims(name, e);
+	}
 	public static Map<String,List<WikiClaim>> getClaims(String subject,JSONObject e) {
 		Map<String,List<WikiClaim>> ret=null;
 		JSONObject claims=(JSONObject) JsonUtils.get(e, "claims");
@@ -231,40 +239,43 @@ public class Wikidata {
 	public static void dumpInstancesForType(String type,WikiLanguage searchLang,WikiLanguage outputLang,String filePrefix) {
 		List<WikiThing> ids = getIdsForString(type,searchLang,WikiThing.TYPE.ITEM);
 		if (ids!=null && !ids.isEmpty()) {
-			System.out.println(ids);
-			long id=-1;
-			if (ids!=null && !ids.isEmpty()) {
-				if (ids.size()>1) {
-					try{
-						BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
-						String input;
-						while(true){
-							System.out.println("Select an ID to use (just the number, not the P or Q): ");
-							if ((input=br.readLine())!=null) {
-								try{
-									id=Long.parseLong(input);
-									boolean found=false;
-									for(WikiThing i:ids) if (i.getId()==id) {
-										found=true;
-										break;
-									}
-									if (found) break;
-									else {
-										System.err.println("number not found.");
-									}
-								}catch(Exception e){
-									System.err.println("input a number.");
-								}
-							} else break;
-						}
-					}catch(Exception io){
-						io.printStackTrace();
-					}
-				} else {
-					id=ids.get(0).getId();
+			for(WikiThing id:ids)
+				try {
+					System.out.println(id.toString(WikiLanguage.get("en"), true));
+				} catch (Exception e1) {
+					e1.printStackTrace();
 				}
-				dumpAllItemsToFile(new WikiThing(id, TYPE.ITEM),outputLang,new File(filePrefix+"_"+id));
+			long id=-1;
+			if (ids.size()>1) {
+				try{
+					BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
+					String input;
+					while(true){
+						System.out.println("Select an ID to use (just the number, not the P or Q): ");
+						if ((input=br.readLine())!=null) {
+							try{
+								id=Long.parseLong(input);
+								boolean found=false;
+								for(WikiThing i:ids) if (i.getId()==id) {
+									found=true;
+									break;
+								}
+								if (found) break;
+								else {
+									System.err.println("number not found.");
+								}
+							}catch(Exception e){
+								System.err.println("input a number.");
+							}
+						} else break;
+					}
+				}catch(Exception io){
+					io.printStackTrace();
+				}
+			} else {
+				id=ids.get(0).getId();
 			}
+			dumpAllItemsToFile(new WikiThing(id, TYPE.ITEM),outputLang,new File(filePrefix+"_"+id));
 		} else {
 			System.err.println("no items found with search string: "+type);
 		}
@@ -274,12 +285,16 @@ public class Wikidata {
 		Set<WikiThing> items = findAllItemsThatAre(thing,lang);
 		if (items!=null) {
 			Set<String> things=null;
+			int size=items.size();
+			ProgressTracker pt = new ProgressTracker(1, size, System.out);
+			int j=1;
 			for(WikiThing i:items) {
 				String labels=getLabelsForWikidataId(lang,i.toString(lang,false));
 				if (!StringUtils.isEmptyString(labels)) {
 					if (things==null) things=new HashSet<String>();
 					things.add(labels);
 				}
+				pt.update(j++);
 			}
 			try {
 				if (things!=null && !things.isEmpty()) {
@@ -296,17 +311,52 @@ public class Wikidata {
 		}
 	}
 
-
+	public static Set<WikiThing> getAllPropertiesThatHaveClaimsContainsThisItem() {
+		
+		return null;
+	}
+	
+	public static Node buildPropertyTree(String id,String pname) throws Exception {
+		Node root=new Node(id+"_"+pname);
+		WikiThing current=new WikiThing(id);
+		root.addEdgeTo(current, true, true);
+		Deque<WikiThing> toProcess=new LinkedList<WikiThing>();
+		toProcess.push(current);
+		while(!toProcess.isEmpty()) {
+			current=toProcess.pop();
+			JSONObject content = getWikidataContentForSpecificEntityOnly(WikiLanguage.get("en"), current.getName());
+			Map<String, List<WikiClaim>> claims = getClaims(content);
+			if (claims!=null && claims.containsKey(pname)) {
+				List<WikiClaim> pcls = claims.get(pname);
+				if (pcls!=null) {
+					root.removeEdgeTo(current);
+					for(WikiClaim pcl:pcls) {
+						String object = pcl.getObject();
+						WikiThing n=new WikiThing(object);
+						toProcess.add(n);
+						root.addEdgeTo(n, true, true);
+						n.addEdgeTo(current, true, true);
+					}
+				}
+			}
+		}
+		return root;
+	}
+	
 	public static void main(String[] args) throws Exception {
-		//List<WikiThing> ids = getIdsForString("red delicious",WikiThing.TYPE.ITEM);
-
+		//List<WikiThing> r = getIdsForString("Salicylic acid", WikiLanguage.get("en"), TYPE.ITEM);
+		//System.out.println(r);
+		//Node root=buildPropertyTree("Q18216", "P279");
+		Node root=buildPropertyTree("Q193572", "P279");
+		root.toGDLGraph(root.getName()+".gdl");
+		//System.out.println(prettyPrintWikidataContent(getWikidataContentForSpecificEntityOnly(WikiLanguage.get("en"), "Q18216"), WikiLanguage.get("en")));
 		//JSONObject content = getWikidataContentForSpecificEntityOnly("Q2");
 		//String lbs = getLabelsForWikidataId("Q2");
 		//System.out.println(lbs);
 		//List<WikiThing> ids = getIdsForString("fruit",WikiThing.TYPE.ITEM);
 		//System.out.println(ids);
 
-		dumpInstancesForType("dress",WikiLanguage.get("en"),WikiLanguage.get("fr"),"nes");
+		//dumpInstancesForType("aspirin",WikiLanguage.get("en"),WikiLanguage.get("en"),"nes");
 	}
 
 }

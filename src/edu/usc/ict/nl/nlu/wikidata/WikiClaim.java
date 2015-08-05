@@ -14,4 +14,14 @@ public class WikiClaim {
 	public String toString() {
 		return "("+property+" "+subject+" "+object+")";
 	}
+
+	public String getObject() {
+		return object;
+	}
+	public String getSubject() {
+		return subject;
+	}
+	public String getProperty() {
+		return property;
+	}
 }
