@@ -1,10 +1,9 @@
-package edu.usc.ict.nl.nlu.ne;
+	package edu.usc.ict.nl.nlu.ne;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.usc.ict.nl.bus.NLBusBase;
@@ -12,8 +11,6 @@ import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
-import edu.usc.ict.nl.nlu.directablechar.LFNLU2;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher.TopicMatcherRE;
 
@@ -25,7 +22,11 @@ public class WordlistRENE extends BasicNE {
 	public WordlistRENE(String file) {
 		this.modelName=file;
 		try {
-			loadModel(new File(modelName));
+			File modelFile = new File(modelName);
+			if (modelFile.exists())
+				loadModel(modelFile);
+			else
+				logger.warn("error loading -no config- file");
 		} catch (Exception e) {
 			logger.warn("error loading -no config- file",e);
 		}
