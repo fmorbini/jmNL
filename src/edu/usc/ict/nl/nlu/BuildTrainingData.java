@@ -218,15 +218,16 @@ public class BuildTrainingData {
 		}
 		
         File userSessionFile=new File(config.getNLUContentRoot()+File.separator+"user-utterances-from-user-data-collection.xlsx");
-        try {
-        	addToTrainingData(td,buildConfiguredTrainingDataFromExcel(userSessionFile.getAbsolutePath()));
-        } catch (Exception e) {
-        	logger.warn("Error processing file: "+userSessionFile.getAbsolutePath()+" "+e.getMessage());
-        }
+        if (userSessionFile.exists())
+	        try {
+	        	addToTrainingData(td,buildConfiguredTrainingDataFromExcel(userSessionFile.getAbsolutePath()));
+	        } catch (Exception e) {
+	        	logger.warn("Error processing file: "+userSessionFile.getAbsolutePath()+" "+e.getMessage());
+	        }
         
         if (!StringUtils.isEmptyString(config.getSystemForms())) {
         	File formsFile=new File(config.getSystemForms());
-        	if (config.getUseSystemFormsToTrainNLU()) {
+        	if (config.getUseSystemFormsToTrainNLU() && formsFile.exists()) {
         		try {
         			addToTrainingData(td,buildTrainingDataFromFormsExcel(formsFile.getAbsolutePath(), 0));
         		} catch (Exception e) {
@@ -236,8 +237,6 @@ public class BuildTrainingData {
         }
         
         td=cleanTrainingData(td);
-        //td=new ArrayList<Pair<String,String>>();
-        //btd.addToTrainingData(td,btd.buildTrainingDataFromFormsExcel("../../simcoach-runtime/SimcoachApp/src/forms.xlsx", 0),false);
         return td;
 	}
 	
