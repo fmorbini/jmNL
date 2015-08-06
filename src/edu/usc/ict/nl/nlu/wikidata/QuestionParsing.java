@@ -51,6 +51,8 @@ public class QuestionParsing {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		getRoughQuery("capital of", "france");
+		getRoughQuery("position", "president of the united states");
+		//List<WikiThing> properties = Wikidata.getIdsForString("head of government",WikiLanguage.get("en"),TYPE.PROPERTY);
+		//System.out.println(properties);
 	}
 }
