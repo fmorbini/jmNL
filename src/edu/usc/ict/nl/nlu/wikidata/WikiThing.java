@@ -14,7 +14,7 @@ public class WikiThing extends Node {
 	private TYPE type;
 	private String label;
 	private long id=-1;
-	public enum TYPE {ITEM,PROPERTY};
+	public enum TYPE {ITEM,PROPERTY,CONSTANT};
 	
 	private static final Pattern thingName=Pattern.compile("^(P|Q)([0-9]+)$");
 	
@@ -32,7 +32,10 @@ public class WikiThing extends Node {
 			if (t.equals("P")) this.type=TYPE.PROPERTY;
 			else this.type=TYPE.ITEM;
 			setName((isEntity()?"Q":"P")+id);
-		} else throw new Exception ("unandled string case: "+string);
+		} else {
+			this.type=TYPE.CONSTANT;
+			setName(string);
+		}
 	}
 
 	public long getId() {
@@ -58,7 +61,7 @@ public class WikiThing extends Node {
 	
 	public String toString(WikiLanguage lang,boolean longForm) {
 		String base=getName();
-		if (longForm) {
+		if (longForm && (isEntity() || isProperty())) {
 			JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(lang,base);
 			String desc=Wikidata.getDescriptionForContent(content,lang);
 			String label=getLabel()!=null?getLabel():Wikidata.getLabelsForContent(content,lang);

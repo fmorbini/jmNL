@@ -25,6 +25,7 @@ public class QuestionParsing {
 			if (properties!=null && !properties.isEmpty() && objects!=null && !objects.isEmpty()) {
 				for(WikiThing p:properties) {
 					for(WikiThing o:objects) {
+						System.out.println(p+" "+o);
 						List<WikiThing> result = Queries.getAllSubjectsOf(p, o,WikiLanguage.get("en"));
 						if (result==null) result=Queries.getAllObjectsOf(p, o,WikiLanguage.get("en"));
 						System.out.println(result);
@@ -52,7 +53,7 @@ public class QuestionParsing {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		getRoughQuery("prime minister","united kingdom");
+		getRoughQuery("population","france");
 		//List<WikiThing> properties = Wikidata.getIdsForString("head of government",WikiLanguage.get("en"),TYPE.PROPERTY);
 		//System.out.println(properties);
 	}
