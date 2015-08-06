@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.nlu.wikidata;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -18,23 +19,28 @@ public class QuestionParsing {
 	 * @param property
 	 * @param object
 	 */
-	public static void getRoughQuery(String property,String object) {
+	public static Set<WikiThing> getRoughQuery(String property,String object) {
+		Set<WikiThing> ret=null;
 		try {
 			List<WikiThing> properties = Wikidata.getIdsForString(property,WikiLanguage.get("en"),TYPE.PROPERTY);
 			List<WikiThing> objects = Wikidata.getIdsForString(object,WikiLanguage.get("en"),TYPE.ITEM);
 			if (properties!=null && !properties.isEmpty() && objects!=null && !objects.isEmpty()) {
 				for(WikiThing p:properties) {
 					for(WikiThing o:objects) {
-						System.out.println(p+" "+o);
+						//System.out.println(p+" "+o);
 						List<WikiThing> result = Queries.getAllSubjectsOf(p, o,WikiLanguage.get("en"));
 						if (result==null) result=Queries.getAllObjectsOf(p, o,WikiLanguage.get("en"));
-						System.out.println(result);
+						if (result!=null) {
+							if (ret==null) ret=new HashSet<WikiThing>();
+							ret.addAll(result);
+						}
 					}
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return ret;
 	}
 	
 	public static void test() throws Exception {
@@ -53,7 +59,8 @@ public class QuestionParsing {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		getRoughQuery("population","france");
+		Set<WikiThing> r = getRoughQuery("capital","italy");
+		System.out.println(r);
 		//List<WikiThing> properties = Wikidata.getIdsForString("head of government",WikiLanguage.get("en"),TYPE.PROPERTY);
 		//System.out.println(properties);
 	}

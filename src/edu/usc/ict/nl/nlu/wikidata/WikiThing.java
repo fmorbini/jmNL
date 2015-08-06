@@ -80,5 +80,16 @@ public class WikiThing extends Node {
 			return "node: { shape: "+getShape()+" title: \""+getID()+"\" label: \""+toString()+"\" info1: \""+Arrays.toString(e.getStackTrace())+"\"}\n";
 		}
 	}
-
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj!=null && obj instanceof WikiThing) {
+			return ((WikiThing)obj).getName().equals(getName()); 
+		} else return super.equals(obj);
+	}
+	
+	@Override
+	public int hashCode() {
+		return getName().hashCode();
+	}
 }

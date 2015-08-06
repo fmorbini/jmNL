@@ -262,7 +262,7 @@ SELECT ?p ?w ?l ?wl WHERE {
 					try {
 						r = rs.get(i);
 						if (r!=null && r instanceof JSONObject) {
-							System.out.println(r);
+							//System.out.println(r);
 							Object rv=JsonUtils.get((JSONObject)r, entityVarName,"value");
 							Object rl=JsonUtils.get((JSONObject)r, labelVarName,"value");
 							URI u=new URI((String) rv);
