@@ -1,18 +1,30 @@
 package edu.usc.ict.nl.nlu.wikidata;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 
 public class Queries {
+
+	private static final String SparQLPrefixes="PREFIX wd: <http://www.wikidata.org/entity/>"+
+			"PREFIX wdt: <http://www.wikidata.org/prop/direct/>"+
+			"PREFIX wikibase: <http://wikiba.se/ontology#>"+
+			"PREFIX p: <http://www.wikidata.org/prop/>"+
+			"PREFIX v: <http://www.wikidata.org/prop/statement/>"+
+			"PREFIX q: <http://www.wikidata.org/prop/qualifier/>";
 
 	public static JSONObject getThingForDescription(String description,WikiLanguage lang,TYPE type) {
 		try {
@@ -176,10 +188,11 @@ SELECT ?p ?w ?l ?wl WHERE {
    }
  }
 	 */
-	public static JSONObject runWikidataSparQLQuery(String query,WikiLanguage lang) {
+	public static JSONObject runWikidataSparQLQuery(String query) {
 		if (query!=null) {
 			try {
-				URI uri = new URI("http","wdqs-beta.wmflabs.org","/bigdata/namespace/wdq/sparql","query="+query.toString()+"&languages="+lang+"&format=json",null);
+				if (!query.startsWith("PREFIX")) query=SparQLPrefixes+"\n"+query;
+				URI uri = new URI("http","wdqs-beta.wmflabs.org","/bigdata/namespace/wdq/sparql","query="+query.toString(),null);
 				String request = uri.toASCIIString();
 				URL url = new URL(request);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
@@ -220,16 +233,55 @@ SELECT ?p ?w ?l ?wl WHERE {
 		}
 		return null;
 	}
+	public static List<WikiThing> getAllSubjectsOf(WikiThing property,WikiThing object,WikiLanguage lang) {
+		if (property!=null && object!=null) {
+			String q="SELECT ?p ?l WHERE {?p wdt:"+property.getName()+" wd:"+object.getName()+" . OPTIONAL  {?p rdfs:label ?l filter (lang(?l) = \""+lang.getLcode()+"\") .}}";
+			JSONObject json=runWikidataSparQLQuery(q);
+			return getEntities(json,"p","l");
+		}
+		return null;
+	}
+	public static List<WikiThing> getAllObjectsOf(WikiThing property,WikiThing subject,WikiLanguage lang) {
+		if (property!=null && subject!=null) {
+			String q="SELECT ?p ?l WHERE {wd:"+subject.getName()+" wdt:"+property.getName()+" ?p . OPTIONAL  {?p rdfs:label ?l filter (lang(?l) = \""+lang.getLcode()+"\") .}}";
+			JSONObject json=runWikidataSparQLQuery(q);
+			return getEntities(json,"p","l");
+		}
+		return null;
+	}
 	
+	private static List<WikiThing> getEntities(JSONObject json, String entityVarName,String labelVarName) {
+		List<WikiThing> ret=null;
+		if (json!=null) {
+			Object results = JsonUtils.get(json, "results","bindings");
+			if (results!=null && results instanceof JSONArray) {
+				JSONArray rs=(JSONArray)results;
+				int l=rs.length();
+				for(int i=0;i<l;i++) {
+					Object r;
+					try {
+						r = rs.get(i);
+						if (r!=null && r instanceof JSONObject) {
+							Object rv=JsonUtils.get((JSONObject)r, entityVarName,"value");
+							Object rl=JsonUtils.get((JSONObject)r, labelVarName,"value");
+							URI u=new URI((String) rv);
+							String entityName=new File(u.getPath()).getName();
+							WikiThing thing=new WikiThing(entityName);
+							thing.setLabel((String) rl);
+							if (ret==null) ret=new ArrayList<WikiThing>();
+							ret.add(thing);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
 	public static void main(String[] args) throws Exception {
-		String q="PREFIX wd: <http://www.wikidata.org/entity/>"+
-				"PREFIX wdt: <http://www.wikidata.org/prop/direct/>"+
-				"PREFIX wikibase: <http://wikiba.se/ontology#>"+
-				"PREFIX p: <http://www.wikidata.org/prop/>"+
-				"PREFIX v: <http://www.wikidata.org/prop/statement/>"+
-				"PREFIX q: <http://www.wikidata.org/prop/qualifier/>"+
-				"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"+
-				"SELECT ?p ?w ?l ?wl WHERE {"+
+		String q="SELECT ?p ?w ?l ?wl WHERE {"+
 				"wd:Q30 p:P6/v:P6 ?p ."+
 				"?p wdt:P26 ?w ."+
 				"OPTIONAL  {"+  
@@ -239,7 +291,8 @@ SELECT ?p ?w ?l ?wl WHERE {
 				"?w rdfs:label ?wl filter (lang(?wl) = \"en\")."+ 
 				"}"+
 				"}";
-		JSONObject r = runWikidataSparQLQuery(q,WikiLanguage.get("en"));
+		String q2="SELECT ?p WHERE {wd:Q30 wdt:P35 ?p .}";
+		List<WikiThing> r = getAllObjectsOf(new WikiThing(35, TYPE.PROPERTY), new WikiThing(30, TYPE.ITEM),WikiLanguage.get("en"));
 		System.out.println(r);
 	}
 

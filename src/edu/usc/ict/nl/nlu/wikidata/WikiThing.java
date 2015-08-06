@@ -12,6 +12,7 @@ import edu.usc.ict.nl.util.graph.Node;
 public class WikiThing extends Node {
 
 	private TYPE type;
+	private String label;
 	private long id=-1;
 	public enum TYPE {ITEM,PROPERTY};
 	
@@ -44,10 +45,15 @@ public class WikiThing extends Node {
 	public boolean isProperty() {
 		return type!=null && type==TYPE.PROPERTY;
 	}
-	
+	public void setLabel(String label) {
+		this.label = label;
+	}
+	public String getLabel() {
+		return label;
+	}
 	@Override
 	public String toString() {
-		return getName();
+		return getName()+":"+getLabel();
 	}
 	
 	public String toString(WikiLanguage lang,boolean longForm) {
@@ -55,7 +61,7 @@ public class WikiThing extends Node {
 		if (longForm) {
 			JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(lang,base);
 			String desc=Wikidata.getDescriptionForContent(content,lang);
-			String label=Wikidata.getLabelsForContent(content,lang);
+			String label=getLabel()!=null?getLabel():Wikidata.getLabelsForContent(content,lang);
 			desc=StringUtils.cleanupSpaces(desc);
 			label=StringUtils.cleanupSpaces(label);
 			if (!StringUtils.isEmptyString(label)||!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";

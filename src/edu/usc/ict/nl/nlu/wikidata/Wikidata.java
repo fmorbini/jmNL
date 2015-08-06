@@ -212,11 +212,11 @@ public class Wikidata {
 		return null;
 	}
 
-	public static Set<WikiThing> findAllItemsThatAre(WikiThing type,WikiLanguage lang) {
+	public static List<WikiThing> findAllItemsThatAre(WikiThing type,WikiLanguage lang) {
 		return runQuery("claim["+"31"+":(tree["+type.getId()+"][][279])]", lang);
 	}
-	public static Set<WikiThing> runQuery(String query,WikiLanguage lang) {
-		Set<WikiThing> ret=null;
+	public static List<WikiThing> runQuery(String query,WikiLanguage lang) {
+		List<WikiThing> ret=null;
 		JSONObject result = Queries.runWikidataQuery(query,lang);
 		if (result!=null) {
 			Object r = JsonUtils.get(result, "items");
@@ -227,7 +227,7 @@ public class Wikidata {
 					try {
 						item = ((JSONArray)r).get(i);
 						if (item!=null && item instanceof Integer) {
-							if (ret==null) ret=new HashSet<WikiThing>();
+							if (ret==null) ret=new ArrayList<WikiThing>();
 							ret.add(new WikiThing(((Integer)item).longValue(),TYPE.ITEM));
 						}
 					} catch (JSONException e) {
@@ -285,7 +285,7 @@ public class Wikidata {
 	}
 
 	private static void dumpAllItemsToFile(WikiThing thing, WikiLanguage lang,File file) {
-		Set<WikiThing> items = findAllItemsThatAre(thing,lang);
+		List<WikiThing> items = findAllItemsThatAre(thing,lang);
 		if (items!=null) {
 			Set<String> things=null;
 			int size=items.size();

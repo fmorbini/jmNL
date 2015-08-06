@@ -25,7 +25,8 @@ public class QuestionParsing {
 			if (properties!=null && !properties.isEmpty() && objects!=null && !objects.isEmpty()) {
 				for(WikiThing p:properties) {
 					for(WikiThing o:objects) {
-						Set<WikiThing> result = Wikidata.runQuery("claim["+p.getId()+":"+o.getId()+"]", WikiLanguage.get("en"));
+						List<WikiThing> result = Queries.getAllSubjectsOf(p, o,WikiLanguage.get("en"));
+						if (result==null) result=Queries.getAllObjectsOf(p, o,WikiLanguage.get("en"));
 						System.out.println(result);
 					}
 				}
@@ -34,7 +35,7 @@ public class QuestionParsing {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public static void test() throws Exception {
 		DepNLU parser=new DepNLU();
 		List<DEPTree> result = parser.parse("tell me the capital of france?", System.out);
@@ -51,7 +52,7 @@ public class QuestionParsing {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		getRoughQuery("position", "president of the united states");
+		getRoughQuery("prime minister","united kingdom");
 		//List<WikiThing> properties = Wikidata.getIdsForString("head of government",WikiLanguage.get("en"),TYPE.PROPERTY);
 		//System.out.println(properties);
 	}
