@@ -37,23 +37,27 @@ public class DepNLU
 	private AbstractComponent[] components;
 	private AbstractTokenizer tokenizer;
 	
-	public DepNLU() throws Exception {
+	public DepNLU() {
 		this("general-en");
 	}
 	
-	public DepNLU(String modelType) throws Exception {
+	public DepNLU(String modelType) {
 		tokenizer  = NLPGetter.getTokenizer(language);
-		AbstractComponent tagger     = NLPGetter.getComponent(modelType, language, NLPMode.MODE_POS);
-		AbstractComponent parser     = NLPGetter.getComponent(modelType, language, NLPMode.MODE_DEP);
-		components = new AbstractComponent[]{tagger, parser};
+		try {
+			AbstractComponent tagger = NLPGetter.getComponent(modelType, language, NLPMode.MODE_POS);
+			AbstractComponent parser = NLPGetter.getComponent(modelType, language, NLPMode.MODE_DEP);
+			components = new AbstractComponent[]{tagger, parser};
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
-	public List<DEPTree> parse(String text, PrintStream output) throws Exception {
+	public List<DEPTree> parse(String text) throws Exception {
 		BufferedReader input=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(text.getBytes()),"UTF-8"));
-		List<DEPTree> result=parse(tokenizer, components, input, output);
+		List<DEPTree> result=parse(tokenizer, components, input);
 		return result;
 	}
 	
-	public List<DEPTree> parse(AbstractTokenizer tokenizer, AbstractComponent[] components, BufferedReader input,PrintStream output) throws Exception {
+	public List<DEPTree> parse(AbstractTokenizer tokenizer, AbstractComponent[] components, BufferedReader input) throws Exception {
 		List<DEPTree> ret=null;
 		String line;
 		while((line=input.readLine())!=null) {
@@ -137,7 +141,7 @@ public class DepNLU
 	public static void main(String[] args) throws Exception
 	{
 		DepNLU parser=new DepNLU();
-		List<DEPTree> result = parser.parse("A small triangle and a big triangle argue inside the room.", System.out);
+		List<DEPTree> result = parser.parse("A small triangle and a big triangle argue inside the room.");
 		List subject=parser.getSubject(result.get(0));
 		System.out.println(subject);
 		//List verb=parser.getVerb();

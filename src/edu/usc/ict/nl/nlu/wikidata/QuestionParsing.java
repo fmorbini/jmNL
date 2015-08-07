@@ -4,11 +4,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import com.clearnlp.dependency.DEPTree;
 
 import edu.usc.ict.nl.nlu.clearnlp.CONLL;
 import edu.usc.ict.nl.nlu.clearnlp.DepNLU;
+import edu.usc.ict.nl.nlu.clearnlp.JsonCONLL;
+import edu.usc.ict.nl.nlu.clearnlp.parserservice.Client;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
+import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 
 public class QuestionParsing {
 	
@@ -44,23 +50,18 @@ public class QuestionParsing {
 	}
 	
 	public static void test() throws Exception {
-		DepNLU parser=new DepNLU();
-		List<DEPTree> result = parser.parse("tell me the capital of france?", System.out);
-		
-		int id=1;
-		if (result!=null) {
-			for(DEPTree r:result) {
-				System.out.println(parser.enrichedInputString(r,"_"));
-				new CONLL(r).toGDLGraph("sentence-"+id+".gdl");
-				id++;
-			}
+		JSONObject response=Client.parse("http://localhost:8080","Who is the prime minister of France?");
+		List<Object> parses = JsonUtils.getAll(response, "result","parse");
+		for(Object p:parses) {
+			CONLL x=JsonCONLL.fromJsonConll((JSONArray) p);
+			System.out.println(x);
 		}
-
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Set<WikiThing> r = getRoughQuery("capital","italy");
-		System.out.println(r);
+		test();
+		//Set<WikiThing> r = getRoughQuery("capital","italy");
+		//System.out.println(r);
 		//List<WikiThing> properties = Wikidata.getIdsForString("head of government",WikiLanguage.get("en"),TYPE.PROPERTY);
 		//System.out.println(properties);
 	}

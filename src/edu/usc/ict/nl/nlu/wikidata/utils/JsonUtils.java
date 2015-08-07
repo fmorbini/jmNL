@@ -105,7 +105,7 @@ public class JsonUtils {
 					for(int j=0;j<l;j++) {
 						try {
 							Object x=((JSONArray)json).get(j);
-							getAllValuesForProperty(json, i+1, ret, path);
+							getAllValuesForProperty(x, i, ret, path);
 						} catch (JSONException e) {
 							e.printStackTrace();
 						}
