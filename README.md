@@ -10,3 +10,4 @@ extend it by implementing their own external communication protocols, NLU, NLG a
 It comes with several implemented classification based NLUs, the [FLoReS](http://ict.usc.edu/pubs/FLoReS-%20A%20Forward%20Looking,%20Reward%20Seeking,%20Dialogue%20Manager.pdf) DM and
 some simple NLG modules including a template based one.
 
+if you plan to use clearnlp you'll need to separately download the models: https://github.com/clir/clearnlp-guidelines/blob/master/md/quick_start/models.md
