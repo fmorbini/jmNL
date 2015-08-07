@@ -53,3 +53,15 @@ JavaLibs.jar: Apache v2 contact for source code
 jregex1.2_01.jar: BSD http://sourceforge.net/projects/jregex/
 Json.jar: https://github.com/douglascrockford/JSON-java
 simplenlg: MPL v1.1 https://github.com/simplenlg/simplenlg/blob/master/LICENSE.md
+
+libraries required for the rest endpoints:
+grizzly-http-server-2.3.20.jar: CCDL https://grizzly.java.net/license.html
+hk2-* CDDL https://hk2.java.net/license.html
+javassist-3.18.1-GA.jar Apache http://jboss-javassist.github.io/javassist/
+javax-* CDDL https://glassfish.java.net/
+jaxb-api-2.2.7.jar CDDL https://jaxb.java.net/
+jersey-* CDDL https://jersey.java.net/license.html
+jetty-* Apache http://www.eclipse.org/jetty/licenses.php
+validation-api-1.1.0.Final.jar Apache (from manifest file)
+
+
