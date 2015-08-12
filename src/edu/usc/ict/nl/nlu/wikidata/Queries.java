@@ -8,10 +8,11 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
@@ -166,8 +167,8 @@ public class Queries {
 		}
 		return null;
 	}
-	
-	
+
+
 	//curl http://wdqs-beta.wmflabs.org/bigdata/namespace/wdq/sparql?query=select%20distinct%20%3Ftype%20where%20%7B%0A%3Fthing%20a%20%3Ftype%0A%7D%0Alimit%2020 -H "Accept: text/csv"
 	/*
 	 * PREFIX wd: <http://www.wikidata.org/entity/>
@@ -194,12 +195,13 @@ SELECT ?p ?w ?l ?wl WHERE {
 				if (!query.startsWith("PREFIX")) query=SparQLPrefixes+"\n"+query;
 				URI uri = new URI("http","wdqs-beta.wmflabs.org","/bigdata/namespace/wdq/sparql","query="+query.toString(),null);
 				String request = uri.toASCIIString();
+				//System.out.println(request);
 				URL url = new URL(request);
 				HttpURLConnection connection = (HttpURLConnection) url.openConnection();           
 				connection.setDoOutput(true);
 				connection.setDoInput(true);
 				connection.setConnectTimeout(1000);
-				connection.setReadTimeout(20000);
+				connection.setReadTimeout(200000);
 				connection.setInstanceFollowRedirects(false); 
 				connection.setRequestProperty("Accept", "application/json");
 				connection.setRequestMethod("GET"); 
@@ -249,7 +251,47 @@ SELECT ?p ?w ?l ?wl WHERE {
 		}
 		return null;
 	}
-	
+	public static Set<WikiThing> getAllRelationsWithThisAsArgument(WikiThing arg,WikiLanguage lang) {
+		Set<WikiThing> ret=null;
+		Set<WikiThing> ops = getAllRelationsWithThisAsObject(arg, lang);
+		Set<WikiThing> sps = getAllRelationsWithThisAsSubject(arg, lang);
+		if (ops!=null) {
+			if (ret==null) ret=new HashSet<WikiThing>();
+			ret.addAll(ops);
+		}
+		if (sps!=null) {
+			if (ret==null) ret=new HashSet<WikiThing>();
+			ret.addAll(sps);
+		}
+		return ret;
+	}
+	public static Set<WikiThing> getAllRelationsWithThisAsSubject(WikiThing arg,WikiLanguage lang) {
+		Set<WikiThing> ret=null;
+		if (arg!=null) {
+			String q="SELECT distinct ?property ?l WHERE {wd:"+arg.getName()+" ?p ?o . ?property ?ref ?p . ?property a wikibase:Property . ?property rdfs:label ?l FILTER (lang(?l) = \""+lang.getLcode()+"\") .}";
+			JSONObject json=runWikidataSparQLQuery(q);
+			List<WikiThing> r1 = getEntities(json,"property","l");
+			if (r1!=null) {
+				if (ret==null) ret=new HashSet<WikiThing>();
+				if (r1!=null) ret.addAll(r1);
+			}
+		}
+		return ret;
+	}
+	public static Set<WikiThing> getAllRelationsWithThisAsObject(WikiThing arg,WikiLanguage lang) {
+		Set<WikiThing> ret=null;
+		if (arg!=null) {
+			String q="SELECT distinct ?property ?l WHERE {?o ?p wd:"+arg.getName()+" . ?property ?ref ?p . ?property a wikibase:Property . ?property rdfs:label ?l FILTER (lang(?l) = \""+lang.getLcode()+"\") .}";
+			JSONObject json=runWikidataSparQLQuery(q);
+			List<WikiThing> r2 = getEntities(json,"property","l");
+			if (r2!=null) {
+				if (ret==null) ret=new HashSet<WikiThing>();
+				if (r2!=null) ret.addAll(r2);
+			}
+		}
+		return ret;
+	}
+
 	private static List<WikiThing> getEntities(JSONObject json, String entityVarName,String labelVarName) {
 		List<WikiThing> ret=null;
 		if (json!=null) {
@@ -265,12 +307,16 @@ SELECT ?p ?w ?l ?wl WHERE {
 							//System.out.println(r);
 							Object rv=JsonUtils.get((JSONObject)r, entityVarName,"value");
 							Object rl=JsonUtils.get((JSONObject)r, labelVarName,"value");
-							URI u=new URI((String) rv);
-							String entityName=new File(u.getPath()).getName();
-							WikiThing thing=new WikiThing(entityName);
-							thing.setLabel((String) rl);
-							if (ret==null) ret=new ArrayList<WikiThing>();
-							ret.add(thing);
+							try {
+								URI u=new URI((String) rv);
+								String entityName=new File(u.getPath()).getName();
+								WikiThing thing=new WikiThing(entityName);
+								thing.addLabel((String) rl);
+								if (ret==null) ret=new ArrayList<WikiThing>();
+								ret.add(thing);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -293,8 +339,9 @@ SELECT ?p ?w ?l ?wl WHERE {
 				"}"+
 				"}";
 		String q2="SELECT ?p WHERE {wd:Q30 wdt:P35 ?p .}";
-		List<WikiThing> r = getAllObjectsOf(new WikiThing(35, TYPE.PROPERTY), new WikiThing(30, TYPE.ITEM),WikiLanguage.get("en"));
-		System.out.println(r);
+		String q3="SELECT distinct ?r WHERE {wd:Q30 ?r ?p .}";
+		//List<WikiThing> r = getAllObjectsOf(new WikiThing(35, TYPE.PROPERTY), new WikiThing(30, TYPE.ITEM),WikiLanguage.get("en"));
+		System.out.println(getAllRelationsWithThisAsArgument(new WikiThing(30, TYPE.ITEM), WikiLanguage.EN));
 	}
 
 }

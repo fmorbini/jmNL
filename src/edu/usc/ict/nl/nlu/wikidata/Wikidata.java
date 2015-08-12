@@ -46,7 +46,7 @@ public class Wikidata {
 		if (t!=null && t instanceof JSONObject) {
 			String name=(String) JsonUtils.get((JSONObject) t,"id");
 			ret.append("id: "+name+"\n");
-			String labels=getLabelsForContent(t,lang);
+			List<String> labels=getLabelsForContent(t,lang);
 			ret.append("labels: "+labels);
 			String descriptions=getDescriptionForContent(t,lang);
 			ret.append("descriptions: "+descriptions);
@@ -142,22 +142,39 @@ public class Wikidata {
 		return ret!=null?ret.toString():null;
 	}
 
-	public static String getLabelsForWikidataId(WikiLanguage lang,String id) {
+	public static List<String> getLabelsForWikidataId(WikiLanguage lang,String id) {
 		JSONObject r=getWikidataContentForSpecificEntityOnly(lang,id);
 		return getLabelsForContent(r,lang);
 	}
-	public static String getLabelsForContent(JSONObject r,WikiLanguage lang) {
-		StringBuffer ret=null;
+	public static List<String> getLabelsForContent(JSONObject r,WikiLanguage lang) {
+		List<String> ret=null;
 		if (r!=null) {
 			List<Object> descriptions=JsonUtils.getAll(r,"labels",lang.getLcode(),"value");
 			if (descriptions!=null) {
 				for(Object d:descriptions) {
-					if (ret==null) ret=new StringBuffer();
-					ret.append((ret.length()==0?"":"| ")+d);
+					if (ret==null) ret=new ArrayList<String>();
+					ret.add((String) d);
 				}
 			}
 		}
-		return ret!=null?ret.toString():null;
+		return ret;
+	}
+	public static List<String> getAliasesForWikidataId(WikiLanguage lang,String id) {
+		JSONObject r=getWikidataContentForSpecificEntityOnly(lang,id);
+		return getAliasesForContent(r,lang);
+	}
+	public static List<String> getAliasesForContent(JSONObject r,WikiLanguage lang) {
+		List<String> ret=null;
+		if (r!=null) {
+			List<Object> aliases=JsonUtils.getAll(r,"aliases",lang.getLcode(),"value");
+			if (aliases!=null) {
+				for(Object d:aliases) {
+					if (ret==null) ret=new ArrayList<String>();
+					ret.add((String) d);
+				}
+			}
+		}
+		return ret;
 	}
 
 	public static Map<String,List<WikiClaim>> getClaims(JSONObject e) {
@@ -292,10 +309,14 @@ public class Wikidata {
 			ProgressTracker pt = new ProgressTracker(1, size, System.out);
 			int j=1;
 			for(WikiThing i:items) {
-				String labels=getLabelsForWikidataId(lang,i.toString(lang,false));
-				if (!StringUtils.isEmptyString(labels)) {
-					if (things==null) things=new HashSet<String>();
-					things.add(labels);
+				List<String> labels=getLabelsForWikidataId(lang,i.toString(lang,false));
+				if (labels!=null) {
+					for(String l:labels) {
+						if (!StringUtils.isEmptyString(l)) {
+							if (things==null) things=new HashSet<String>();
+							things.add(l);
+						}
+					}
 				}
 				pt.update(j++);
 			}

@@ -1,6 +1,8 @@
 package edu.usc.ict.nl.nlu.wikidata;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,7 +14,7 @@ import edu.usc.ict.nl.util.graph.Node;
 public class WikiThing extends Node {
 
 	private TYPE type;
-	private String label;
+	private List<String> labels;
 	private long id=-1;
 	public enum TYPE {ITEM,PROPERTY,CONSTANT};
 	
@@ -48,15 +50,21 @@ public class WikiThing extends Node {
 	public boolean isProperty() {
 		return type!=null && type==TYPE.PROPERTY;
 	}
-	public void setLabel(String label) {
-		this.label = label;
+	public void setLabels(List<String> label) {
+		this.labels = label;
 	}
-	public String getLabel() {
-		return label;
+	public void addLabel(String label) {
+		if (!StringUtils.isEmptyString(label)) {
+			if (labels==null) labels=new ArrayList<String>();
+			labels.add(label);
+		}
+	}
+	public List<String> getLabels() {
+		return labels;
 	}
 	@Override
 	public String toString() {
-		return getName()+":"+getLabel();
+		return getName()+":"+getLabels();
 	}
 	
 	public String toString(WikiLanguage lang,boolean longForm) {
@@ -64,10 +72,17 @@ public class WikiThing extends Node {
 		if (longForm && (isEntity() || isProperty())) {
 			JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(lang,base);
 			String desc=Wikidata.getDescriptionForContent(content,lang);
-			String label=getLabel()!=null?getLabel():Wikidata.getLabelsForContent(content,lang);
+			List<String> labels=getLabels()!=null?getLabels():Wikidata.getLabelsForContent(content,lang);
 			desc=StringUtils.cleanupSpaces(desc);
-			label=StringUtils.cleanupSpaces(label);
-			if (!StringUtils.isEmptyString(label)||!StringUtils.isEmptyString(desc)) return base+": "+label+" ("+desc+")";
+			String ret=base;
+			if (!StringUtils.isEmptyString(desc)) ret+=" ("+desc+")";
+			if (labels!=null) {
+				boolean first=true;
+				for(String l:labels) {
+					if (!StringUtils.isEmptyString(l)) ret+=(first?": ":", ")+l;
+					first=false;
+				}
+			}
 		}
 		return base;
 	}

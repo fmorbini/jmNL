@@ -28,14 +28,14 @@ public class QuestionParsing {
 	public static Set<WikiThing> getRoughQuery(String property,String object) {
 		Set<WikiThing> ret=null;
 		try {
-			List<WikiThing> properties = Wikidata.getIdsForString(property,WikiLanguage.get("en"),TYPE.PROPERTY);
-			List<WikiThing> objects = Wikidata.getIdsForString(object,WikiLanguage.get("en"),TYPE.ITEM);
+			List<WikiThing> properties = Wikidata.getIdsForString(property,WikiLanguage.EN,TYPE.PROPERTY);
+			List<WikiThing> objects = Wikidata.getIdsForString(object,WikiLanguage.EN,TYPE.ITEM);
 			if (properties!=null && !properties.isEmpty() && objects!=null && !objects.isEmpty()) {
 				for(WikiThing p:properties) {
 					for(WikiThing o:objects) {
 						//System.out.println(p+" "+o);
-						List<WikiThing> result = Queries.getAllSubjectsOf(p, o,WikiLanguage.get("en"));
-						if (result==null) result=Queries.getAllObjectsOf(p, o,WikiLanguage.get("en"));
+						List<WikiThing> result = Queries.getAllSubjectsOf(p, o,WikiLanguage.EN);
+						if (result==null) result=Queries.getAllObjectsOf(p, o,WikiLanguage.EN);
 						if (result!=null) {
 							if (ret==null) ret=new HashSet<WikiThing>();
 							ret.addAll(result);
