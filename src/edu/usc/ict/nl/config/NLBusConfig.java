@@ -82,7 +82,8 @@ public class NLBusConfig extends NLConfig {
 	private String policiesDirectory;
 	// REWARD DM specific
 	private boolean approximatedForwardSearch=false;
-	
+	private int maxSearchLevels=10;
+
 	// NLG specific
 	private String nlgClass;
 	private boolean strictNLG=false;
@@ -286,6 +287,12 @@ public class NLBusConfig extends NLConfig {
 
 	public boolean getApproximatedForwardSearch() {return approximatedForwardSearch;}
 	public void setApproximatedForwardSearch(boolean a) {this.approximatedForwardSearch=a;}
+	public int getMaxSearchLevels() {
+		return maxSearchLevels;
+	}
+	public void setMaxSearchLevels(int maxSearchLevels) {
+		this.maxSearchLevels = maxSearchLevels;
+	}
 
 	public String getVhTopic() {return vhTopic;}
 	public void setVhTopic(String t) {this.vhTopic=t;}

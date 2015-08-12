@@ -34,6 +34,7 @@
 		<property name="isStrictNLG" value="false"/>
 		<property name="allowEmptyNLGOutput" value="true"/>
 		<property name="approximatedForwardSearch" value="false"/>
+		<property name="maxSearchLevels" value="10"/>
 		<property name="chatLog" value="./logs/chat-log"/>
 		<property name="systemEventsHaveDuration" value="true"/>
 		
@@ -54,9 +55,9 @@
 		</property>
 		<property name="protocols">
 			<list>
-				<value>edu.usc.ict.nl.bus.protocols.VHProtocol</value>
+				<!-- <value>edu.usc.ict.nl.bus.protocols.VHProtocol</value>
 				<value>edu.usc.ict.nl.bus.protocols.pal3.Pal3Protocol</value>
-				<!-- <value>edu.usc.ict.nl.bus.protocols.VHMinatProtocol</value>
+				<value>edu.usc.ict.nl.bus.protocols.VHMinatProtocol</value>
 				<value>edu.usc.ict.nl.bus.protocols.VHPMLProtocol</value>-->
 			</list>
 		</property>

@@ -81,10 +81,10 @@ public class RewardDM extends DM {
 	// keeps track if the current DM session has reached a final state.
 	private boolean done=false;
 
-	private static final int MAX_SEARCH_LEVELS = 10;
+	private static int MAX_SEARCH_LEVELS;
 	private static long MAX_SEARCH_TIME = 300;
 	private static final int highSpeedTimerDelay=200;
-	private static final int MAX_ITERATIONS=MAX_SEARCH_LEVELS;
+	private static int MAX_ITERATIONS;
 
 
 	private DMInternalEvent unhandledUserEvent=null,forcedIgnoreUserEvent=null;
@@ -441,7 +441,7 @@ public class RewardDM extends DM {
 				ev=null;
 			}
 		}
-		if (iterations>=MAX_SEARCH_LEVELS) logger.warn("possible loop in event handler. Forced exit because reached "+iterations+" iteration count for one input event.");
+		if (iterations>=MAX_ITERATIONS) logger.warn("possible loop in event handler. Forced exit because reached "+iterations+" iteration count for one input event.");
 		addStateToStateTracker(userInputEvent,getCurrentActiveAction());
 		int loops=isThereADialogloop();
 		if (loops>1) {
@@ -1300,6 +1300,8 @@ public class RewardDM extends DM {
 		if (!StringUtils.isEmptyString(loopEvent)) this.loopEvent=loopEvent;
 		else this.loopEvent=null;
 		stateTracker=new StateTracker();
+		MAX_SEARCH_LEVELS=config.getMaxSearchLevels();
+		MAX_ITERATIONS=10;
 	}
 	public RewardDM(long sessionID,RewardPolicy dp,NLBusConfig config,NLBusInterface listener) throws Exception {
 		this(config);
