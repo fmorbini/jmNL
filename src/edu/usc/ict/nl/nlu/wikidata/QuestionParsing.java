@@ -1,20 +1,20 @@
 package edu.usc.ict.nl.nlu.wikidata;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.clearnlp.dependency.DEPTree;
-
 import edu.usc.ict.nl.nlu.clearnlp.CONLL;
-import edu.usc.ict.nl.nlu.clearnlp.DepNLU;
 import edu.usc.ict.nl.nlu.clearnlp.JsonCONLL;
 import edu.usc.ict.nl.nlu.clearnlp.parserservice.Client;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
+import edu.usc.ict.nl.util.graph.Node;
 
 public class QuestionParsing {
 	
@@ -49,17 +49,36 @@ public class QuestionParsing {
 		return ret;
 	}
 	
-	public static void test() throws Exception {
-		JSONObject response=Client.parse("http://localhost:8080","Who is the prime minister of France?");
+	public static CONLL getDependencies(String sentence) throws Exception {
+		JSONObject response=Client.parse("http://localhost:8080",sentence);
 		List<Object> parses = JsonUtils.getAll(response, "result","parse");
 		for(Object p:parses) {
 			CONLL x=JsonCONLL.fromJsonConll((JSONArray) p);
-			System.out.println(x);
+			return x;
 		}
+		return null;
 	}
 	
+	private static void traverse(CONLL deps) {
+		if (deps!=null) {
+			LinkedList<Node> nodes=new LinkedList<Node>();
+			nodes.add(deps);
+			while(!nodes.isEmpty()) {
+				Node n=nodes.pop();
+				try {
+					Collection cs = n.getImmediateChildren();
+					if (cs!=null) nodes.addAll(cs);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	public static void main(String[] args) throws Exception {
-		test();
+		CONLL deps = getDependencies("Who is the prime minister of France?");
+		deps.toGDLGraph("sentence-1.gdl");
+		traverse(deps);
 		//Set<WikiThing> r = getRoughQuery("capital","italy");
 		//System.out.println(r);
 		//List<WikiThing> properties = Wikidata.getIdsForString("head of government",WikiLanguage.get("en"),TYPE.PROPERTY);

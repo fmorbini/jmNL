@@ -11,10 +11,11 @@ import org.json.JSONObject;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.graph.Node;
 
-public class WikiThing extends Node {
+public class WikiThing extends Node implements Comparable<WikiThing> {
 
 	private TYPE type;
 	private List<String> labels;
+	private String desc=null;
 	private long id=-1;
 	public enum TYPE {ITEM,PROPERTY,CONSTANT};
 	
@@ -62,6 +63,12 @@ public class WikiThing extends Node {
 	public List<String> getLabels() {
 		return labels;
 	}
+	public String getDesc() {
+		return desc;
+	}
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
 	@Override
 	public String toString() {
 		return getName()+":"+getLabels();
@@ -71,7 +78,7 @@ public class WikiThing extends Node {
 		String base=getName();
 		if (longForm && (isEntity() || isProperty())) {
 			JSONObject content=Wikidata.getWikidataContentForSpecificEntityOnly(lang,base);
-			String desc=Wikidata.getDescriptionForContent(content,lang);
+			String desc=(getDesc()!=null)?getDesc():Wikidata.getDescriptionForContent(content,lang);
 			List<String> labels=getLabels()!=null?getLabels():Wikidata.getLabelsForContent(content,lang);
 			desc=StringUtils.cleanupSpaces(desc);
 			String ret=base;
@@ -106,5 +113,10 @@ public class WikiThing extends Node {
 	@Override
 	public int hashCode() {
 		return getName().hashCode();
+	}
+
+	@Override
+	public int compareTo(WikiThing o) {
+		return getName().compareTo(o.getName());
 	}
 }

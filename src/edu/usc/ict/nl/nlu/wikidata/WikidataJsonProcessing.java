@@ -30,8 +30,11 @@ import edu.usc.ict.nl.util.ProgressTracker;
 public class WikidataJsonProcessing {
 	
 	public static List<String> getAllPhrasesInWikidataForEntity(String id,WikiLanguage lang) {
-		List<String> ret=null;
 		JSONObject content = Wikidata.getWikidataContentForSpecificEntityOnly(lang, id);
+		return getAllPhrasesInWikidataForEntity(content, lang);
+	}
+	public static List<String> getAllPhrasesInWikidataForEntity(JSONObject content,WikiLanguage lang) {
+		List<String> ret=null;
 		List<String> aliases = Wikidata.getAliasesForContent(content, lang);
 		List<String> labels = Wikidata.getLabelsForContent(content, lang);
 		if (aliases!=null &&!aliases.isEmpty()) {
@@ -45,8 +48,8 @@ public class WikidataJsonProcessing {
 		return ret;
 	}
 	
-	public static Map<String,List<String>> getStringsForThings(File wikidataJsonDump,WikiThing.TYPE desiredType) throws IOException {
-		Map<String,List<String>> ret=null;
+	public static Set<WikiThing> getStringsForThings(File wikidataJsonDump,WikiThing.TYPE desiredType) throws IOException {
+		Set<WikiThing> ret=null;
 		InputStream fileStream = new FileInputStream(wikidataJsonDump);
 		try {
 			fileStream = new GZIPInputStream(fileStream);
@@ -56,7 +59,6 @@ public class WikidataJsonProcessing {
 		Reader decoder = new InputStreamReader(fileStream, "UTF-8");
 		BufferedReader buffered = new BufferedReader(decoder);
 		String line=null;
-		Set<String> properties=new HashSet<String>();
 		int objects=0,wrong=0;
 		ProgressTracker pt=new ProgressTracker(100000, System.out);
 		while((line=buffered.readLine())!=null) {
@@ -68,7 +70,18 @@ public class WikidataJsonProcessing {
 				objects++;
 				pt.update(objects);
 				if (type!=null && type==desiredType && pname!=null) {
-					properties.add(pname);
+					List<String> things=getAllPhrasesInWikidataForEntity(o, WikiLanguage.EN);
+					String desc = Wikidata.getDescriptionForContent(o, WikiLanguage.EN);
+					WikiThing thing;
+					try {
+						thing = new WikiThing(pname);
+						thing.setLabels(things);
+						thing.setDesc(desc);
+						if (ret==null) ret=new HashSet<WikiThing>();
+						ret.add(thing);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			} catch (JSONException e) {
 				wrong++;
@@ -77,24 +90,17 @@ public class WikidataJsonProcessing {
 		}
 		buffered.close();
 		System.err.println("wrong="+wrong);
-		for(String p:properties) {
-			List<String> things=getAllPhrasesInWikidataForEntity(p, WikiLanguage.EN);
-			if (things!=null && !things.isEmpty()) {
-				if (ret==null) ret=new HashMap<String, List<String>>();
-				ret.put(p, things);
-			}
-		}
 		return ret;
 	}
-	public static void dumpStringsToFile(Map<String, List<String>> r,File outfile) throws Exception {
+	public static void dumpStringsToFile(Set<WikiThing> r,File outfile) throws Exception {
 		if (r!=null) {
 			BufferedWriter out=new BufferedWriter(new FileWriter(outfile));
-			List<String> sortedProperties=new ArrayList<String>(r.keySet());
+			List<WikiThing> sortedProperties=new ArrayList<WikiThing>(r);
 			Collections.sort(sortedProperties);
-			for(String p:sortedProperties) {
-				List<String> things = r.get(p);
+			for(WikiThing p:sortedProperties) {
+				List<String> things = p.getLabels();
 				if (things!=null && !things.isEmpty()) {
-					out.write(p);
+					out.write(p.getName());
 					out.write(FunctionalLibrary.printCollection(things, "\t", "\n", "\t"));
 					out.flush();
 				}
@@ -104,7 +110,7 @@ public class WikidataJsonProcessing {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Map<String, List<String>> r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.PROPERTY);
+		Set<WikiThing> r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.PROPERTY);
 		dumpStringsToFile(r, new File("properties-strings.txt"));
 		r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.ITEM);
 		dumpStringsToFile(r, new File("items-strings.txt"));
