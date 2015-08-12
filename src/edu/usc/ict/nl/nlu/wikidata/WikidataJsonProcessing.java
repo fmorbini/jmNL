@@ -22,6 +22,7 @@ import java.util.zip.ZipException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.ProgressTracker;
@@ -44,7 +45,7 @@ public class WikidataJsonProcessing {
 		return ret;
 	}
 	
-	public static Map<String,List<String>> getStringsForProperties(File wikidataJsonDump) throws IOException {
+	public static Map<String,List<String>> getStringsForThings(File wikidataJsonDump,WikiThing.TYPE desiredType) throws IOException {
 		Map<String,List<String>> ret=null;
 		InputStream fileStream = new FileInputStream(wikidataJsonDump);
 		try {
@@ -62,10 +63,11 @@ public class WikidataJsonProcessing {
 			try {
 				JSONObject o=new JSONObject(line);
 				String pname=(String) JsonUtils.get(o, "id");
-				String type=(String) JsonUtils.get(o, "type");
+				String typestring=(String) JsonUtils.get(o, "type");
+				TYPE type=WikiThing.TYPE.valueOf(typestring.toUpperCase());
 				objects++;
 				pt.update(objects);
-				if (type!=null && type.equals("property") && pname!=null) {
+				if (type!=null && type==desiredType && pname!=null) {
 					properties.add(pname);
 				}
 			} catch (JSONException e) {
@@ -102,7 +104,9 @@ public class WikidataJsonProcessing {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Map<String, List<String>> r = getStringsForProperties(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"));
+		Map<String, List<String>> r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.PROPERTY);
 		dumpStringsToFile(r, new File("properties-strings.txt"));
+		r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.ITEM);
+		dumpStringsToFile(r, new File("items-strings.txt"));
 	}
 }
