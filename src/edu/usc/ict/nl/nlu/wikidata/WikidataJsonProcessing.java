@@ -110,9 +110,9 @@ public class WikidataJsonProcessing {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Set<WikiThing> r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.PROPERTY);
-		dumpStringsToFile(r, new File("properties-strings.txt"));
-		r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.ITEM);
+		//Set<WikiThing> r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.PROPERTY);
+		//dumpStringsToFile(r, new File("properties-strings.txt"));
+		Set<WikiThing> r = getStringsForThings(new File("C:\\Users\\morbini\\AppData\\Local\\Temp\\20150622.json.gz"),TYPE.ITEM);
 		dumpStringsToFile(r, new File("items-strings.txt"));
 	}
 }

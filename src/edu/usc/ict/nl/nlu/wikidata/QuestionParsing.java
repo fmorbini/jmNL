@@ -65,6 +65,7 @@ public class QuestionParsing {
 			nodes.add(deps);
 			while(!nodes.isEmpty()) {
 				Node n=nodes.pop();
+				
 				try {
 					Collection cs = n.getImmediateChildren();
 					if (cs!=null) nodes.addAll(cs);
