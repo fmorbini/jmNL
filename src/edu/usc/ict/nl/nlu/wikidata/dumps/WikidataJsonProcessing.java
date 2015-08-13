@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.wikidata;
+package edu.usc.ict.nl.nlu.wikidata.dumps;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,6 +22,9 @@ import java.util.zip.ZipException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.usc.ict.nl.nlu.wikidata.WikiLanguage;
+import edu.usc.ict.nl.nlu.wikidata.WikiThing;
+import edu.usc.ict.nl.nlu.wikidata.Wikidata;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 import edu.usc.ict.nl.util.FunctionalLibrary;

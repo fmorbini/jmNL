@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.wikidata;
+package edu.usc.ict.nl.nlu.wikidata.dumps;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -113,8 +113,6 @@ public class LuceneWikidataSearch {
 		}
 		return ret;
 	}
-
-
 
 	public static void main(String[] args) throws Exception {
 		LuceneWikidataSearch r = new LuceneWikidataSearch(new File("items-strings.txt"));
