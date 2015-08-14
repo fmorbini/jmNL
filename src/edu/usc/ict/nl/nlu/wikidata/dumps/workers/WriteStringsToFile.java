@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import edu.usc.ict.nl.nlu.wikidata.WikiThing;
@@ -13,12 +13,14 @@ import edu.usc.ict.nl.util.FunctionalLibrary;
 
 public class WriteStringsToFile extends Thread {
 
-	private LinkedBlockingQueue<WikiThing> queue=null;
+	private BlockingQueue<WikiThing> queue=null;
+	private BlockingQueue<WikiThing> ret=null;
 	private BufferedWriter dump;
 
-	public WriteStringsToFile(String name,LinkedBlockingQueue<WikiThing> queue,File dump) throws IOException {
+	public WriteStringsToFile(String name,BlockingQueue<WikiThing> queue,BlockingQueue<WikiThing> ret,File dump) throws IOException {
 		super(name);
 		this.queue=queue;
+		this.ret=ret;
 		this.dump=new BufferedWriter(new FileWriter(dump));
 	}
 
@@ -28,6 +30,7 @@ public class WriteStringsToFile extends Thread {
 			try {
 				WikiThing p = queue.poll(10, TimeUnit.SECONDS);
 				if (p!=null) {
+					if (ret!=null) ret.put(p);
 					List<String> things = p.getLabels();
 					if (things!=null && !things.isEmpty()) {
 						try {

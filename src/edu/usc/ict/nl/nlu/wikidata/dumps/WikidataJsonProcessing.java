@@ -168,28 +168,22 @@ public class WikidataJsonProcessing {
 	public static void createItemsFile(int workers,File wikidataJsonFile) throws IOException, InterruptedException {
 		LinkedBlockingQueue<String> queue=new LinkedBlockingQueue<>(10);
 		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
+		LinkedBlockingQueue<WikiThing> is2 = new LinkedBlockingQueue<WikiThing>(2);
 		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
-		new WriteStringsToFile("writer",is, new File("items-strings.txt")).start();
-		getObjectsIntoProcessingQueue(wikidataJsonFile, queue);
-	}
-	public static void createClaimsFile(int workers,File wikidataJsonFile) throws IOException, InterruptedException {
-		LinkedBlockingQueue<String> queue=new LinkedBlockingQueue<>(10);
-		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
-		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
-		new WriteClaimsToFile("writer",is, new File("items-claims.txt")).start();
+		new WriteStringsToFile("writer",is, is2,new File("items-strings.txt")).start();
+		new WriteClaimsToFile("writer",is2, null,new File("items-claims.txt")).start();
 		getObjectsIntoProcessingQueue(wikidataJsonFile, queue);
 	}
 	public static void createPropertiesFile(int workers,File wikidataJsonFile) throws IOException, InterruptedException {
 		LinkedBlockingQueue<String> queue=new LinkedBlockingQueue<>(10);
 		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
-		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
-		new WriteStringsToFile("writer",is, new File("properties-strings.txt")).start();
+		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.PROPERTY).start();
+		new WriteStringsToFile("writer",is, null,new File("properties-strings.txt")).start();
 		getObjectsIntoProcessingQueue(wikidataJsonFile, queue);
 	}
 	
 	public static void main(String[] args) throws Exception {
 		createItemsFile(6, new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"));
-		createClaimsFile(6, new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"));
 		createPropertiesFile(6, new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"));
 	}
 }

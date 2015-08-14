@@ -88,7 +88,7 @@ public class LuceneWikidataSearch {
 		initSearch();
 	}
 
-	private Document createDoc(String[] parts) {
+	protected Document createDoc(String[] parts) {
 		Document doc = new Document();
 		doc.add(new StringField("id", parts[0].toLowerCase(), Store.YES));
 		for(int i=1;i<parts.length;i++) {

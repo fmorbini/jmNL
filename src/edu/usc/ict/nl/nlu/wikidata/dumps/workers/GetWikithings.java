@@ -1,12 +1,8 @@
 package edu.usc.ict.nl.nlu.wikidata.dumps.workers;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -22,11 +18,11 @@ import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 
 public class GetWikithings extends Thread {
 
-	LinkedBlockingQueue<String> queue=null;
+	private BlockingQueue<String> queue=null;
 	private BlockingQueue<WikiThing> ret=null;
 	private TYPE desiredType;
 
-	public GetWikithings(String name,LinkedBlockingQueue<String> queue,BlockingQueue<WikiThing> ret, TYPE type) {
+	public GetWikithings(String name,BlockingQueue<String> queue,BlockingQueue<WikiThing> ret, TYPE type) {
 		super(name);
 		this.queue=queue;
 		this.ret=ret;
