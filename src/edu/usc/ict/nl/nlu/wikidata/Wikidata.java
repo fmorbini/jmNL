@@ -207,23 +207,27 @@ public class Wikidata {
 		JSONObject main=(JSONObject) JsonUtils.get(p, "mainsnak");
 		if (main!=null) {
 			JSONObject dv=(JSONObject) JsonUtils.get(main, "datavalue");
-			String type=(String) JsonUtils.get(main, "datatype");
-			if (type!=null) {
-				if (type.equals("wikibase-item")) {
-					String id=JsonUtils.get(dv,"value","numeric-id").toString();
-					return "Q"+id;
-				} else if (type.equals("wikibase-property")) {
-					String id=JsonUtils.get(dv,"value","numeric-id").toString();
-					return "P"+id;
-				} else if (type.equals("string") || type.equals("commonsMedia") || type.equals("url")) return (String) JsonUtils.get(dv, "value");
-				else if (type.equals("time")) {
-					System.out.println(JsonUtils.get(dv, "value"));
-					return (String) JsonUtils.get(dv, "value","time");
+			String valuetype=(String) JsonUtils.get(main, "datatype");
+			if (valuetype==null) valuetype=(String) JsonUtils.get(dv, "type");
+			String snaktype=(String) JsonUtils.get(main, "snaktype");
+			if (snaktype.equals("value")) {
+				if (valuetype!=null) {
+					if (valuetype.equals("wikibase-item")) {
+						String id=JsonUtils.get(dv,"value","numeric-id").toString();
+						return "Q"+id;
+					} else if (valuetype.equals("wikibase-property")) {
+						String id=JsonUtils.get(dv,"value","numeric-id").toString();
+						return "P"+id;
+					} else if (valuetype.equals("string") || valuetype.equals("commonsMedia") || valuetype.equals("url")) return (String) JsonUtils.get(dv, "value");
+					else if (valuetype.equals("time")) {
+						//System.out.println(JsonUtils.get(dv, "value"));
+						return JsonUtils.get(dv, "value").toString();
+					} else {
+						return JsonUtils.get(dv, "value").toString();
+					}
 				} else {
-					System.err.println("unknown type: "+main);
+					System.err.println("null type: "+main);
 				}
-			} else {
-				System.err.println("null type: "+main);
 			}
 		}
 		return null;
@@ -348,7 +352,7 @@ public class Wikidata {
 		toProcess.push(current);
 		while(!toProcess.isEmpty()) {
 			current=toProcess.pop();
-			JSONObject content = getWikidataContentForSpecificEntityOnly(WikiLanguage.get("en"), current.getName());
+			JSONObject content = getWikidataContentForSpecificEntityOnly(WikiLanguage.EN, current.getName());
 			Map<String, List<WikiClaim>> claims = getClaims(content);
 			if (claims!=null && claims.containsKey(pname)) {
 				List<WikiClaim> pcls = claims.get(pname);

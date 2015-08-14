@@ -12,7 +12,7 @@ public class WikiClaim {
 	
 	@Override
 	public String toString() {
-		return "("+property+" "+subject+" "+object+")";
+		return "("+subject+" "+property+" "+object+")";
 	}
 
 	public String getObject() {

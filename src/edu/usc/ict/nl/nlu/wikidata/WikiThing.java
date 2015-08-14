@@ -2,6 +2,8 @@ package edu.usc.ict.nl.nlu.wikidata;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +17,7 @@ public class WikiThing extends Node implements Comparable<WikiThing> {
 
 	private TYPE type;
 	private List<String> labels;
+	private List<WikiClaim> claims;
 	private String desc=null;
 	private long id=-1;
 	public enum TYPE {ITEM,PROPERTY,CONSTANT};
@@ -72,6 +75,15 @@ public class WikiThing extends Node implements Comparable<WikiThing> {
 	@Override
 	public String toString() {
 		return getName()+":"+getLabels();
+	}
+	public List<WikiClaim> getClaims() {
+		return claims;
+	}
+	public void addClaim(WikiClaim claim) {
+		if (claim!=null) {
+			if (this.claims==null) this.claims=new ArrayList<WikiClaim>();
+			this.claims.add(claim);
+		}
 	}
 	
 	public String toString(WikiLanguage lang,boolean longForm) {

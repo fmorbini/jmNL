@@ -78,7 +78,9 @@ public class JsonUtils {
 			Object current=t;
 			for(String key:keys) {
 				if (current instanceof JSONObject) {
-					current=((JSONObject) current).get(key);
+					if (((JSONObject) current).has(key)) {
+						current=((JSONObject) current).get(key);
+					} else current=null;
 					if (current==null) return null;
 				} else return null;
 			}
