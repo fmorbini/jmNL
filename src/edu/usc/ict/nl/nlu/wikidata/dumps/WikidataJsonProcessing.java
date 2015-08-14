@@ -164,22 +164,32 @@ public class WikidataJsonProcessing {
 			out.close();
 		}
 	}
-	
-	public static void main(String[] args) throws Exception {
-		//Set<WikiThing> ps = getStringsForThings(new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"),TYPE.PROPERTY);
-		//dumpStringsToFile(ps, new File("properties-strings.txt"));
+
+	public static void createItemsFile(int workers,File wikidataJsonFile) throws IOException, InterruptedException {
 		LinkedBlockingQueue<String> queue=new LinkedBlockingQueue<>(10);
 		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
-		int max=6;
-		for(int i=0;i<max;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
-		//new WriteStringsToFile(is, new File("properties-strings.txt")).start();
-		//new WriteStringsToFile(is, new File("items-strings.txt")).start();
+		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
+		new WriteStringsToFile("writer",is, new File("items-strings.txt")).start();
+		getObjectsIntoProcessingQueue(wikidataJsonFile, queue);
+	}
+	public static void createClaimsFile(int workers,File wikidataJsonFile) throws IOException, InterruptedException {
+		LinkedBlockingQueue<String> queue=new LinkedBlockingQueue<>(10);
+		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
+		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
 		new WriteClaimsToFile("writer",is, new File("items-claims.txt")).start();
-
-		getObjectsIntoProcessingQueue(new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"), queue);
-		
-		//Set<WikiThing> is = getStringsForThings(new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"),TYPE.ITEM);
-		//dumpStringsToFile(is, new File("items-strings.txt"));
-		//dumpClaimsToFile(is,new File("items-claims.txt"));
+		getObjectsIntoProcessingQueue(wikidataJsonFile, queue);
+	}
+	public static void createPropertiesFile(int workers,File wikidataJsonFile) throws IOException, InterruptedException {
+		LinkedBlockingQueue<String> queue=new LinkedBlockingQueue<>(10);
+		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
+		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
+		new WriteStringsToFile("writer",is, new File("properties-strings.txt")).start();
+		getObjectsIntoProcessingQueue(wikidataJsonFile, queue);
+	}
+	
+	public static void main(String[] args) throws Exception {
+		createItemsFile(6, new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"));
+		createClaimsFile(6, new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"));
+		createPropertiesFile(6, new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"));
 	}
 }
