@@ -1,9 +1,11 @@
-package edu.usc.ict.nl.nlu.wikidata.dumps;
+package edu.usc.ict.nl.nlu.wikidata.dumps.workers;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.json.JSONException;
@@ -12,17 +14,18 @@ import org.json.JSONObject;
 import edu.usc.ict.nl.nlu.wikidata.WikiClaim;
 import edu.usc.ict.nl.nlu.wikidata.WikiLanguage;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing;
-import edu.usc.ict.nl.nlu.wikidata.Wikidata;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
+import edu.usc.ict.nl.nlu.wikidata.Wikidata;
+import edu.usc.ict.nl.nlu.wikidata.dumps.WikidataJsonProcessing;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 
-public class Worker1 extends Thread {
+public class GetWikithings extends Thread {
 
 	LinkedBlockingQueue<String> queue=null;
-	private Set<WikiThing> ret=null;
+	private BlockingQueue<WikiThing> ret=null;
 	private TYPE desiredType;
 
-	public Worker1(LinkedBlockingQueue<String> queue,Set<WikiThing> ret, TYPE type) {
+	public GetWikithings(LinkedBlockingQueue<String> queue,BlockingQueue<WikiThing> ret, TYPE type) {
 		this.queue=queue;
 		this.ret=ret;
 		this.desiredType=type;
@@ -56,8 +59,7 @@ public class Worker1 extends Thread {
 									}
 								}
 							}
-							if (ret==null) ret=new HashSet<WikiThing>();
-							ret.add(thing);
+							ret.put(thing);
 						} catch (Exception e) {e.printStackTrace();}
 					}
 				} catch (JSONException e) {

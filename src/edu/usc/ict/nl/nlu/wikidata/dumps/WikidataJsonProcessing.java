@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipException;
@@ -28,6 +27,9 @@ import edu.usc.ict.nl.nlu.wikidata.WikiLanguage;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.Wikidata;
+import edu.usc.ict.nl.nlu.wikidata.dumps.workers.GetWikithings;
+import edu.usc.ict.nl.nlu.wikidata.dumps.workers.WriteClaimsToFile;
+import edu.usc.ict.nl.nlu.wikidata.dumps.workers.WriteStringsToFile;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.ProgressTracker;
@@ -167,17 +169,20 @@ public class WikidataJsonProcessing {
 		//Set<WikiThing> ps = getStringsForThings(new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"),TYPE.PROPERTY);
 		//dumpStringsToFile(ps, new File("properties-strings.txt"));
 		LinkedBlockingQueue<String> queue=new LinkedBlockingQueue<>(10);
-		Set<WikiThing> is = Collections.newSetFromMap(new ConcurrentHashMap<WikiThing,Boolean>());
-		new Worker1(queue, is,TYPE.ITEM).start();
-		new Worker1(queue, is,TYPE.ITEM).start();
-		new Worker1(queue, is,TYPE.ITEM).start();
-		new Worker1(queue, is,TYPE.ITEM).start();
-		new Worker1(queue, is,TYPE.ITEM).start();
-		new Worker1(queue, is,TYPE.ITEM).start();
+		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
+		int max=6;
+		for(int i=0;i<max;i++) new GetWikithings(queue, is,TYPE.ITEM).start();
+		//new WriteStringsToFile(is, new File("properties-strings.txt")).start();
+		new WriteStringsToFile(is, new File("items-strings.txt")).start();
+		//new WriteClaimsToFile(is, new File("items-claims.txt")).start();
+
 		getObjectsIntoProcessingQueue(new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"), queue);
 		
+		is.put(null);
+		for(int i=0;i<max;i++) queue.put(null);
+		
 		//Set<WikiThing> is = getStringsForThings(new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"),TYPE.ITEM);
-		dumpStringsToFile(is, new File("items-strings.txt"));
-		dumpClaimsToFile(is,new File("items-claims.txt"));
+		//dumpStringsToFile(is, new File("items-strings.txt"));
+		//dumpClaimsToFile(is,new File("items-claims.txt"));
 	}
 }
