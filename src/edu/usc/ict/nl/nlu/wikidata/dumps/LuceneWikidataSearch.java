@@ -28,22 +28,15 @@ import edu.usc.ict.nl.util.StringUtils;
 
 public class LuceneWikidataSearch {
 
-	private static Class analyzerClass=null;
-	private static IndexSearcher searcher;
-	private static Path indexFile=null;
+	private Class analyzerClass=null;
+	protected IndexSearcher searcher;
+	private Path indexFile=null;
 	private FSDirectory index=null;
 	private File wikidataFile=null;
-	private QueryParser queryParser=null;
-	static {
-		try {
-			analyzerClass=Class.forName("org.apache.lucene.analysis.standard.StandardAnalyzer");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-
+	protected QueryParser queryParser=null;
 
 	public LuceneWikidataSearch(File wikidataFile) throws Exception {
+		analyzerClass=Class.forName("org.apache.lucene.analysis.standard.StandardAnalyzer");
 		File indexName=new File(wikidataFile.getName()+".index");
 		indexFile=indexName.toPath();
 		this.wikidataFile=wikidataFile;
@@ -97,27 +90,36 @@ public class LuceneWikidataSearch {
 		return doc;
 	}
 
-	public List<String> find(String query,int n) throws Exception {
+	public List find(String query,int n) throws Exception {
 		Query q = queryParser.parse(query);
 		//System.out.println("query: "+q.getClass()+" "+q);
 		TopDocs result = searcher.search(q,n);
 		ScoreDoc[] hits = result.scoreDocs;
-		List<String> ret=null;
+		List<Document> ret=null;
 		for (int i = 0; i < hits.length; i++) {
 			Document doc = searcher.getIndexReader().document(hits[i].doc);
-			String id=doc.get("id")+"_"+doc.get("alias");
-			if (!StringUtils.isEmptyString(id)) {
-				if (ret==null) ret=new ArrayList<String>();
-				ret.add(id);
-			}
+			if (ret==null) ret=new ArrayList<Document>();
+			ret.add(doc);
 		}
 		return ret;
 	}
 
+	public String getAliasForId(String id) {
+		try {
+			List<Document> rs = find("id:"+id, 1);
+			if (rs!=null && !rs.isEmpty()) {
+				Document result=rs.get(0);
+				return result.get("alias");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public static void main(String[] args) throws Exception {
-		LuceneWikidataSearch r = new LuceneWikidataSearch(new File("items-strings.txt"));
-		List<String> rs = r.find("usa", 10);
-		System.out.println(rs);
+		LuceneWikidataSearch r = new LuceneWikidataSearch(new File("properties-strings.txt"));
+		System.out.println(r.getAliasForId("p35"));
 	}
 
 }

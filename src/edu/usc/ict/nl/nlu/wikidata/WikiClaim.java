@@ -1,5 +1,7 @@
 package edu.usc.ict.nl.nlu.wikidata;
 
+import edu.usc.ict.nl.nlu.wikidata.dumps.LuceneWikidataSearch;
+
 public class WikiClaim {
 
 	private String subject,property,object;
@@ -23,5 +25,12 @@ public class WikiClaim {
 	}
 	public String getProperty() {
 		return property;
+	}
+
+	public String toString(LuceneWikidataSearch searchItems, LuceneWikidataSearch searchProperties) {
+		String as=searchItems.getAliasForId(subject);
+		String ao=searchItems.getAliasForId(object);
+		String ap=searchProperties.getAliasForId(property);
+		return "("+as.replaceAll("[\\s]+", "_")+" "+ap.replaceAll("[\\s]+", "_")+" "+ao.replaceAll("[\\s]+", "_")+")";
 	}
 }
