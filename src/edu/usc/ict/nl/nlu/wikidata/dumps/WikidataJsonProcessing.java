@@ -171,15 +171,12 @@ public class WikidataJsonProcessing {
 		LinkedBlockingQueue<String> queue=new LinkedBlockingQueue<>(10);
 		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
 		int max=6;
-		for(int i=0;i<max;i++) new GetWikithings(queue, is,TYPE.ITEM).start();
+		for(int i=0;i<max;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
 		//new WriteStringsToFile(is, new File("properties-strings.txt")).start();
-		new WriteStringsToFile(is, new File("items-strings.txt")).start();
-		//new WriteClaimsToFile(is, new File("items-claims.txt")).start();
+		//new WriteStringsToFile(is, new File("items-strings.txt")).start();
+		new WriteClaimsToFile("writer",is, new File("items-claims.txt")).start();
 
 		getObjectsIntoProcessingQueue(new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"), queue);
-		
-		is.put(null);
-		for(int i=0;i<max;i++) queue.put(null);
 		
 		//Set<WikiThing> is = getStringsForThings(new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"),TYPE.ITEM);
 		//dumpStringsToFile(is, new File("items-strings.txt"));
