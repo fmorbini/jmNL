@@ -192,10 +192,12 @@ public class Wikidata {
 				if (claimsForP!=null) {
 					for(JSONObject c:claimsForP) {
 						String value=getValueOfMainSnak(c);
-						if (ret==null) ret=new HashMap<String, List<WikiClaim>>();
-						List<WikiClaim> list=ret.get(key);
-						if (list==null) ret.put(key, list=new ArrayList<WikiClaim>());
-						list.add(new WikiClaim(subject,key,value));
+						if (value!=null) {
+							if (ret==null) ret=new HashMap<String, List<WikiClaim>>();
+							List<WikiClaim> list=ret.get(key);
+							if (list==null) ret.put(key, list=new ArrayList<WikiClaim>());
+							list.add(new WikiClaim(subject,key,value));
+						}
 					}
 				}
 			}

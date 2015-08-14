@@ -22,7 +22,7 @@ public class WikiThing extends Node implements Comparable<WikiThing> {
 	private long id=-1;
 	public enum TYPE {ITEM,PROPERTY,CONSTANT};
 	
-	private static final Pattern thingName=Pattern.compile("^(P|Q)([0-9]+)$");
+	public static final Pattern thingName=Pattern.compile("^(P|Q)([0-9]+)$");
 	
 	public WikiThing(long id,TYPE type) {
 		this.id=id;

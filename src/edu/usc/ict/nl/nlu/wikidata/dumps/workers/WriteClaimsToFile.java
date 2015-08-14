@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 import edu.usc.ict.nl.nlu.wikidata.WikiClaim;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing;
@@ -38,9 +39,16 @@ public class WriteClaimsToFile extends Thread {
 						for(WikiClaim cl:claims) {
 							if (cl!=null) {
 								try {
-									dump.write(cl.getProperty()+"\t"+cl.getSubject()+"\t"+cl.getObject()+"\n");
-									dump.flush();
-								} catch (Exception e) {e.printStackTrace();}
+									Matcher ms=WikiThing.thingName.matcher(cl.getSubject());
+									Matcher mo=WikiThing.thingName.matcher(cl.getObject());
+									if (ms.matches() && mo.matches()) {
+										dump.write(cl.getProperty()+"\t"+cl.getSubject()+"\t"+cl.getObject()+"\n");
+										dump.flush();
+									}
+								} catch (Exception e) {
+									System.out.println(cl);
+									e.printStackTrace();
+								}
 							}
 						}
 					}
