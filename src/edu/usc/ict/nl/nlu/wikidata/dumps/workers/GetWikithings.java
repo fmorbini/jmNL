@@ -44,9 +44,8 @@ public class GetWikithings extends Thread {
 							List<String> things=WikidataJsonProcessing.getAllPhrasesInWikidataForEntity(o, WikiLanguage.EN);
 							String desc = Wikidata.getDescriptionForContent(o, WikiLanguage.EN);
 							Map<String, List<WikiClaim>> claims = Wikidata.getClaims(o);
-							WikiThing thing;
 							try {
-								thing = new WikiThing(pname);
+								WikiThing thing = new WikiThing(pname);
 								thing.setLabels(things);
 								thing.setDesc(desc);
 								if (claims!=null) {

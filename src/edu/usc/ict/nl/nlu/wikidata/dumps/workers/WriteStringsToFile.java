@@ -16,19 +16,21 @@ public class WriteStringsToFile extends Thread {
 	private BlockingQueue<WikiThing> queue=null;
 	private BlockingQueue<WikiThing> ret=null;
 	private BufferedWriter dump;
+	private int timeout=10;
 
-	public WriteStringsToFile(String name,BlockingQueue<WikiThing> queue,BlockingQueue<WikiThing> ret,File dump) throws IOException {
+	public WriteStringsToFile(String name,BlockingQueue<WikiThing> queue,BlockingQueue<WikiThing> ret,File dump,int timeout) throws IOException {
 		super(name);
 		this.queue=queue;
 		this.ret=ret;
 		this.dump=new BufferedWriter(new FileWriter(dump));
+		this.timeout=timeout;
 	}
 
 	@Override
 	public void run() {
 		while(true) {
 			try {
-				WikiThing p = queue.poll(10, TimeUnit.SECONDS);
+				WikiThing p = queue.poll(timeout, TimeUnit.SECONDS);
 				if (p!=null) {
 					if (ret!=null) ret.put(p);
 					List<String> things = p.getLabels();
