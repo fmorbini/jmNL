@@ -746,8 +746,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 					DM dm = nlModule.getPolicyDMForSession(sid, false);
 					dm.setPauseEventProcessing(true);
 					try {
-						File dump=nlModule.getNewInformationStateFileName(sid);
-						nlModule.saveInformationStateForSession(sid,dump);
+						nlModule.saveInformationStateForSession(sid,true);
 					} catch (Exception t) {
 						displayError(t,false);
 					}

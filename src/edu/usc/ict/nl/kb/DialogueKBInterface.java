@@ -84,6 +84,6 @@ public interface DialogueKBInterface extends InformationStateInterface {
 	 */
 	public boolean getPropertyForVar(String varName,PROPERTY p);
 	public VariableProperties getProperties(String vName);
-	public void setPropertyForVar(String varName,PROPERTY p,boolean value);
+	public void setPropertyForVar(String varName,PROPERTY p,Boolean value);
 	public void setProperties(String varName,VariableProperties properties);
 }

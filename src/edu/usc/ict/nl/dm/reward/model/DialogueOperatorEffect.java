@@ -166,10 +166,8 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 	public void setAssignmentProperty(PROPERTY p,boolean v) {
 		if (varPropertiesForAssignment==null || varPropertiesForAssignment==VariableProperties.defaultProperties) {
 			varPropertiesForAssignment=new VariableProperties();
-			varPropertiesForAssignment.setProperty(p, v);
-		} else {
-			varPropertiesForAssignment.setProperty(p, v);
 		}
+		varPropertiesForAssignment.setProperty(p, v);
 	}
 	public VariableProperties getAssignmentProperties() {return varPropertiesForAssignment;}
 	public static DialogueOperatorEffect createIncrementForVariable(String var,DialogueKBFormula increment) throws Exception {

@@ -239,9 +239,9 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 		else return VariableProperties.defaultProperties;
 	}
 	@Override
-	public void setPropertyForVar(String varName, PROPERTY p, boolean value) {
+	public void setPropertyForVar(String varName, PROPERTY p, Boolean value) {
 		varName=normalizeNames(varName);
-		if (!VariableProperties.isDefault(p, value)) {
+		if (value!=null) {
 			if (ps==null) ps=new HashMap<String, VariableProperties>();
 			VariableProperties vps=ps.get(varName);
 			if (vps==null) ps.put(varName, vps=new VariableProperties());

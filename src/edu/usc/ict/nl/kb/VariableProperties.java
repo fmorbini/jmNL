@@ -25,10 +25,8 @@ public class VariableProperties {
 	}
 	
 	public void setProperty(PROPERTY p,boolean v) {
-		if (!isDefault(p, v)) {
-			if (ps==null) ps=new HashMap<VariableProperties.PROPERTY, Boolean>();
-			ps.put(p, v);
-		}
+		if (ps==null) ps=new HashMap<VariableProperties.PROPERTY, Boolean>();
+		ps.put(p, v);
 	}
 	
 	public boolean getProperty(PROPERTY p) {

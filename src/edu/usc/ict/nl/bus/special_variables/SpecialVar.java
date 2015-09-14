@@ -19,7 +19,7 @@ public class SpecialVar {
 	String name;
 	String value;
 	Class type;
-	boolean hidden=VariableProperties.getDefault(PROPERTY.HIDDEN),
+	Boolean hidden=VariableProperties.getDefault(PROPERTY.HIDDEN),
 			readOnly=VariableProperties.getDefault(PROPERTY.READONLY),
 			persistent=VariableProperties.getDefault(PROPERTY.PERSISTENT);
 	String description;
@@ -28,9 +28,9 @@ public class SpecialVar {
 		this.description=description;
 		this.value=value;
 		this.type=type;
-		if (hidden!=null) this.hidden=hidden;
-		if (readOnly!=null) this.readOnly=readOnly;
-		if (persistent!=null) this.persistent=persistent;
+		this.hidden=hidden;
+		this.readOnly=readOnly;
+		this.persistent=persistent;
 		if (svs!=null) svs.addSpecialVariable(this);
 	}
 	public SpecialVar(SpecialEntitiesRepository svs, String name,String description,String value,Class type) {
@@ -43,9 +43,9 @@ public class SpecialVar {
 		return "<"+XMLConstants.specialVar+" "+XMLConstants.IDID+"=\""+XMLUtils.escapeStringForXML(getName())+"\" "+
 		XMLConstants.VALUEID+"=\""+XMLUtils.escapeStringForXML(value)+"\" "+
 		XMLConstants.TYPEID+"=\""+type+"\" "+
-		XMLConstants.VISIBLEID+"=\""+!isHidden()+"\" "+
-		XMLConstants.READONLYID+"=\""+isReadOnly()+"\" "+
-		XMLConstants.PERSISTENTID+"=\""+isPersistent()+"\" "+
+		(isHidden()!=null?XMLConstants.VISIBLEID+"=\""+!isHidden()+"\" ":"")+
+		(isReadOnly()!=null?XMLConstants.READONLYID+"=\""+isReadOnly()+"\" ":"")+
+		(isPersistent()!=null?XMLConstants.PERSISTENTID+"=\""+isPersistent()+"\" ":"")+
 		XMLConstants.DESCRIPTIONID+"=\""+XMLUtils.escapeStringForXML(description)+"\"/>";
 	}
 	@Override
@@ -113,7 +113,7 @@ public class SpecialVar {
 	public String getDescription() {return description;}
 	public String getName() {return name;}
 	public Class getType() {return type;}
-	public boolean isHidden() {return hidden;}
-	public boolean isReadOnly() {return readOnly;}
-	public boolean isPersistent() {return persistent;}
+	public Boolean isHidden() {return hidden;}
+	public Boolean isReadOnly() {return readOnly;}
+	public Boolean isPersistent() {return persistent;}
 }

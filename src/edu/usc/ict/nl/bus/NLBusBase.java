@@ -244,13 +244,16 @@ public abstract class NLBusBase implements NLBusInterface {
 		return sid;
 	}
 	@Override
-	public void saveInformationStateForSession(Long sid,File dumpFile) throws Exception {
+	public void saveInformationStateForSession(Long sid,boolean save) throws Exception {
 		DM dm=getPolicyDMForSession(sid,false);
 		if (dm!=null) {
 			DialogueKB is = dm.getInformationState();
 			if (is!=null) {
 				is.setValueOfVariable(NLBusBase.timeLastSessionVarName,DialogueKBFormula.create(Math.round(System.currentTimeMillis()/1000)+"", null),ACCESSTYPE.AUTO_OVERWRITEAUTO);
-				if (dumpFile!=null) is.dumpKB(dumpFile);
+				if (save) {
+					File dump=getNewInformationStateFileName(sid);
+					is.dumpKB(dump);
+				}
 			}
 		}
 	}
@@ -296,8 +299,7 @@ public abstract class NLBusBase implements NLBusInterface {
 			}
 			if (dm!=null) {
 				try {
-					File dump=getNewInformationStateFileName(sessionId);
-					saveInformationStateForSession(sessionId, dump);
+					saveInformationStateForSession(sessionId, true);
 				} catch (Exception e) {
 					logger.warn("error while saving state of: "+sessionId+"  (during termination event).",e);
 				}
@@ -627,55 +629,55 @@ public abstract class NLBusBase implements NLBusInterface {
 	public SpecialEntitiesRepository getSpecialVariablesForCharacterName(String characterName) {
 		SpecialEntitiesRepository svs=new SpecialEntitiesRepository(getConfiguration());
 		new SpecialVar(svs,userSpeakingStateVarName,"Boolean flag that if true indicates that the user is speacking","false",Boolean.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,lengthOfLastThingUserSaidVarName,"Number of seconds the user has spoken last.","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,lengthOfLastUserTurnVarName,"Number of seconds the user has spoken since the last system intervention.","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,systemSpeakingStateVarName,"Boolean flag that if true indicates that the system is speacking","false",Boolean.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,systemSpeakingCompletionVarName,"fraction of the system utterance being said that has been currently spoken. Updated at each timer interval.","1",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,timeSinceLastUserActionVariableName,"Time in seconds since the last thing said by the user.","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,timeSinceLastSystemActionVariableName,"Time in seconds since the last thing said by the system.","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,counterConsecutiveUnhandledUserActionsVariableName,"Number of consecutive user actions for which the system had no direct response (handler) across the entire dialogue.","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,counterConsecutiveUnhandledUserActionsSinceLastSystemActionVariableName,"Number of consecutive user actions to which the system didn't have an handler within the same user turn.","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,timeSinceLastActionVariableName,"Time in seconds since anyone said something (user or system).","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,timeLastSessionVarName,"Time in seconds since 1970 of the end of last session (when information state was saved).","null",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
+				null,null,true);
 		new SpecialVar(svs,timeSinceLastResourceVariableName,"Time in seconds since the last resource link/video was given.","0",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,timeSinceStartVariableName,"Time in seconds since the login event.","null",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,lastEventVariableName,"Name of last speech act received by the system. After the search is done, it contains the single speech act dealt by the selected network.",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,hasUserSaidSomethingVariableName,"Name of last speech act received by the system. Not affected by search selection.",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
+				null,null,true);
 		new SpecialVar(svs,lastNonNullOperatorVariableName,"Name of last sub-dialog executed by the system.",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
+				null,null,true);
 		new SpecialVar(svs,lastSystemSayVariableName,"Name of the speech act last said by the system.",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,timerIntervalVariableName,"Time in seconds between 2 consecutive timer events.","1",Number.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		// special variables that should be hidden from the suer using the dialog editor application.
-		new SpecialVar(svs,dmVariableName,"DM instance.",null,null,true,VariableProperties.getDefault(PROPERTY.READONLY),false);
+		new SpecialVar(svs,dmVariableName,"DM instance.",null,null,true,null,null);
 		new SpecialVar(svs,activeActionVariableName,"String representation of the current active action.",null,String.class,
-				true,VariableProperties.getDefault(PROPERTY.READONLY),false);
+				true,null,null);
 		new SpecialVar(svs,dormantActionsVariableName,"Current List of dormant actions.",null,String.class,
-				true,VariableProperties.getDefault(PROPERTY.READONLY),false);
+				true,null,null);
 		new SpecialVar(svs,preferFormsVariableName,"If true and a form is available for the current system speech act, the form will be selected by the NLG.","true",Boolean.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
+				null,null,true);
 		new SpecialVar(svs,tmpEventVariableName,"Variable used to store the input event that generated one of the internal events (e.g. unhandled, ignore and loop).",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),false);
+				null,null,null);
 		new SpecialVar(svs,userEventsHistory,"Stores a list of lists of NLUEvents received by the character. The first is the most recent (stack). When a system event is received the next incoming user events are collected in a new list element.",null,Deque.class,
-				true,VariableProperties.getDefault(PROPERTY.READONLY),false);
+				true,null,null);
 		new SpecialVar(svs,lastUserText,"Stores the last text the user said, as received by the DM.",null,String.class,
-				VariableProperties.getDefault(PROPERTY.HIDDEN),VariableProperties.getDefault(PROPERTY.READONLY),true);
+				null,null,true);
 
 		if (hasProtocols()) {
 			for(Protocol p:getProtocols()) {
