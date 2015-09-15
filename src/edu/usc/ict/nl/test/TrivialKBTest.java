@@ -792,13 +792,21 @@ public class TrivialKBTest extends TestCase {
 		TrivialDialogueKB mykb = new TrivialDialogueKB();
 		TrivialDialogueKB mykb2 = new TrivialDialogueKB();
 		DialogueOperatorEffect e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("a", null),new NLUOutput("test text", "a.b", 1f, new HashMap<String,Integer>()));
-		//DialogueOperatorEffect e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("a", null),"'2'");
 		mykb.store(e, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		DialogueOperatorEffect e2=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("b", null),"'2'");
+		mykb.store(e2, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		DialogueOperatorEffect e3=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("c", null),DialogueKBFormula.create("'2'"));
+		mykb.store(e3, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		DialogueOperatorEffect e4=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("d", null),DialogueKBFormula.create("2"));
+		mykb.store(e4, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 		DialogueKBFormula f=DialogueKBFormula.create("a");
+		DialogueKBFormula f2=DialogueKBFormula.create("b");
+		DialogueKBFormula f3=DialogueKBFormula.create("c");
+		DialogueKBFormula f4=DialogueKBFormula.create("d");
 		Object r=evaluate(mykb,f);
 		assertTrue(r instanceof NLUOutput);
 		Collection<DialogueOperatorEffect> content = mykb.dumpKB();
-		assertTrue(content.size()==1);
+		assertTrue(content.size()==4);
 		for(DialogueOperatorEffect ec:content) {
 			String s=ec.toString(false, XMLConstants.LOADISID);
 			DialogueOperatorEffect ep = DialogueOperatorEffect.fromXML(s);
@@ -806,6 +814,12 @@ public class TrivialKBTest extends TestCase {
 		}
 		r=evaluate(mykb2,f);
 		assertTrue(r instanceof NLUOutput);
+		r=evaluate(mykb2,f2);
+		assertTrue(r instanceof String);
+		r=evaluate(mykb2,f3);
+		assertTrue(r instanceof String);
+		r=evaluate(mykb2,f4);
+		assertTrue(r instanceof Number);
 	}
 	
 	private DialogueKBFormula parseWithCheck(String fs) throws Exception {
