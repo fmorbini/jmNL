@@ -227,15 +227,7 @@ public class RewardPolicy {
 				} else if (isInitNode(c)) {
 					DialogueOperatorEffect eff=null;
 					try {
-						eff=DialogueOperatorEffect.parse(getInitNodeValue(childAtt));
-						if (eff!=null && eff.isAssignment()) {
-							Boolean hidden=SpecialVar.getIsHidden(childAtt);
-							Boolean persistent=SpecialVar.getIsPersistent(childAtt);
-							Boolean readOnly=SpecialVar.getIsReadOnly(childAtt);
-							if (hidden!=null) eff.setAssignmentProperty(PROPERTY.HIDDEN, hidden);
-							if (persistent!=null) eff.setAssignmentProperty(PROPERTY.PERSISTENT, persistent);
-							if (readOnly!=null) eff.setAssignmentProperty(PROPERTY.READONLY, readOnly);
-						}
+						eff=DialogueOperatorEffect.parse(childAtt);
 					} catch (Exception e) {e.printStackTrace();}
 					if (eff!=null) {
 						if (initIS==null) initIS=new ArrayList<DialogueOperatorEffect>();

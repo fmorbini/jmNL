@@ -10,10 +10,14 @@ import edu.usc.ict.nl.kb.DialogueKBFormula;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import edu.usc.ict.nl.parser.semantics.ParserSemanticRules4KB;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
 
 
 /** Simple brace matcher. */
 public class FormulaGrammar implements FormulaGrammarConstants {
+        private static XStream serializer=new XStream(new StaxDriver());
+
     public DialogueKBFormula makeFormula(Token t,String p) throws ParseException {
         try {
                         return DialogueKBFormula.create(p,null);
@@ -98,7 +102,13 @@ public class FormulaGrammar implements FormulaGrammarConstants {
         }
         public DialogueOperatorEffect makeAssignment(Token t,String var,DialogueKBFormula value) throws ParseException {
                 try{
-                        return DialogueOperatorEffect.createAssignment(var,value);
+                if (value!=null && value.isString()) {
+                        try {
+                                Object obj=serializer.fromXML(DialogueKBFormula.getStringValue(value.getName()));
+                        return DialogueOperatorEffect.createAssignment(var,obj);
+                        } catch (Exception e) {}
+                }
+            return DialogueOperatorEffect.createAssignment(var,value);
                 } catch (Exception e) {
                         e.printStackTrace();
                         throw new ParseException("error creating assignment starting at line: "+t.beginLine+" column: "+t.beginColumn);

@@ -1,17 +1,29 @@
 package edu.usc.ict.nl.dm.reward.model;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
+
+import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
@@ -268,7 +280,7 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 				String ps=XMLConstants.VISIBLEID+"=\""+!varPropertiesForAssignment.getProperty(PROPERTY.HIDDEN)+"\" "+
 						XMLConstants.READONLYID+"=\""+varPropertiesForAssignment.getProperty(PROPERTY.READONLY)+"\" "+
 						XMLConstants.PERSISTENTID+"=\""+varPropertiesForAssignment.getProperty(PROPERTY.PERSISTENT)+"\" ";
-				ret+=ps+XMLConstants.EXPRID+"=\""+XMLConstants.AssignmentID+"("+left+","+getAssignedExpression()+")\"";
+				ret+=ps+XMLConstants.EXPRID+"=\""+XMLConstants.AssignmentID+"("+left+","+serialize(getAssignedExpression())+")\"";
 			}
 			else if (isGoalAchievement()) ret+=XMLConstants.GOALID+"=\""+goalName+"\""+((left!=null)?" "+XMLConstants.VALUEID+"=\""+left+"\"":"");
 			else if (isImplication()) ret+=XMLConstants.EXPRID+"=\""+XMLConstants.implyID+"("+left+","+value+","+implyElse+")\"";
@@ -279,7 +291,32 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 		}
 		return ret;
 	}
-	
+
+	private static XStream serializer=new XStream(new StaxDriver());
+	private String serialize(Object assignedExpression) {
+		String ret=null; 
+		if (assignedExpression!=null) {
+			if (assignedExpression instanceof DialogueKBFormula || assignedExpression instanceof Number || assignedExpression instanceof String) ret=assignedExpression.toString();
+			else {
+				ret = serializer.toXML(assignedExpression);
+				ret="'"+ret+"'";
+			}
+			ret=XMLUtils.escapeStringForXML(ret);
+		}
+		return ret;
+	}
+
+	public static DialogueOperatorEffect fromXML(String xml) throws ParserConfigurationException, SAXException, IOException, ParseException {
+		DialogueOperatorEffect eff=null;
+		Document doc = XMLUtils.parseXMLString(xml, false,false);
+		org.w3c.dom.Node rootNode = doc.getDocumentElement();
+		if (RewardPolicy.isInitNode(rootNode)) {
+			NamedNodeMap atts = rootNode.getAttributes();
+			eff=parse(atts);
+		}
+		return eff;
+	}
+
 	public static DialogueOperatorEffect parse(String fs) throws ParseException {
 		fs=StringUtils.removeLeadingAndTrailingSpaces(fs);
 		if (!StringUtils.isEmptyString(fs)) {
@@ -288,7 +325,19 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 			return parser.effect();
 		} else return null;
 	}
-	
+	public static DialogueOperatorEffect parse(NamedNodeMap childAtt) throws ParseException {
+		DialogueOperatorEffect eff=parse(RewardPolicy.getInitNodeValue(childAtt));
+		if (eff!=null && eff.isAssignment()) {
+			Boolean hidden=SpecialVar.getIsHidden(childAtt);
+			Boolean persistent=SpecialVar.getIsPersistent(childAtt);
+			Boolean readOnly=SpecialVar.getIsReadOnly(childAtt);
+			if (hidden!=null) eff.setAssignmentProperty(PROPERTY.HIDDEN, hidden);
+			if (persistent!=null) eff.setAssignmentProperty(PROPERTY.PERSISTENT, persistent);
+			if (readOnly!=null) eff.setAssignmentProperty(PROPERTY.READONLY, readOnly);
+		}
+		return eff;
+	}
+
 	public float evaluateGoalValueIn(DialogueKBInterface is) throws Exception {
 		if (isGoalAchievement()) {
 			DialogueKBFormula f=getGoalValue();
@@ -487,4 +536,5 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 		System.out.println(f3.toString(false));
 		System.out.println(f3.extractAllNamesUsed());
 	}
+
 }

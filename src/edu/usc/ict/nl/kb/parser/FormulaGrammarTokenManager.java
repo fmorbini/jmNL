@@ -9,6 +9,8 @@ import edu.usc.ict.nl.kb.DialogueKBFormula;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import edu.usc.ict.nl.parser.semantics.ParserSemanticRules4KB;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
 
 /** Token Manager. */
 public class FormulaGrammarTokenManager implements FormulaGrammarConstants

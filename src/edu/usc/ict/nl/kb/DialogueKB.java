@@ -209,7 +209,7 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 				if (RewardPolicy.isInitNode(c)) {
 					DialogueOperatorEffect eff=null;
 					try {
-						eff=DialogueOperatorEffect.parse(RewardPolicy.getInitNodeValue(childAtt));
+						eff=DialogueOperatorEffect.parse(childAtt);
 					} catch (Exception e) {e.printStackTrace();}
 					if (eff!=null) {
 						if (ret==null) ret=new ArrayList<DialogueOperatorEffect>();

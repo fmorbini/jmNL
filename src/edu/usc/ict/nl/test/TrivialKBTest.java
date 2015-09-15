@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.test;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import junit.framework.Test;
@@ -8,12 +9,14 @@ import junit.framework.TestSuite;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
+import edu.usc.ict.nl.dm.reward.model.XMLConstants;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.TrivialDialogueKB;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.kb.cf.TestRewardDM;
+import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.utils.FloatAndLongUtils;
 
 
@@ -784,6 +787,27 @@ public class TrivialKBTest extends TestCase {
 		System.out.println(r);
 	}
 	
+	// evaluation of assignment values
+	public void test16() throws Exception {
+		TrivialDialogueKB mykb = new TrivialDialogueKB();
+		TrivialDialogueKB mykb2 = new TrivialDialogueKB();
+		DialogueOperatorEffect e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("a", null),new NLUOutput("test text", "a.b", 1f, new HashMap<String,Integer>()));
+		//DialogueOperatorEffect e=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create("a", null),"'2'");
+		mykb.store(e, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		DialogueKBFormula f=DialogueKBFormula.create("a");
+		Object r=evaluate(mykb,f);
+		assertTrue(r instanceof NLUOutput);
+		Collection<DialogueOperatorEffect> content = mykb.dumpKB();
+		assertTrue(content.size()==1);
+		for(DialogueOperatorEffect ec:content) {
+			String s=ec.toString(false, XMLConstants.LOADISID);
+			DialogueOperatorEffect ep = DialogueOperatorEffect.fromXML(s);
+			mykb2.store(ep,ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		}
+		r=evaluate(mykb2,f);
+		assertTrue(r instanceof NLUOutput);
+	}
+	
 	private DialogueKBFormula parseWithCheck(String fs) throws Exception {
 		DialogueKBFormula f=DialogueKBFormula.parse(fs);
 		assertTrue(f==DialogueKBFormula.parse(f.toString()));
@@ -795,7 +819,7 @@ public class TrivialKBTest extends TestCase {
 	
 	public static void main(String[] args) throws Exception {
 		TrivialKBTest t = new TrivialKBTest();
-		t.test15();
+		t.test16();
 		System.exit(0);
 	}
 }
