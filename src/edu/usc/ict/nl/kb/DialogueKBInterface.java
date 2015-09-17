@@ -42,7 +42,7 @@ public interface DialogueKBInterface extends InformationStateInterface {
 	
 	public Collection<DialogueOperatorEffect> dumpKB() throws Exception;
 	public Collection<DialogueOperatorEffect> dumpKB(File dumpFile) throws Exception;
-	public void readFromFile(File dumpFile) throws Exception;
+	public Collection<DialogueOperatorEffect> readFromFile(File dumpFile) throws Exception;
 	public LinkedHashMap<String, Collection<DialogueOperatorEffect>> dumpKBTree() throws Exception;
 	public void printKB(String indent);
 	public String getContentID() throws Exception;

@@ -195,32 +195,32 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 	}
 
 	@Override
-	public void readFromFile(File dumpFile) throws Exception {
+	public Collection<DialogueOperatorEffect> readFromFile(File dumpFile) throws Exception {
 		List<DialogueOperatorEffect> ret=null;
-		Document doc = XMLUtils.parseXMLFile(dumpFile, true, true);
-		org.w3c.dom.Node rootNode = doc.getDocumentElement();
-		if (RewardPolicy.isInitsNode(rootNode)) {
-			Queue<org.w3c.dom.Node> q=new LinkedList<org.w3c.dom.Node>();
-			NodeList cs = rootNode.getChildNodes();
-			for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
-			while(!q.isEmpty()) {
-				org.w3c.dom.Node c=q.poll();
-				NamedNodeMap childAtt = c.getAttributes();
-				if (RewardPolicy.isInitNode(c)) {
-					DialogueOperatorEffect eff=null;
-					try {
-						eff=DialogueOperatorEffect.parse(childAtt);
-					} catch (Exception e) {e.printStackTrace();}
-					if (eff!=null) {
-						if (ret==null) ret=new ArrayList<DialogueOperatorEffect>();
-						ret.add(eff);
-					} else throw new Exception("Problem with IS initialization expr: "+XMLUtils.prettyPrintDom(c, " ", true, true));
+		if (dumpFile!=null) {
+			Document doc = XMLUtils.parseXMLFile(dumpFile, true, true);
+			org.w3c.dom.Node rootNode = doc.getDocumentElement();
+			if (RewardPolicy.isInitsNode(rootNode)) {
+				Queue<org.w3c.dom.Node> q=new LinkedList<org.w3c.dom.Node>();
+				NodeList cs = rootNode.getChildNodes();
+				for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
+				while(!q.isEmpty()) {
+					org.w3c.dom.Node c=q.poll();
+					NamedNodeMap childAtt = c.getAttributes();
+					if (RewardPolicy.isInitNode(c)) {
+						DialogueOperatorEffect eff=null;
+						try {
+							eff=DialogueOperatorEffect.parse(childAtt);
+						} catch (Exception e) {e.printStackTrace();}
+						if (eff!=null) {
+							if (ret==null) ret=new ArrayList<DialogueOperatorEffect>();
+							ret.add(eff);
+						} else throw new Exception("Problem with IS initialization expr: "+XMLUtils.prettyPrintDom(c, " ", true, true));
+					}
 				}
 			}
 		}
-		if(ret!=null) {
-			storeAll(ret, ACCESSTYPE.AUTO_OVERWRITEAUTO, true);
-		}
+		return ret;
 	}
 	
 	@Override

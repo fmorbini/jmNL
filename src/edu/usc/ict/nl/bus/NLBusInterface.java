@@ -1,10 +1,12 @@
 package edu.usc.ict.nl.bus;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
+import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.nlu.NLUOutput;
 
 public interface NLBusInterface extends DMEventsListenerInterface,ExternalListenerInterface {
@@ -32,5 +34,6 @@ public interface NLBusInterface extends DMEventsListenerInterface,ExternalListen
 	 * @throws Exception
 	 */
 	public void saveInformationStateForSession(Long sid,boolean save) throws Exception;
-	public void loadInformationStateForSession(Long sid,File is) throws Exception;
+	public void loadInformationStateForSession(Long sid,Collection<DialogueOperatorEffect> content) throws Exception;
+	public void loadInformationStateForSession(Long sid,File fis) throws Exception;
 }

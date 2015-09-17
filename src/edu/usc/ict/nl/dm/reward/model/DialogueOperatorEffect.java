@@ -296,7 +296,9 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 	private String serialize(Object assignedExpression) {
 		String ret=null; 
 		if (assignedExpression!=null) {
-			if (assignedExpression instanceof DialogueKBFormula || assignedExpression instanceof Number || assignedExpression instanceof String) ret=assignedExpression.toString();
+			if (assignedExpression instanceof DialogueKBFormula || assignedExpression instanceof Number || assignedExpression instanceof String) {
+				ret=assignedExpression.toString();
+			}
 			else {
 				ret = serializer.toXML(assignedExpression);
 				ret="'"+ret+"'";

@@ -39,6 +39,7 @@ import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLConfig;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
@@ -274,12 +275,29 @@ public abstract class NLBusBase implements NLBusInterface {
 		return sessionDump;
 	}
 	@Override
+	public void loadInformationStateForSession(Long sid, Collection<DialogueOperatorEffect> content) throws Exception {
+		if (content!=null && !content.isEmpty()) {
+			DM dm=getPolicyDMForSession(sid,false);
+			if (dm!=null) {
+				DialogueKB is = dm.getInformationState();
+				if (is!=null) {
+					is.storeAll(content, ACCESSTYPE.AUTO_OVERWRITEAUTO, true);
+				}
+			}
+		}
+	}
+	@Override
 	public void loadInformationStateForSession(Long sid, File fis) throws Exception {
-		DM dm=getPolicyDMForSession(sid,false);
-		if (dm!=null) {
-			DialogueKB is = dm.getInformationState();
-			if (is!=null) {
-				is.readFromFile(fis);
+		if (fis!=null && fis.exists()) {
+			DM dm=getPolicyDMForSession(sid,false);
+			if (dm!=null) {
+				DialogueKB is = dm.getInformationState();
+				if (is!=null) {
+					Collection<DialogueOperatorEffect> content = is.readFromFile(fis);
+					if (content!=null && !content.isEmpty()) {
+						is.storeAll(content, ACCESSTYPE.AUTO_OVERWRITEAUTO, true);
+					}
+				}
 			}
 		}
 	}
