@@ -54,7 +54,7 @@ public class CFlen implements CustomFunctionInterface {
 	@Override
 	public boolean test() throws Exception {
 		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
-		NLU nlu=NLU.init("MXNLU");
+		NLU nlu=NLU.init("openNLU");
 		nlu.getConfiguration().setForcedNLUContentRoot("resources\\characters\\common\\nlu");
 		Numbers ne = new Numbers("test");
 		ne.setConfiguration(nlu.getConfiguration());

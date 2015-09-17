@@ -387,6 +387,7 @@ public class TrivialKBTest extends TestCase {
 		HashMap<String, CustomFunctionInterface> fns = DialogueKBFormula.getCustomfunctions();
 		if(fns!=null) {
 			for(CustomFunctionInterface fn:fns.values()) {
+				System.out.println("running test for function: "+fn.getName());
 				boolean result=fn.test();
 				System.out.println(fn.getName()+" test method has returned: "+result);
 				assertTrue(result);
