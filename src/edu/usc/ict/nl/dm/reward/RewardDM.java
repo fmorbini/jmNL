@@ -21,8 +21,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
-
 import edu.usc.ict.nl.audio.util.Audio;
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.NLBusInterface;
@@ -34,12 +32,11 @@ import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceLengthEvent;
-import edu.usc.ict.nl.bus.events.changes.VarChange;
 import edu.usc.ict.nl.bus.events.changes.DMVarChangeEvent;
 import edu.usc.ict.nl.bus.events.changes.DMVarChangesEvent;
+import edu.usc.ict.nl.bus.events.changes.VarChange;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
-import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLBusConfig;
@@ -51,8 +48,8 @@ import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEntranceTransition;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNode;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNodesChain;
 import edu.usc.ict.nl.dm.reward.model.RewardPolicy;
-import edu.usc.ict.nl.dm.reward.model.TimemarksTracker;
 import edu.usc.ict.nl.dm.reward.model.RewardPolicy.OpType;
+import edu.usc.ict.nl.dm.reward.model.TimemarksTracker;
 import edu.usc.ict.nl.dm.reward.possibilityGraph.OperatorHistoryNode;
 import edu.usc.ict.nl.dm.reward.possibilityGraph.PossibleIS;
 import edu.usc.ict.nl.dm.reward.possibilityGraph.PossibleTransition;
@@ -136,24 +133,16 @@ public class RewardDM extends DM {
 			historyOfExecutedOperators.clearOutgoingEdges();
 		}
 		if (aa!=null) {
-			DialogueOperator no=aa.getOperator();
-			boolean add=false,modified=true;
-			if (historyOfExecutedOperators!=null) {
-				DialogueOperator last=historyOfExecutedOperators.getOperator();
-				add=(last!=no);
-				modified=(historyOfExecutedOperators.getDone()!=aa.getDone()); 
-			}
-			if (modified || add) {
-				try {
-					if (add) {
-						historyOfExecutedOperators=new OperatorHistoryNode(aa,historyOfExecutedOperators);
-					} else {
-						historyOfExecutedOperators.update(aa);
+			try {
+				if (historyOfExecutedOperators!=null) {
+					OperatorHistoryNode newh=null;
+					if ((newh=historyOfExecutedOperators.update(aa))!=null) {
+						historyOfExecutedOperators=newh;
+						context.setExecutedOperatorsHistory(historyOfExecutedOperators);
+						logger.info("Executed: "+getExecutedOperatorsHistory().printChain());
 					}
-					context.setExecutedOperatorsHistory(historyOfExecutedOperators);
-					logger.info("Executed: "+getExecutedOperatorsHistory().printChain());
-				} catch (Exception e) {logger.error("Error while updating the history of executed operators: ",e);}
-			}
+				}
+			} catch (Exception e) {logger.error("Error while updating the history of executed operators: ",e);}
 		}
 	}
 	public OperatorHistoryNode getExecutedOperatorsHistory() throws Exception {
@@ -1321,7 +1310,7 @@ public class RewardDM extends DM {
 		this.setMessageBus(listener);
 		this.dormantActions=new DormantActions();
 		this.dormantDaemonActions=new DormantActions();
-		this.historyOfExecutedOperators=new OperatorHistoryNode(null, null);
+		this.historyOfExecutedOperators=new OperatorHistoryNode();
 		
 		this.dp = dp;
 		setSessionID(sessionID);
