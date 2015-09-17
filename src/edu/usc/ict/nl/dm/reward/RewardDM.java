@@ -143,7 +143,7 @@ public class RewardDM extends DM {
 				add=(last!=no);
 				modified=(historyOfExecutedOperators.getDone()!=aa.getDone()); 
 			}
-			if (modified) {
+			if (modified || add) {
 				try {
 					if (add) {
 						historyOfExecutedOperators=new OperatorHistoryNode(aa,historyOfExecutedOperators);
@@ -1147,11 +1147,16 @@ public class RewardDM extends DM {
 		//if (handlers!=null) logger.debug("     Found system initiative entrance conditions: "+handlers);
 		return handlers;
 	}*/
-	private List<DialogueOperatorEntranceTransition> getOperatorsThatSupportSystemInitiative(EvalContext context,DormantActions dormantActions,OpType type) throws Exception {
+	private List<DialogueOperatorEntranceTransition> getOperatorsThatSupportSystemInitiative(EvalContext context,DormantActions dormantActions,OpType type) {
 		//logger.debug("    Looking for operators that can be initiated by the system.");
 		List<DialogueOperatorEntranceTransition> handlers=null;
 		
-		Set<DialogueOperator> sis = dp.getSystemInitiatableOperators(type);
+		Set<DialogueOperator> sis=null;
+		try {
+			sis = dp.getSystemInitiatableOperators(type);
+		} catch (Exception e) {
+			logger.error("Error while getting system initiative operators.",e);
+		}
 		LinkedHashSet<DialogueOperator> operators = new LinkedHashSet<DialogueOperator>();
 		if (sis!=null) operators.addAll(sis);
 		if (dormantActions!=null) operators.addAll(dormantActions.getDormantOperators());
@@ -1166,16 +1171,24 @@ public class RewardDM extends DM {
 			if (ecs!=null) {
 				for(DialogueOperatorEntranceTransition ec:ecs) {
 					if (ec.isSystemInitiatable()) {
-						if (ec.isExecutableInCurrentIS(null,context)) {
-							if (handlers==null) handlers=new ArrayList<DialogueOperatorEntranceTransition>();
-							handlers.add(ec);
+						try {
+							if (ec.isExecutableInCurrentIS(null,context)) {
+								if (handlers==null) handlers=new ArrayList<DialogueOperatorEntranceTransition>();
+								handlers.add(ec);
+							}
+						} catch (Exception e) {
+							logger.error("Error while evaluating ec: "+ec,e);
 						}
 					} else if (ec.isReEntrable()) {
 						DialogueAction da = dormantActions.getDormantActionOf(op);
 						EvalContext acontext = da.getContext();
-						if (ec.isExecutableInCurrentIS(null,acontext)) {
-							if (handlers==null) handlers=new ArrayList<DialogueOperatorEntranceTransition>();
-							handlers.add(ec);
+						try {
+							if (ec.isExecutableInCurrentIS(null,acontext)) {
+								if (handlers==null) handlers=new ArrayList<DialogueOperatorEntranceTransition>();
+								handlers.add(ec);
+							}
+						} catch (Exception e) {
+							logger.error("Error while evaluating re-ec: "+ec,e);
 						}
 					}
 				}
