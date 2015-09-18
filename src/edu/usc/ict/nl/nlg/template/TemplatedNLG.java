@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
@@ -24,7 +24,7 @@ public class TemplatedNLG extends EchoNLG {
 	protected VHBridge vhBridge=null;
 	private static final Pattern methodNamePattern=Pattern.compile("function([A-Z][\\S]*)");
 	
-	public TemplatedNLG(NLBusConfig c) {
+	public TemplatedNLG(NLGConfig c) {
 		super(c);
 		Class nlgClass=this.getClass();
 		while(nlgClass!=null) {
@@ -48,14 +48,14 @@ public class TemplatedNLG extends EchoNLG {
 		}
 	}
 
-	public Object functionGet(DialogueKBInterface is,VHBridge vhBridge,String vname,boolean simulate) {
-		if (!simulate) return is.get(vname);
+	public Object functionGet(FunctionArguments args) {
+		if (!args.simulate) return args.is.get(args.stringArg);
 		else return null;
 	}
-	public Object functionGetSA(DialogueKBInterface is,VHBridge vhBridge,String sa,boolean simulate) {
-		if (!simulate) {
+	public Object functionGetSA(FunctionArguments args) {
+		if (!args.simulate) {
 			try {
-				return getTextForSpeechAct(sa, is, false);
+				return getTextForSpeechAct(args.stringArg, args.is, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -71,19 +71,19 @@ public class TemplatedNLG extends EchoNLG {
 		String text=super.getTextForSpeechAct(sa, is, simulate);
 		System.out.println(sa+" "+text);
 		List<Function> functions = getFunctions(text);
-		text=applyFunctions(text,functions,is,simulate);
+		text=applyFunctions(text,functions,is,sa,simulate);
 		return text;
 	}
 
 
-	private String applyFunctions(String text, List<Function> functions, DialogueKBInterface is, boolean simulate) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private String applyFunctions(String text, List<Function> functions, DialogueKBInterface is, String sa,boolean simulate) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		if (functions!=null) {
 			for(Function x:functions) x.reset();
 			for(Function f:functions) {
 				Method m=f.getMethod();
 				if (m!=null) {
 					String functionArgs=f.getArguments(text);
-					Object obj=m.invoke(this, is,vhBridge,functionArgs,simulate);
+					Object obj=m.invoke(this,new FunctionArguments(is,vhBridge,functionArgs,sa,simulate));
 					String replacement=getReplacement(obj);
 					if (f.getRequiredOutput() && StringUtils.isEmptyString(replacement)) {
 						logger.warn("function "+f+" returned null and requires non-null output. Cancelling entire text.");

@@ -24,6 +24,7 @@ import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface;
 import edu.usc.ict.nl.kb.template.NoTemplateFoundException;
@@ -32,8 +33,6 @@ import edu.usc.ict.nl.kb.template.PrimaryTemplateDefinitionException;
 import edu.usc.ict.nl.kb.template.TemplateProcessing;
 import edu.usc.ict.nl.kb.template.TemplateText;
 import edu.usc.ict.nl.kb.template.util.TemplateVerifier;
-import edu.usc.ict.nl.ui.chat.ChatInterface;
-import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.ExcelUtils;
@@ -44,7 +43,7 @@ public class EchoNLG extends NLG {
 	Map<String,List<Pair<String,String>>> formsResponses=null;
 	Map<String,List<Pair<String,String>>> resources;
 	
-	public EchoNLG(NLBusConfig c) {
+	public EchoNLG(NLGConfig c) {
 		super(c);
 		try {
 			reloadData();
@@ -52,22 +51,22 @@ public class EchoNLG extends NLG {
 	}
 	
 	private void loadSystemResources() throws Exception {
-		NLBusConfig config=getConfiguration();
-		resources=getResources(config.getSystemResources(), 0);
+		NLGConfig config=getConfiguration();
+		resources=getResources(config.nlBusConfig.getSystemResources(), 0);
 	}
 
 	private void loadSystemForms() throws Exception {
-		NLBusConfig config=getConfiguration();
-		if (config.getDisplayFormAnswerInNlg()) formsResponses=getFormsResponses(config.getSystemForms());
+		NLGConfig config=getConfiguration();
+		if (config.getDisplayFormAnswerInNlg()) formsResponses=getFormsResponses(config.nlBusConfig.getSystemForms());
 	}
 
 	private void loadSystemUtterances() throws Exception {
-		NLBusConfig config=getConfiguration();
-		validSpeechActs=ExcelUtils.extractMappingBetweenTheseTwoColumns(config.getSystemUtterances(), 0, 4, 5);
-		if (!StringUtils.isEmptyString(config.getNvbs())) {
-			File nvbFile=new File(config.getNvbs());
+		NLGConfig config=getConfiguration();
+		validSpeechActs=ExcelUtils.extractMappingBetweenTheseTwoColumns(config.nlBusConfig.getSystemUtterances(), 0, 4, 5);
+		if (!StringUtils.isEmptyString(config.nlBusConfig.getNvbs())) {
+			File nvbFile=new File(config.nlBusConfig.getNvbs());
 			if (nvbFile.exists()) {
-				Map<String, List<String>> nvb = ExcelUtils.extractMappingBetweenTheseTwoColumns(config.getNvbs(), 0, 4, 5);
+				Map<String, List<String>> nvb = ExcelUtils.extractMappingBetweenTheseTwoColumns(config.nlBusConfig.getNvbs(), 0, 4, 5);
 				validSpeechActs.putAll(nvb);
 			}
 		}
@@ -112,7 +111,7 @@ public class EchoNLG extends NLG {
 	
 	@Override
 	public Float getDurationOfThisDMEvent(Long sessionID, NLGEvent ev) throws Exception {
-		if (getConfiguration().getSystemEventsHaveDuration()) {
+		if (getConfiguration().nlBusConfig.getSystemEventsHaveDuration()) {
 			String text=ev.getName();
 			if (text!=null) {
 				String[] words=text.split("[\\s]+");

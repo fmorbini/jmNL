@@ -38,13 +38,12 @@ import edu.usc.ict.nl.bus.special_variables.SpecialEntitiesRepository;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLConfig;
+import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
-import edu.usc.ict.nl.kb.VariableProperties;
-import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.ui.chat.ChatInterface;
@@ -107,8 +106,8 @@ public abstract class NLBusBase implements NLBusInterface {
 	protected Map<Long, ReferenceToVirtualCharacter> session2Character = null;
 	protected ConcurrentHashMap<Long, Set<Long>> session2HandledEvents = null;
 	protected HashMap<Long,NLUInterface> session2NLU=null;
+	protected HashMap<Long,NLGInterface> session2NLG=null;
 	protected HashMap<Long,DM> session2PolicyDM=null;
-	protected HashMap<Long,NLG> session2NLG=null;
 	protected HashMap<String,NLBusConfig> character2Config=null;
 	// key: character name, value: unparsed POLICY associated with it
 	protected HashMap<String,String> character2unparsedPolicy = null;
@@ -328,6 +327,11 @@ public abstract class NLBusBase implements NLBusInterface {
 				killNlu(sessionId);
 			} catch (Exception e) {
 				logger.warn("exception killing NLU for: "+sessionId+"  (probably it's already been terminated).");
+			}
+			try {
+				killNlg(sessionId);
+			} catch (Exception e) {
+				logger.warn("exception killing NLG for: "+sessionId+"  (probably it's already been terminated).");
 			}
 			session2User.remove(sessionId);
 			session2Character.remove(sessionId);
@@ -562,8 +566,8 @@ public abstract class NLBusBase implements NLBusInterface {
 		else {
 			String characterName = getCharacterName4Session(sid);
 			NLUConfig config=getNLUConfigurationForCharacter(characterName);
-			nlu=(NLUInterface) createSubcomponent(config,config.getNluClass());
 			logger.info("Starting NEW NLU for session "+sid+" for character "+characterName+" with nlu class: "+config.getNluClass());
+			nlu=(NLUInterface) createSubcomponent(config,config.getNluClass());
 			session2NLU.put(sid, nlu);
 			return nlu;
 		}
@@ -584,20 +588,26 @@ public abstract class NLBusBase implements NLBusInterface {
 		return getNlg(sid, true);
 	}
 	public synchronized NLGInterface getNlg(Long sid,boolean createIfNotThereAlready) throws Exception {
-		NLG nlg=session2NLG.get(sid);
-		String characterName = getCharacterName4Session(sid);
-		boolean characterOK=nlg==null || nlg.getConfiguration().getDefaultCharacter().equals(characterName);
-		if (!characterOK) logger.error("NLG for session "+sid+" associated to character '"+nlg.getConfiguration().getDefaultCharacter()+"' but that session is for character '"+characterName+"'.");
-		if (nlg!=null && characterOK) return nlg;
-		else if (characterOK || createIfNotThereAlready) {
-			NLBusConfig config=(NLBusConfig) getConfiguration().clone();
-			config.setDefaultCharacter(characterName);
-			nlg=(NLG) createSubcomponent(config,config.getNlgClass());
+		NLGInterface nlg=session2NLG.get(sid);
+		if (nlg!=null) return nlg;
+		else if (createIfNotThereAlready) {
+			String characterName = getCharacterName4Session(sid);
+			NLGConfig config=getNLGConfigurationForCharacter(characterName);
+			logger.info("Starting NEW NLG for session "+sid+" for character "+characterName+" with nlg class: "+config.getNlgClass());
+			nlg=(NLGInterface) createSubcomponent(config,config.getNlgClass());
 			nlg.setNLModule(this);
 			session2NLG.put(sid, nlg);
 			return nlg;
 		}
 		return null;
+	}
+
+	public void killNlg(Long sid) throws Exception {
+		NLGInterface nlg=session2NLG.get(sid);
+		if (nlg!=null) {
+			session2NLG.remove(sid);
+			nlg.kill();
+		}
 	}
 
 	//##############################################################################
@@ -629,6 +639,9 @@ public abstract class NLBusBase implements NLBusInterface {
 	}
 	protected NLUConfig getNLUConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
 		return getConfigurationForCharacter(characterName).nluConfig;
+	}
+	protected NLGConfig getNLGConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
+		return getConfigurationForCharacter(characterName).nlgConfig;
 	}
 
 	@Override
@@ -784,7 +797,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		character2unparsedPolicy = new HashMap<String, String>();
 		character2parsedPolicy=new HashMap<String, Object>();
 		session2NLU=new HashMap<Long, NLUInterface>();
-		session2NLG=new HashMap<Long, NLG>();
+		session2NLG=new HashMap<Long, NLGInterface>();
 		session2PolicyDM=new HashMap<Long, DM>();
 		character2Config=new HashMap<String, NLBusConfig>();
 		session2Ignore=new HashMap<Long,Boolean>();

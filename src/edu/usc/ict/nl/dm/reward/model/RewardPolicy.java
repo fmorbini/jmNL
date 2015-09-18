@@ -494,7 +494,7 @@ public class RewardPolicy {
 					}
 				}
 				if (!events.isEmpty()) {
-					if (c.getIsStrictNLG()) {
+					if (c.nlgConfig.getIsStrictNLG()) {
 						logger.error(FunctionalLibrary.printCollection(events, "Unknown system speech acts:\n[", "]", "\n"));
 						logger.error("press ENTER to continue.");
 						while(in.readLine()==null);
@@ -566,7 +566,8 @@ public class RewardPolicy {
 					}
 				}
 				nlModule.killNlu(sid);
-				if (!events.isEmpty() && c.getIsStrictNLG()) {
+				nlModule.killNlg(sid);
+				if (!events.isEmpty() && c.nlgConfig.getIsStrictNLG()) {
 					logger.error("There are INPUT speech acts used by the system but not defined in the NLU.");
 					logger.error(FunctionalLibrary.printCollection(events, "[", "]", "\n"));
 				}

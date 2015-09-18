@@ -10,6 +10,7 @@
         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
 	<import resource="classpath:NLUConfigs.xml"/>
+	<import resource="classpath:NLGConfigs.xml"/>
 
 	<bean id="nlConfigMXNLU_FSMDM_EchoNLG" class="edu.usc.ict.nl.config.NLBusConfig">
        	<property name="alwaysPreferForms" value="false"/>
@@ -30,15 +31,13 @@
 		<property name="loginEventName" value="login"/>
 		<property name="timerEvent" value="internal.timer"/>
 		<property name="dmClass" value="edu.usc.ict.nl.dm.fsm.FSMdm"/>
-		<property name="nlgClass" value="edu.usc.ict.nl.nlg.echo.EchoNLG"/>
-		<property name="isStrictNLG" value="false"/>
-		<property name="allowEmptyNLGOutput" value="true"/>
 		<property name="approximatedForwardSearch" value="false"/>
 		<property name="maxSearchLevels" value="10"/>
 		<property name="chatLog" value="./logs/chat-log"/>
 		<property name="systemEventsHaveDuration" value="true"/>
 		
 		<property name="nluConfig" ref="MXNLU"/>
+		<property name="nlgConfig" ref="echoNLG"/>
 
 	<!-- 
        	<property name="vhTopic" value="DEFAULT_SCOPE"/>

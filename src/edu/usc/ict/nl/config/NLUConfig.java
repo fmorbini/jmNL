@@ -84,23 +84,7 @@ public class NLUConfig extends NLConfig {
 		return ret;
 	}
 	
-	private boolean isGetter(String name) { return name.startsWith("get"); }
-	private String getSetter(String name) { return name.replaceFirst("get", "set"); }
-	private void filterMethodsLeavingOnlyGettersAndSetters(Map<String, Method> mTable) {
-		if (mTable!=null) {
-			List<String> toBeRemoved=null;
-			for(String mName:mTable.keySet()) {
-				if (mName!=null && isGetter(mName)) {
-					String sName=getSetter(mName);
-					if (!mTable.containsKey(sName)) {
-						if (toBeRemoved==null) toBeRemoved=new ArrayList<String>();
-						toBeRemoved.add(mName);
-					}
-				}
-			}
-			if (toBeRemoved!=null) for(String k:toBeRemoved) mTable.remove(k);
-		}
-	}
+
 	
 	/** Executable platform */
 	public ExecutablePlatform getExecutablePlatform() {

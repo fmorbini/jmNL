@@ -1,5 +1,7 @@
 package edu.usc.ict.nl.nlg.template;
 
+import edu.usc.ict.nl.config.NLGConfig;
+import edu.usc.ict.nl.util.StringUtils;
 import simplenlg.features.Feature;
 import simplenlg.features.Form;
 import simplenlg.framework.DocumentElement;
@@ -9,10 +11,6 @@ import simplenlg.lexicon.Lexicon;
 import simplenlg.phrasespec.SPhraseSpec;
 import simplenlg.phrasespec.VPPhraseSpec;
 import simplenlg.realiser.english.Realiser;
-import edu.usc.ict.nl.config.NLBusConfig;
-import edu.usc.ict.nl.kb.DialogueKBInterface;
-import edu.usc.ict.nl.util.StringUtils;
-import edu.usc.ict.nl.vhmsg.VHBridge;
 
 public class SimpleNLGTemplateNLG extends TemplatedNLG {
 
@@ -20,16 +18,16 @@ public class SimpleNLGTemplateNLG extends TemplatedNLG {
 	private NLGFactory nlgFactory;
 	private Realiser realiser;
 
-	public SimpleNLGTemplateNLG(NLBusConfig c) {
+	public SimpleNLGTemplateNLG(NLGConfig c) {
 		super(c);
 		lexicon = Lexicon.getDefaultLexicon();
 		nlgFactory = new NLGFactory(lexicon);
 		realiser = new Realiser(lexicon);
 	}
 
-	public Object functionBuildSentence(DialogueKBInterface is,VHBridge vhBridge,String args,boolean simulate) {
-		String sep=args.substring(0, 1);
-		String[] parts=args.split(sep);
+	public Object functionBuildSentence(FunctionArguments args) {
+		String sep=args.stringArg.substring(0, 1);
+		String[] parts=args.stringArg.split(sep);
 		if (parts==null || parts.length<3) return null;
 		else {
 			String subject=parts[1];

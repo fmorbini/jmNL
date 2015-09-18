@@ -38,7 +38,7 @@ public class NLBusConfig extends NLConfig {
 	
 	// vh toolkit
 	protected boolean isVRexpressBasicNLG() {
-		return getNlgClass().equals(VRexpressBasicNLG.class.getCanonicalName());
+		return nlgConfig.getNlgClass().equals(VRexpressBasicNLG.class.getCanonicalName());
 	}
 	
 	//set the root of where to find content stuff (immediate subdirectories of this are the characters)
@@ -83,17 +83,6 @@ public class NLBusConfig extends NLConfig {
 	// REWARD DM specific
 	private boolean approximatedForwardSearch=false;
 	private int maxSearchLevels=10;
-
-	// NLG specific
-	private String nlgClass;
-	private boolean strictNLG=false;
-	private boolean asciiNLG=false;
-	private boolean normalizeBlanksNLG=false;
-	private boolean allowEmptyNLGOutput=true;
-	private boolean displayFormAnswerInNlg=true;
-	private String lfNlgLexiconFile;
-	public String getLfNlgLexiconFile() {return getXLSXContentRoot()+lfNlgLexiconFile;}
-	public void setLfNlgLexiconFile(String file) {this.lfNlgLexiconFile = removeAbsolutePath(file);}
 
 	private String visualizerConfig=null,visualizerClass=null;
 
@@ -149,24 +138,6 @@ public class NLBusConfig extends NLConfig {
 		return ret;
 	}
 	
-	private boolean isGetter(String name) { return name.startsWith("get"); }
-	private String getSetter(String name) { return name.replaceFirst("get", "set"); }
-	private void filterMethodsLeavingOnlyGettersAndSetters(Map<String, Method> mTable) {
-		if (mTable!=null) {
-			List<String> toBeRemoved=null;
-			for(String mName:mTable.keySet()) {
-				if (mName!=null && isGetter(mName)) {
-					String sName=getSetter(mName);
-					if (!mTable.containsKey(sName)) {
-						if (toBeRemoved==null) toBeRemoved=new ArrayList<String>();
-						toBeRemoved.add(mName);
-					}
-				}
-			}
-			if (toBeRemoved!=null) for(String k:toBeRemoved) mTable.remove(k);
-		}
-	}
-
 	public String chatLog;
 	public boolean isLoggingEventsInChatLog = true;
 	
@@ -247,8 +218,7 @@ public class NLBusConfig extends NLConfig {
 	/** nlu and dm class to be used to create nlu and dm instances */
 	public String getDmClass() {return dmClass;}
 	public void setDmClass(String dm) {this.dmClass=dm;}
-	public String getNlgClass() {return nlgClass;}
-	public void setNlgClass(String nlg) {this.nlgClass=nlg;}
+
 	/** dm wrapper */
 	public String getInternalDmClass4VhMsgWrapper() {return internalDmClass4VhMsgWrapper;}
 	public void setInternalDmClass4VhMsgWrapper(String c) {internalDmClass4VhMsgWrapper=c;}
@@ -271,17 +241,6 @@ public class NLBusConfig extends NLConfig {
 	public boolean getAllowNluTraining() {return this.allowNluTraining;}
 	public void setAllowNluTraining(boolean s) {this.allowNluTraining=s;}
 	
-	public final boolean getIsStrictNLG() { return strictNLG; }
-	public final void setIsStrictNLG(boolean s) { this.strictNLG = s; }
-	public final boolean getIsAsciiNLG() { return asciiNLG; }
-	public final void setIsAsciiNLG(boolean s) { this.asciiNLG = s; }
-	public final boolean getIsNormalizeBlanksNLG() { return normalizeBlanksNLG; }
-	public final void setIsNormalizeBlanksNLG(boolean s) { this.normalizeBlanksNLG = s; }
-	public boolean getDisplayFormAnswerInNlg() {return displayFormAnswerInNlg;}
-	public void setDisplayFormAnswerInNlg(boolean s) {this.displayFormAnswerInNlg=s;}
-	public boolean getAllowEmptyNLGOutput() {return allowEmptyNLGOutput;}
-	public void setAllowEmptyNLGOutput(boolean allowEmptyNLGOutput) {this.allowEmptyNLGOutput = allowEmptyNLGOutput;}
-
 	public String getDefaultCharacter() {return defaultCharacter;}
 	public void setDefaultCharacter(String cn) {this.defaultCharacter = cn;}
 
@@ -377,6 +336,7 @@ public class NLBusConfig extends NLConfig {
 		WIN_EXE_CONFIG.setDefaultCharacter("Bill_Ford_PB");
 		WIN_EXE_CONFIG.setStemmerClass("edu.usc.ict.nl.stemmer.KStemmer");
 		WIN_EXE_CONFIG.nluConfig=NLUConfig.WIN_EXE_CONFIG;
+		WIN_EXE_CONFIG.nlgConfig=NLGConfig.WIN_EXE_CONFIG;
 		WIN_EXE_CONFIG.setSystemUtterances("system-utterances.xlsx");
 		WIN_EXE_CONFIG.setSystemForms("forms.xlsx");
 	}

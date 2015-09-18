@@ -11,11 +11,12 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceInterruptedEvent;
 import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.utils.LogConfig;
 
 public abstract class NLG implements NLGInterface {
-	private NLBusConfig configuration;
+	private NLGConfig configuration;
 	private NLBusInterface nlModule;
 
 	protected static final Logger logger = Logger.getLogger(NLG.class.getName());
@@ -25,11 +26,11 @@ public abstract class NLG implements NLGInterface {
 			PropertyConfigurator.configure( log4Jresource );
 	}
 
-	public NLG(NLBusConfig c) {
+	public NLG(NLGConfig c) {
 		this.configuration=c;
 	}
 
-	public NLBusConfig getConfiguration() {return configuration;}
+	public NLGConfig getConfiguration() {return configuration;}
 	public NLBusInterface getNLModule() {return nlModule;}
 	public void setNLModule(NLBusInterface nl) {this.nlModule=nl;}
 	
@@ -60,5 +61,9 @@ public abstract class NLG implements NLGInterface {
 		Long sessionID=ev.getSessionID();
 		DM dm=nlModule.getPolicyDMForSession(sessionID);
 		dm.handleEvent(new SystemUtteranceInterruptedEvent(ev.getPayload().getDMEventName(), sessionID,ev.getSourceEvent()));
+	}
+
+	@Override
+	public void kill() throws Exception {
 	}
 }

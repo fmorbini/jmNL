@@ -1,6 +1,10 @@
 package edu.usc.ict.nl.config;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import edu.usc.ict.nl.util.StringUtils;
 
@@ -11,17 +15,23 @@ public abstract class NLConfig {
 	// try to automatically get and set those properties 
 	public NLBusConfig nlBusConfig=null;
 	public NLUConfig nluConfig=null;
+	public NLGConfig nlgConfig=null;
 
 	public void setNluConfig(NLUConfig nluConfig) {
 		this.nluConfig = nluConfig;
 		if (this instanceof NLBusConfig) this.nluConfig.nlBusConfig=(NLBusConfig) this;
 	}
-	
+	public void setNlgConfig(NLGConfig nlgConfig) {
+		this.nlgConfig = nlgConfig;
+		if (this instanceof NLBusConfig) this.nlgConfig.nlBusConfig=(NLBusConfig) this;
+	}
+
 	public NLConfig() {
 		if (this instanceof NLUConfig) nluConfig=(NLUConfig) this;
+		else if (this instanceof NLGConfig) nlgConfig=(NLGConfig) this;
 		else if (this instanceof NLBusConfig) nlBusConfig=(NLBusConfig) this;
 	}
-	
+
 	/** Executable platform */
 	public static enum ExecutablePlatform {
 		UNKNOWN, MACOSX, LINUXi386, WIN32;
@@ -49,7 +59,7 @@ public abstract class NLConfig {
 			result = ExecutablePlatform.WIN32;
 		return result;
 	}
-	
+
 	protected String removeAbsolutePath(String fileName) {
 		if (!StringUtils.isEmptyString(fileName)) {
 			File f=new File(fileName);
@@ -57,13 +67,39 @@ public abstract class NLConfig {
 		}
 		return fileName;
 	}
-	
+
 	public boolean checkLinking() {
-		if (nluConfig!=null) return nluConfig.nlBusConfig==nlBusConfig;
-		if (nlBusConfig!=null) return nlBusConfig.nluConfig==nluConfig;
-		else return false;
+		if (this instanceof NLBusConfig) {
+			if (nluConfig.nlBusConfig!=nlBusConfig) return false;
+			if (nlgConfig.nlBusConfig!=nlBusConfig) return false;
+		} else if (this instanceof NLUConfig) {
+			if (nlBusConfig.nluConfig!=nluConfig) return false;
+		} else if (this instanceof NLGConfig) {
+			if (nlBusConfig.nlgConfig!=nlgConfig) return false;
+		} else {
+			return false;
+		}
+		return true;
 	}
-	
+
+	protected boolean isGetter(String name) { return name.startsWith("get"); }
+	protected String getSetter(String name) { return name.replaceFirst("get", "set"); }
+	protected void filterMethodsLeavingOnlyGettersAndSetters(Map<String, Method> mTable) {
+		if (mTable!=null) {
+			List<String> toBeRemoved=null;
+			for(String mName:mTable.keySet()) {
+				if (mName!=null && isGetter(mName)) {
+					String sName=getSetter(mName);
+					if (!mTable.containsKey(sName)) {
+						if (toBeRemoved==null) toBeRemoved=new ArrayList<String>();
+						toBeRemoved.add(mName);
+					}
+				}
+			}
+			if (toBeRemoved!=null) for(String k:toBeRemoved) mTable.remove(k);
+		}
+	}
+
 	@Override
 	public NLConfig clone() throws CloneNotSupportedException {
 		assert(this.checkLinking());
@@ -78,6 +114,18 @@ public abstract class NLConfig {
 			assert(ret.checkLinking());
 			assert(this.checkLinking());
 			return ret;
+		}
+		else if (this instanceof NLGConfig) {
+			NLGConfig ret=nlgConfig.cloneObject();
+			if (nlBusConfig!=null) {
+				NLBusConfig retNlBusConfig = nlBusConfig.cloneObject();
+				ret.nlBusConfig=retNlBusConfig;
+				retNlBusConfig.nlgConfig=ret;
+			}
+
+			assert(ret.checkLinking());
+			assert(this.checkLinking());
+			return ret;
 		} else if (this instanceof NLBusConfig) {
 			NLBusConfig ret=nlBusConfig.cloneObject();
 			if (nluConfig!=null) {
@@ -85,12 +133,17 @@ public abstract class NLConfig {
 				ret.nluConfig=retNLUConfig;
 				retNLUConfig.nlBusConfig=ret;
 			}
-			
+			if (nlgConfig!=null) {
+				NLGConfig retNLGConfig = nlgConfig.cloneObject();
+				ret.nlgConfig=retNLGConfig;
+				retNLGConfig.nlBusConfig=ret;
+			}
+
 			assert(ret.checkLinking());
 			assert(this.checkLinking());
 			return ret;
 		}
 		else throw new CloneNotSupportedException("invalid type to clone: "+this.getClass()); 
 	}
-	
+
 }

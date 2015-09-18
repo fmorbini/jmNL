@@ -8,7 +8,7 @@ import edu.usc.ict.nl.bus.VRSpeakSpokeTrackerInterface;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.vhmsg.VHBridge;
@@ -21,16 +21,16 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	private Map<String,NLGEvent> activeMessages;
 	protected VHBridge vhBridge;
 	
-	public VRexpressBasicNLG(NLBusConfig c) {
+	public VRexpressBasicNLG(NLGConfig c) {
 		super(c);
 		try {
-			String activeMQserver=c.getVhServer();
-			String activeMQtopic=c.getVhTopic();
+			String activeMQserver=c.nlBusConfig.getVhServer();
+			String activeMQtopic=c.nlBusConfig.getVhTopic();
 			if (!StringUtils.isEmptyString(activeMQserver) && !StringUtils.isEmptyString(activeMQtopic)) {
-				vhBridge=new VHBridge(c.getVhServer(), c.getVhTopic());
+				vhBridge=new VHBridge(c.nlBusConfig.getVhServer(), c.nlBusConfig.getVhTopic());
 			}
 			activeMessages=new HashMap<String, NLGEvent>();
-			characterName=getConfiguration().getVhSpeaker();
+			characterName=getConfiguration().nlBusConfig.getVhSpeaker();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -9,14 +9,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
-
 import edu.usc.ict.nl.bus.NLBusInterface;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
-import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
@@ -36,7 +34,7 @@ public class DirectableChar extends EchoNLG {
 	private static final String base="object";
 	private static int objectCounter=1;
 
-	public DirectableChar(NLBusConfig c) {
+	public DirectableChar(NLGConfig c) {
 		super(c);
 		this.msg=new Messanger();
 	}
@@ -327,7 +325,7 @@ public class DirectableChar extends EchoNLG {
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-		DirectableChar dc = new DirectableChar(NLBusConfig.WIN_EXE_CONFIG);
+		DirectableChar dc = new DirectableChar(NLGConfig.WIN_EXE_CONFIG);
 		System.out.println(dc.getListOfObjectsInWorld());
 		System.out.println(Arrays.toString(dc.getPositionForObject("object1")));
 	}

@@ -20,4 +20,6 @@ public interface NLGInterface {
 	 * @throws Exception
 	 */
 	public void reloadData() throws Exception;
+
+	public void kill() throws Exception;
 }
