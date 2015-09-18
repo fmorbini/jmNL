@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
+import edu.usc.ict.nl.nlg.StringWithProperties;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.vhmsg.VHBridge;
@@ -55,7 +56,7 @@ public class TemplatedNLG extends EchoNLG {
 	public Object functionGetSA(FunctionArguments args) {
 		if (!args.simulate) {
 			try {
-				return getTextForSpeechAct(args.stringArg, args.is, false);
+				return getTextForSpeechAct(args.sessionId,args.stringArg, args.is, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -63,27 +64,26 @@ public class TemplatedNLG extends EchoNLG {
 		return null;
 	}
 	
-	/**
-	 * this function uses
-	 */
 	@Override
-	protected String getTextForSpeechAct(String sa, DialogueKBInterface is,boolean simulate) throws Exception {
-		String text=super.getTextForSpeechAct(sa, is, simulate);
-		System.out.println(sa+" "+text);
-		List<Function> functions = getFunctions(text);
-		text=applyFunctions(text,functions,is,sa,simulate);
-		return text;
+	protected String processPickedLine(StringWithProperties line, Long sessionId, String sa, DialogueKBInterface is,boolean simulate) throws Exception {
+		if (line!=null) {
+			String text=line.getText();
+			List<Function> functions = getFunctions(text);
+			text=applyFunctions(sessionId,text,functions,is,sa,simulate);
+			return text;
+		}
+		return null;
 	}
 
 
-	private String applyFunctions(String text, List<Function> functions, DialogueKBInterface is, String sa,boolean simulate) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private String applyFunctions(Long sessionId,String text, List<Function> functions, DialogueKBInterface is, String sa,boolean simulate) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		if (functions!=null) {
 			for(Function x:functions) x.reset();
 			for(Function f:functions) {
 				Method m=f.getMethod();
 				if (m!=null) {
 					String functionArgs=f.getArguments(text);
-					Object obj=m.invoke(this,new FunctionArguments(is,vhBridge,functionArgs,sa,simulate));
+					Object obj=m.invoke(this,new FunctionArguments(sessionId,is,vhBridge,functionArgs,sa,simulate));
 					String replacement=getReplacement(obj);
 					if (f.getRequiredOutput() && StringUtils.isEmptyString(replacement)) {
 						logger.warn("function "+f+" returned null and requires non-null output. Cancelling entire text.");

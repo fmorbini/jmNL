@@ -459,7 +459,7 @@ public class BuildTrainingData {
 	/* return a list of pair in which the first is the system utterance immediately preceeding the user utterance that is the second of the pair.
 	 * 
 	 */
-	public ArrayList<Pair<String,String>> getSystemUserPairsFromExcelSessionsExport(String file,int skip) throws InvalidFormatException, FileNotFoundException, IOException {
+	public ArrayList<Pair<String,String>> getSystemUserPairsFromExcelSessionsExport(String file,int skip) throws Exception {
 		ArrayList<Pair<String,String>>ret=new ArrayList<Pair<String,String>>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file, 0);
 		if (sheet != null)

@@ -127,13 +127,13 @@ public class ExcelUtils {
 		return ret;
 	}
 	// user-utterances excel file
-	public static Map<String,List<String>> extractMappingBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn) throws InvalidFormatException, FileNotFoundException, IOException {
+	public static Map<String,List<String>> extractMappingBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn) throws Exception {
 		return extractMappingBetweenTheseTwoColumns(file, skip, keyColumn, valueColumn, false,true);
 	}
-	public static Map<String,List<String>> extractMappingBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn,boolean noAutofillLabels) throws InvalidFormatException, FileNotFoundException, IOException {
+	public static Map<String,List<String>> extractMappingBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn,boolean noAutofillLabels) throws Exception {
 		return extractMappingBetweenTheseTwoColumns(file, skip, keyColumn, valueColumn, noAutofillLabels,true);
 	}
-	public static Map<String,List<String>> extractMappingBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn,boolean noAutofillLabels,boolean cleanupSpaces) throws InvalidFormatException, FileNotFoundException, IOException {
+	public static Map<String,List<String>> extractMappingBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn,boolean noAutofillLabels,boolean cleanupSpaces) throws Exception {
 		Map<String,List<String>> ret=new LinkedHashMap<String, List<String>>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file, 0);
 		if (sheet != null)
@@ -168,14 +168,19 @@ public class ExcelUtils {
 		}
 		return ret;
 	}
-	public static List<String> extractRowAndColumnWiseData(String file,int sheetNum,int skip,int start,int end,boolean cleanupSpaces,boolean skipBlanks) throws InvalidFormatException, FileNotFoundException, IOException {
-		List<String> ret=new ArrayList<String>();
+	public static List<String> extractRowAndColumnWiseData(String file,int sheetNum,int skip,int start,int end,boolean cleanupSpaces,boolean skipBlanks) throws Exception {
+		Map<Integer, String> ret=extractRowAndColumnWiseDataWithColumns(file, sheetNum, skip, start, end, cleanupSpaces, skipBlanks);
+		if (ret!=null) return new ArrayList<String>(ret.values());
+		return null;
+	}
+	public static Map<Integer,String> extractRowAndColumnWiseDataWithColumns(String file,int sheetNum,int rownum,int start,int end,boolean cleanupSpaces,boolean skipBlanks) throws Exception {
+		Map<Integer,String> ret=new HashMap<Integer,String>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file, sheetNum);
 		if (sheet != null)
 		{
 			for(Iterator<Row> rowIter = sheet.rowIterator(); rowIter.hasNext(); ) {
 				Row row = rowIter.next();
-				if (row.getRowNum()>skip) {
+				if (row.getRowNum()==rownum) {
 					for(Iterator<Cell> cellIter = row.cellIterator(); cellIter.hasNext(); ) {
 						Cell cell = cellIter.next();
 						if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
@@ -184,17 +189,18 @@ public class ExcelUtils {
 								String tmp=cell.getStringCellValue();
 								if (cleanupSpaces) tmp=StringUtils.cleanupSpaces(tmp);
 								if (!skipBlanks || !StringUtils.isEmptyString(tmp)) {
-									ret.add(tmp);
+									ret.put(column,tmp);
 								}
 							}
 						}
 					}
+					break;
 				}
 			}
 		}
 		return ret;
 	}
-	public static Map<Integer,List<String>> extractRowsAndColumnWiseData(String file,int sheetNum,int skip,int start,int end,boolean cleanupSpaces,boolean skipBlanks) {
+	public static Map<Integer,List<String>> extractRowsAndColumnWiseData(String file,int sheetNum,int skip,int start,int end,boolean cleanupSpaces,boolean skipBlanks) throws Exception {
 		Map<Integer,List<String>> ret=null;
 		Sheet sheet = getSpreadSheet(file, sheetNum);
 		if (sheet != null)
@@ -224,7 +230,7 @@ public class ExcelUtils {
 		}
 		return ret;
 	}
-	public static List<Pair<String,String>> extractListOfPairsBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn,boolean noAutofillLabels,boolean cleanupSpaces) throws InvalidFormatException, FileNotFoundException, IOException {
+	public static List<Pair<String,String>> extractListOfPairsBetweenTheseTwoColumns(String file,int skip,int keyColumn,int valueColumn,boolean noAutofillLabels,boolean cleanupSpaces) throws Exception {
 		List<Pair<String,String>> ret=new ArrayList<Pair<String,String>>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file, 0);
 		if (sheet != null)
@@ -274,14 +280,9 @@ public class ExcelUtils {
 		}
 		return null;
 	}
-	public static Sheet getSpreadSheet(String file, int sheetIndex) {
-		try {
-			Workbook wb = WorkbookFactory.create(new FileInputStream(file));
-			return wb.getSheetAt(sheetIndex);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+	public static Sheet getSpreadSheet(String file, int sheetIndex) throws Exception {
+		Workbook wb = WorkbookFactory.create(new FileInputStream(file));
+		return wb.getSheetAt(sheetIndex);
 	}
 	
 	public static XSSFWorkbook buildBaseWorkbook(String[] headers, String worksheetName) {
@@ -434,7 +435,7 @@ public class ExcelUtils {
 		return ret;
 	}
 	
-	public static Map<String,List<String>> generateSasoLightTemplateFromSystemUtt(String file,int skip) throws InvalidFormatException, FileNotFoundException, IOException {
+	public static Map<String,List<String>> generateSasoLightTemplateFromSystemUtt(String file,int skip) throws Exception {
 		Map<String,List<String>> ret=new LinkedHashMap<String, List<String>>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file, 0);
 		if (sheet != null)
@@ -494,7 +495,7 @@ public class ExcelUtils {
 		}
 	}
 
-	public static List<String> readRow(File file,int rowNum,int startCol,int endCol) throws InvalidFormatException, FileNotFoundException, IOException {
+	public static List<String> readRow(File file,int rowNum,int startCol,int endCol) throws Exception {
 		List<String> ret=new ArrayList<String>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file.getAbsolutePath(), 0);
 

@@ -5,6 +5,9 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.usc.ict.nl.nlg.picker.NLGPickerI;
+import edu.usc.ict.nl.nlg.picker.ShuffleAndLeastRecent;
+
 public class NLGConfig extends NLConfig {
 	// NLG specific
 	private String nlgClass;
@@ -14,6 +17,8 @@ public class NLGConfig extends NLConfig {
 	private boolean allowEmptyNLGOutput=true;
 	private boolean displayFormAnswerInNlg=true;
 	private String lfNlgLexiconFile;
+	private NLGPickerI picker=new ShuffleAndLeastRecent();
+	
 	public String getLfNlgLexiconFile() {
 		if (nlBusConfig!=null)
 			return nlBusConfig.getXLSXContentRoot()+lfNlgLexiconFile;
@@ -35,6 +40,13 @@ public class NLGConfig extends NLConfig {
 	public boolean getAllowEmptyNLGOutput() {return allowEmptyNLGOutput;}
 	public void setAllowEmptyNLGOutput(boolean allowEmptyNLGOutput) {this.allowEmptyNLGOutput = allowEmptyNLGOutput;}
 
+	public void setPicker(NLGPickerI picker) {
+		this.picker = picker;
+	}
+	public NLGPickerI getPicker() {
+		return picker;
+	}
+	
 	public NLGConfig cloneObject() {
 		NLGConfig ret=null;
 		try {

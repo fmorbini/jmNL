@@ -9,12 +9,14 @@ public class FunctionArguments {
 	public final String stringArg;
 	public boolean simulate=false;
 	public final String speechAct;
+	public Long sessionId;
 	
-	public FunctionArguments(final DialogueKBInterface is,final VHBridge vhBridge,final String stringArg,final String speechAct,final boolean simulate) {
+	public FunctionArguments(Long sessionId,final DialogueKBInterface is,final VHBridge vhBridge,final String stringArg,final String speechAct,final boolean simulate) {
 		this.is=is;
 		this.vhBridge=vhBridge;
 		this.stringArg=stringArg;
 		this.simulate=simulate;
 		this.speechAct=speechAct;
+		this.sessionId=sessionId;
 	}
 }

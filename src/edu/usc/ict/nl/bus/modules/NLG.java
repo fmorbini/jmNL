@@ -18,7 +18,10 @@ import edu.usc.ict.nl.utils.LogConfig;
 public abstract class NLG implements NLGInterface {
 	private NLGConfig configuration;
 	private NLBusInterface nlModule;
-
+	
+	public static final String PROPERTY_ROW = "row";
+	public static final String PROPERTY_URL = "url";
+	
 	protected static final Logger logger = Logger.getLogger(NLG.class.getName());
 	static {
 		URL log4Jresource=LogConfig.findLogConfig("src","log4j.properties", false);
@@ -28,6 +31,7 @@ public abstract class NLG implements NLGInterface {
 
 	public NLG(NLGConfig c) {
 		this.configuration=c;
+		getConfiguration().getPicker().setNLG(this);
 	}
 
 	public NLGConfig getConfiguration() {return configuration;}

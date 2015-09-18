@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -23,7 +24,6 @@ import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.bus.modules.NLG;
-import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface;
@@ -33,13 +33,14 @@ import edu.usc.ict.nl.kb.template.PrimaryTemplateDefinitionException;
 import edu.usc.ict.nl.kb.template.TemplateProcessing;
 import edu.usc.ict.nl.kb.template.TemplateText;
 import edu.usc.ict.nl.kb.template.util.TemplateVerifier;
+import edu.usc.ict.nl.nlg.StringWithProperties;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.ExcelUtils;
 
 public class EchoNLG extends NLG {
 
-	Map<String,List<String>> validSpeechActs;
+	Map<String,List<StringWithProperties>> validSpeechActs;
 	Map<String,List<Pair<String,String>>> formsResponses=null;
 	Map<String,List<Pair<String,String>>> resources;
 	
@@ -62,11 +63,11 @@ public class EchoNLG extends NLG {
 
 	private void loadSystemUtterances() throws Exception {
 		NLGConfig config=getConfiguration();
-		validSpeechActs=ExcelUtils.extractMappingBetweenTheseTwoColumns(config.nlBusConfig.getSystemUtterances(), 0, 4, 5);
+		validSpeechActs=extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getSystemUtterances(), 0, 4, 5,6,-1,true);
 		if (!StringUtils.isEmptyString(config.nlBusConfig.getNvbs())) {
 			File nvbFile=new File(config.nlBusConfig.getNvbs());
 			if (nvbFile.exists()) {
-				Map<String, List<String>> nvb = ExcelUtils.extractMappingBetweenTheseTwoColumns(config.nlBusConfig.getNvbs(), 0, 4, 5);
+				Map<String, List<StringWithProperties>> nvb = extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getNvbs(), 0, 4, 5,6,-1,true);
 				validSpeechActs.putAll(nvb);
 			}
 		}
@@ -74,34 +75,85 @@ public class EchoNLG extends NLG {
 		if (getConfiguration().getIsNormalizeBlanksNLG()) normalizeBLANKS(validSpeechActs);
 	}
 	
-	public void normalizeToASCII(Map<String,List<String>> utterances) {
+	public static Map<String,List<StringWithProperties>> extractMappingBetweenTheseTwoColumnsWithProperties(String file,int skip,int keyColumn,int valueColumn,int startPropertyColumn,int endPropertyColumn,boolean cleanupSpaces) throws Exception {
+		Map<String,List<StringWithProperties>> ret=new LinkedHashMap<String, List<StringWithProperties>>();
+		Sheet sheet = ExcelUtils.getSpreadSheet(file, 0);
+		if (sheet != null)
+		{
+			String lastKey="";
+			Map<Integer, String> ps=null;
+			for(Iterator<Row> rowIter = sheet.rowIterator(); rowIter.hasNext(); ) {
+				Row row = rowIter.next();
+				int rownum=row.getRowNum();
+				// skip first row
+				if (rownum>skip) {
+					for(Iterator<Cell> cellIter = row.cellIterator(); cellIter.hasNext(); ) {
+						Cell cell = cellIter.next();
+						if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+							int column=cell.getColumnIndex();
+							if (column==keyColumn) {
+								String tmp=cell.getStringCellValue();
+								if (cleanupSpaces) tmp=StringUtils.cleanupSpaces(tmp);
+								if (!StringUtils.isEmptyString(tmp)) lastKey=tmp;
+							} else if (column==valueColumn) {
+								String value=cell.getStringCellValue();
+								if (cleanupSpaces) value=StringUtils.cleanupSpaces(value);
+								if (!StringUtils.isEmptyString(value)) {
+									List<StringWithProperties> list = ret.get(lastKey);
+									if (list==null) ret.put(lastKey,list=new ArrayList<StringWithProperties>());
+									Map<Integer,String> lps = ExcelUtils.extractRowAndColumnWiseDataWithColumns(file, 0, rownum, startPropertyColumn, endPropertyColumn, true, true);
+									StringWithProperties rv=new StringWithProperties();
+									rv.setText(value);
+									if (ps!=null && lps!=null) {
+										for(Integer pc:ps.keySet()) {
+											String pv=lps.get(pc);
+											String pname=ps.get(pc);
+											if (!StringUtils.isEmptyString(pv) && !StringUtils.isEmptyString(pname)) {
+												rv.setProperty(pname,pv);
+											}
+										}
+									}
+									rv.setProperty(NLG.PROPERTY_ROW,rownum);
+									list.add(rv);
+								}
+							}
+						}
+					}
+				} else {
+					ps = ExcelUtils.extractRowAndColumnWiseDataWithColumns(file, 0, 0, startPropertyColumn, endPropertyColumn, true, true);
+					if (ps!=null && endPropertyColumn<0) for(Integer c:ps.keySet()) if (c>endPropertyColumn) endPropertyColumn=c;
+				}
+			}
+		}
+		return ret;
+	}
+
+	public void normalizeToASCII(Map<String,List<StringWithProperties>> utterances) {
 		if (utterances!=null) {
-			for(List<String> utts:utterances.values()) {
+			for(List<StringWithProperties> utts:utterances.values()) {
 				if (utts!=null) {
-					ListIterator<String> it=utts.listIterator();
-					while(it.hasNext()) {
-						String i=it.next();
-						String ni=StringUtils.flattenToAscii(i);
-						if (!i.equals(ni)) {
-							it.set(ni);
-							logger.warn("normalized to ASCII in line: '"+i+"' to '"+ni+"'");
+					for(StringWithProperties i:utts) {
+						String ci=i.getText();
+						String ni=StringUtils.flattenToAscii(ci);
+						if (!ci.equals(ni)) {
+							i.setText(ni);
+							logger.warn("normalized to ASCII in line("+i.getProperty(NLG.PROPERTY_ROW)+"): '"+i+"' to '"+ni+"'");
 						}
 					}
 				}
 			}
 		}
 	}
-	public void normalizeBLANKS(Map<String,List<String>> utterances) {
+	public void normalizeBLANKS(Map<String,List<StringWithProperties>> utterances) {
 		if (utterances!=null) {
-			for(List<String> utts:utterances.values()) {
+			for(List<StringWithProperties> utts:utterances.values()) {
 				if (utts!=null) {
-					ListIterator<String> it=utts.listIterator();
-					while(it.hasNext()) {
-						String i=it.next();
-						String ni=StringUtils.cleanupSpaces(i);
-						if (!i.equals(ni)) {
-							it.set(ni);
-							logger.warn("normalized BLANKS in line: '"+i+"' to '"+ni+"'");
+					for(StringWithProperties i:utts) {
+						String ci=i.getText();
+						String ni=StringUtils.cleanupSpaces(ci);
+						if (!ci.equals(ni)) {
+							i.setText(ni);
+							logger.warn("normalized BLANKS in line("+i.getProperty(NLG.PROPERTY_ROW)+"): '"+i+"' to '"+ni+"'");
 						}
 					}
 				}
@@ -139,7 +191,7 @@ public class EchoNLG extends NLG {
     	DM dm = (nl!=null)?nl.getPolicyDMForSession(sessionID):null;
     	DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
 
-		String text=getTextForSpeechAct(evName,is,simulate);
+		String text=getTextForSpeechAct(sessionID,evName,is,simulate);
 		if (StringUtils.isEmptyString(text)) {
 			if (!getConfiguration().getAllowEmptyNLGOutput()) return null;
 		}
@@ -180,42 +232,36 @@ public class EchoNLG extends NLG {
 
 	/**
 	 * returns the text to be spoken for the given speech act generated by the dm and the given information state
+	 * @param sessionID 
 	 * @param sa
 	 * @param is
 	 * @param simulate
 	 * @return
 	 * @throws Exception
 	 */
-	protected String getTextForSpeechAct(String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+	protected String getTextForSpeechAct(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+		StringWithProperties line=pickLineForSpeechAct(sessionID, sa, is, simulate);
+		String text=processPickedLine(line, sessionID, sa, is, simulate);
+		return text;
+	}
+	protected StringWithProperties pickLineForSpeechAct(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
 		if (validSpeechActs!=null && validSpeechActs.containsKey(sa)) {
 
-			List<String> ts=validSpeechActs.get(sa);
+			List<StringWithProperties> ts=validSpeechActs.get(sa);
 			// in simulate mode, do template resolution on all paraphrases.
 			if (simulate && (ts!=null) && !ts.isEmpty()) {
 				TemplateVerifier tv=new TemplateVerifier();
-				for(String t:ts) {
+				for(StringWithProperties t:ts) {
 					try {
-						if (!tv.verify(t)) throw new Exception("Error in (S) templates in: '"+t+"'");
+						if (!tv.verify(t.getText())) throw new Exception("Error in (S) templates in: '"+t+"'");
 					} catch (Exception e) {
 						throw new Exception("Error in (S) templates in: '"+t+"'");
 					}
 				}
 			}
-			String text=(String) NLBusBase.pickEarliestUsedOrStillUnused(null, ts);
-			//String text=(String) FunctionalLibrary.pickRandomElement(ts);
-
-			if (!StringUtils.isEmptyString(text)) {
-				text=resolveTemplates(text, is);
-			}
-			if (formsResponses!=null && formsResponses.containsKey(sa)) {
-				text+="\n";
-				for(Pair<String,String> rst:formsResponses.get(sa)) {
-					String responseText=rst.getSecond();
-					responseText=resolveTemplates(responseText, is);
-					text+="\n"+rst.getFirst()+": "+responseText;
-				}
-			}
-			return text;
+			StringWithProperties line=(StringWithProperties)getConfiguration().getPicker().pick(sessionID, sa,ts);
+			//StringWithProperties line=(StringWithProperties) NLBusBase.pickEarliestUsedOrStillUnused(sessionID, ts);
+			return line;
 		} else if (resources!=null && resources.containsKey(sa)) {
 			List<Pair<String,String>> rs=resources.get(sa);
 			if (simulate && (rs!=null) && !rs.isEmpty()) {
@@ -232,23 +278,50 @@ public class EchoNLG extends NLG {
 				}
 			}
 			Pair<String,String> r=(Pair<String, String>) NLBusBase.pickEarliestUsedOrStillUnused(null, rs);
-			//Pair<String,String> r=(Pair<String, String>) FunctionalLibrary.pickRandomElement(rs);
-			String text="";
-			if (r!=null) {
-				String rt=r.getFirst();
-				if (!StringUtils.isEmptyString(rt)) text+=resolveTemplates(rt, is)+"\n";
-				text+=r.getSecond();
-			}
-			return text;
-		} else return null;
+			StringWithProperties ret = new StringWithProperties();
+			ret.setText(r.getFirst());
+			ret.setProperty(NLG.PROPERTY_URL, r.getSecond());
+			return ret;
+		}
+		return null;
 	}
-	
+	protected String processPickedLine(StringWithProperties line,Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+		if (line!=null) {
+			if (validSpeechActs!=null && validSpeechActs.containsKey(sa)) {
+				String text=line.getText();
+				//String text=(String) FunctionalLibrary.pickRandomElement(ts);
+
+				if (!StringUtils.isEmptyString(text)) {
+					text=resolveTemplates(text, is);
+				}
+				if (formsResponses!=null && formsResponses.containsKey(sa)) {
+					text+="\n";
+					for(Pair<String,String> rst:formsResponses.get(sa)) {
+						String responseText=rst.getSecond();
+						responseText=resolveTemplates(responseText, is);
+						text+="\n"+rst.getFirst()+": "+responseText;
+					}
+				}
+				return text;
+			} else if (resources!=null && resources.containsKey(sa)) {
+				String text="";
+				if (line!=null) {
+					String rt=line.getText();
+					if (!StringUtils.isEmptyString(rt)) text+=resolveTemplates(rt, is)+"\n";
+					text+=line.getProperty(NLG.PROPERTY_URL);
+				}
+				return text;
+			}
+		}
+		return null;
+	}
+
 	private static enum FormExtractionState {QUESTION,ANSWER};
 	// question sa -> pair<response sa, sasponse text>
-	public static Map<String, List<Pair<String,String>>> getFormsResponses(String file) throws InvalidFormatException, FileNotFoundException, IOException {
+	public static Map<String, List<Pair<String,String>>> getFormsResponses(String file) throws Exception {
 		return getFormsResponses(file, 0);
 	}
-	public static Map<String, List<Pair<String,String>>> getFormsResponses(String file,int skip) throws InvalidFormatException, FileNotFoundException, IOException {
+	public static Map<String, List<Pair<String,String>>> getFormsResponses(String file,int skip) throws Exception {
 		HashMap<String,List<Pair<String,String>>> ret=new HashMap<String, List<Pair<String,String>>>();
 		Sheet sheet = null;
 		sheet=ExcelUtils.getSpreadSheet(file, 0);
@@ -299,7 +372,7 @@ public class EchoNLG extends NLG {
 		return ret;
 	}
 	
-	public Map<String, List<Pair<String,String>>> getResources(String file,int skip) throws InvalidFormatException, FileNotFoundException, IOException {
+	public Map<String, List<Pair<String,String>>> getResources(String file,int skip) throws Exception {
 		HashMap<String, List<Pair<String,String>>> ret=new HashMap<String, List<Pair<String,String>>>();
 		Sheet sheet = null;
 		sheet=ExcelUtils.getSpreadSheet(file, 0);
@@ -356,9 +429,9 @@ public class EchoNLG extends NLG {
 	@Override
 	public void reloadData() throws Exception {
 		logger.info("re-loading data.");
-		try {loadSystemUtterances();}catch (Exception e) {e.printStackTrace();}
-		try {loadSystemForms();}catch (Exception e) {e.printStackTrace();}
-		try {loadSystemResources();}catch (Exception e) {e.printStackTrace();}
+		try {loadSystemUtterances();}catch (Exception e) {logger.error("error while reloading system utterance: "+e.getMessage());}
+		try {loadSystemForms();}catch (Exception e) {logger.error("error while reloading system forms: "+e.getMessage());}
+		try {loadSystemResources();}catch (Exception e) {logger.error("error while reloading system resources: "+e.getMessage());}
 		logger.info("done loading data.");
 	}
 }

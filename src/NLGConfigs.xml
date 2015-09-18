@@ -18,8 +18,16 @@
 		<property name="isNormalizeBlanksNLG" value="false"/>
 		<property name="allowEmptyNLGOutput" value="true"/>
 		<property name="displayFormAnswerInNlg" value="false"/>
+		<property name="picker">
+			<list>
+				<ref bean="shuffle_and_least_recent"/>
+			</list>
+		</property>
+		
 	</bean>
 	<bean id="echoNLG" parent="echoNLG">
 		<property name="nlgClass" value="edu.usc.ict.nl.nlg.template.TemplatedNLG"/>
+	</bean>
+	<bean id="shuffle_and_least_recent" class="edu.usc.ict.nl.nlg.picker.ShuffleAndLeastRecent">
 	</bean>
 </beans>

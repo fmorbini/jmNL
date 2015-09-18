@@ -260,14 +260,16 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		setDisplayAccordingToState();
 	}
 
-	public ChatInterface(NLBus nl) throws Exception {
+	public ChatInterface(NLBus nl) {
 		super(new GridBagLayout());
 		nlModule=nl;
 		nlModule.addBusListener(this);
 		NLBusConfig config=nlModule.getConfiguration();
 		_instance=this;
 
-		formsResponses = EchoNLG.getFormsResponses(config.getSystemForms());
+		try {
+			formsResponses = EchoNLG.getFormsResponses(config.getSystemForms());
+		} catch (Exception e) {NLBus.logger.error("Error while loading form responses in chat: "+e.getMessage());}
 
 		//Create the list and put it in a scroll pane.
 		JTextPane list = new JTextPane();
@@ -338,8 +340,10 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		input.addKeyListener(this);
 		list.addKeyListener(this);
 
-		feedback=new Feedback(config);
-		if (feedback.hasFeedback()) {
+		try {
+			feedback=new Feedback(config);
+		} catch (Exception e) {e.printStackTrace();}
+		if (feedback!=null && feedback.hasFeedback()) {
 			buttonPane.add(sendFeedback=new JButton(leaveFeedback));
 			sendFeedback.setAlignmentX(Component.LEFT_ALIGNMENT);
 			JEditorPane feedbackEditorPane=feedback.getEditorPane();
@@ -358,7 +362,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		c.anchor=GridBagConstraints.PAGE_START;
 		c.fill=GridBagConstraints.BOTH;
 		add(listScrollPane,c);
-		if (feedback.hasFeedback()) {
+		if (feedback!=null && feedback.hasFeedback()) {
 			c = new GridBagConstraints();
 			c.gridx = 0;
 			c.gridy = 0;
