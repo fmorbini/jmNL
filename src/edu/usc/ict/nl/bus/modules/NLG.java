@@ -1,6 +1,8 @@
 package edu.usc.ict.nl.bus.modules;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -10,9 +12,9 @@ import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceInterruptedEvent;
-import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
+import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.utils.LogConfig;
 
 public abstract class NLG implements NLGInterface {
@@ -20,6 +22,8 @@ public abstract class NLG implements NLGInterface {
 	private NLBusInterface nlModule;
 	
 	public static final String PROPERTY_ROW = "row";
+	public static final String PROPERTY_SA = "speech_act";
+	public static final String PROPERTY_USED = "speech_act_used_in_policy";
 	public static final String PROPERTY_URL = "url";
 	
 	protected static final Logger logger = Logger.getLogger(NLG.class.getName());
@@ -40,6 +44,10 @@ public abstract class NLG implements NLGInterface {
 	
 	@Override
 	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,boolean simulate) throws Exception {
+		return doNLG(sessionID, ev, null, simulate);
+	}
+	@Override
+	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception {
 		throw new Exception("un-implemented");
 	}
 
@@ -57,6 +65,11 @@ public abstract class NLG implements NLGInterface {
 	
 	@Override
 	public String getAudioFileName4SA(String arg0) throws Exception {
+		throw new Exception("un-implemented");
+	}
+	
+	@Override
+	public Map<String, List<SpeechActWithProperties>> getAllLines() throws Exception {
 		throw new Exception("un-implemented");
 	}
 	

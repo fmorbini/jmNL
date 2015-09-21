@@ -33,14 +33,14 @@ import edu.usc.ict.nl.kb.template.PrimaryTemplateDefinitionException;
 import edu.usc.ict.nl.kb.template.TemplateProcessing;
 import edu.usc.ict.nl.kb.template.TemplateText;
 import edu.usc.ict.nl.kb.template.util.TemplateVerifier;
-import edu.usc.ict.nl.nlg.StringWithProperties;
+import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.ExcelUtils;
 
 public class EchoNLG extends NLG {
 
-	Map<String,List<StringWithProperties>> validSpeechActs;
+	Map<String,List<SpeechActWithProperties>> validSpeechActs;
 	Map<String,List<Pair<String,String>>> formsResponses=null;
 	Map<String,List<Pair<String,String>>> resources;
 	
@@ -49,6 +49,11 @@ public class EchoNLG extends NLG {
 		try {
 			reloadData();
 		} catch (Exception e) {e.printStackTrace();}
+	}
+	
+	@Override
+	public Map<String, List<SpeechActWithProperties>> getAllLines() {
+		return validSpeechActs;
 	}
 	
 	private void loadSystemResources() throws Exception {
@@ -67,7 +72,7 @@ public class EchoNLG extends NLG {
 		if (!StringUtils.isEmptyString(config.nlBusConfig.getNvbs())) {
 			File nvbFile=new File(config.nlBusConfig.getNvbs());
 			if (nvbFile.exists()) {
-				Map<String, List<StringWithProperties>> nvb = extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getNvbs(), 0, 4, 5,6,-1,true);
+				Map<String, List<SpeechActWithProperties>> nvb = extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getNvbs(), 0, 4, 5,6,-1,true);
 				validSpeechActs.putAll(nvb);
 			}
 		}
@@ -75,8 +80,8 @@ public class EchoNLG extends NLG {
 		if (getConfiguration().getIsNormalizeBlanksNLG()) normalizeBLANKS(validSpeechActs);
 	}
 	
-	public static Map<String,List<StringWithProperties>> extractMappingBetweenTheseTwoColumnsWithProperties(String file,int skip,int keyColumn,int valueColumn,int startPropertyColumn,int endPropertyColumn,boolean cleanupSpaces) throws Exception {
-		Map<String,List<StringWithProperties>> ret=new LinkedHashMap<String, List<StringWithProperties>>();
+	public static Map<String,List<SpeechActWithProperties>> extractMappingBetweenTheseTwoColumnsWithProperties(String file,int skip,int keyColumn,int valueColumn,int startPropertyColumn,int endPropertyColumn,boolean cleanupSpaces) throws Exception {
+		Map<String,List<SpeechActWithProperties>> ret=new LinkedHashMap<String, List<SpeechActWithProperties>>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file, 0);
 		if (sheet != null)
 		{
@@ -99,10 +104,10 @@ public class EchoNLG extends NLG {
 								String value=cell.getStringCellValue();
 								if (cleanupSpaces) value=StringUtils.cleanupSpaces(value);
 								if (!StringUtils.isEmptyString(value)) {
-									List<StringWithProperties> list = ret.get(lastKey);
-									if (list==null) ret.put(lastKey,list=new ArrayList<StringWithProperties>());
+									List<SpeechActWithProperties> list = ret.get(lastKey);
+									if (list==null) ret.put(lastKey,list=new ArrayList<SpeechActWithProperties>());
 									Map<Integer,String> lps = ExcelUtils.extractRowAndColumnWiseDataWithColumns(file, 0, rownum, startPropertyColumn, endPropertyColumn, true, true);
-									StringWithProperties rv=new StringWithProperties();
+									SpeechActWithProperties rv=new SpeechActWithProperties();
 									rv.setText(value);
 									if (ps!=null && lps!=null) {
 										for(Integer pc:ps.keySet()) {
@@ -113,7 +118,8 @@ public class EchoNLG extends NLG {
 											}
 										}
 									}
-									rv.setProperty(NLG.PROPERTY_ROW,rownum);
+									rv.setRow(rownum);
+									rv.setSA(lastKey);
 									list.add(rv);
 								}
 							}
@@ -128,11 +134,11 @@ public class EchoNLG extends NLG {
 		return ret;
 	}
 
-	public void normalizeToASCII(Map<String,List<StringWithProperties>> utterances) {
+	public void normalizeToASCII(Map<String,List<SpeechActWithProperties>> utterances) {
 		if (utterances!=null) {
-			for(List<StringWithProperties> utts:utterances.values()) {
+			for(List<SpeechActWithProperties> utts:utterances.values()) {
 				if (utts!=null) {
-					for(StringWithProperties i:utts) {
+					for(SpeechActWithProperties i:utts) {
 						String ci=i.getText();
 						String ni=StringUtils.flattenToAscii(ci);
 						if (!ci.equals(ni)) {
@@ -144,11 +150,11 @@ public class EchoNLG extends NLG {
 			}
 		}
 	}
-	public void normalizeBLANKS(Map<String,List<StringWithProperties>> utterances) {
+	public void normalizeBLANKS(Map<String,List<SpeechActWithProperties>> utterances) {
 		if (utterances!=null) {
-			for(List<StringWithProperties> utts:utterances.values()) {
+			for(List<SpeechActWithProperties> utts:utterances.values()) {
 				if (utts!=null) {
-					for(StringWithProperties i:utts) {
+					for(SpeechActWithProperties i:utts) {
 						String ci=i.getText();
 						String ni=StringUtils.cleanupSpaces(ci);
 						if (!ci.equals(ni)) {
@@ -183,15 +189,18 @@ public class EchoNLG extends NLG {
 		return false;
 	}
 	
+
 	@Override
-	public NLGEvent doNLG(Long sessionID,DMSpeakEvent ev,boolean simulate) throws Exception {
+	public NLGEvent doNLG(Long sessionID,DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception {
 		NLGEvent result=null;
 		String evName=ev.getName();
     	DMEventsListenerInterface nl = getNLModule();
     	DM dm = (nl!=null)?nl.getPolicyDMForSession(sessionID):null;
     	DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
 
-		String text=getTextForSpeechAct(sessionID,evName,is,simulate);
+		//String text=getTextForSpeechAct(sessionID,evName,is,simulate);
+    	if (line==null) line=pickLineForSpeechAct(sessionID, evName, is, simulate); 
+    	String text=processPickedLine(line, sessionID, evName, is, simulate);
 		if (StringUtils.isEmptyString(text)) {
 			if (!getConfiguration().getAllowEmptyNLGOutput()) return null;
 		}
@@ -240,18 +249,18 @@ public class EchoNLG extends NLG {
 	 * @throws Exception
 	 */
 	protected String getTextForSpeechAct(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
-		StringWithProperties line=pickLineForSpeechAct(sessionID, sa, is, simulate);
+		SpeechActWithProperties line=pickLineForSpeechAct(sessionID, sa, is, simulate);
 		String text=processPickedLine(line, sessionID, sa, is, simulate);
 		return text;
 	}
-	protected StringWithProperties pickLineForSpeechAct(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+	protected SpeechActWithProperties pickLineForSpeechAct(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
 		if (validSpeechActs!=null && validSpeechActs.containsKey(sa)) {
 
-			List<StringWithProperties> ts=validSpeechActs.get(sa);
+			List<SpeechActWithProperties> ts=validSpeechActs.get(sa);
 			// in simulate mode, do template resolution on all paraphrases.
 			if (simulate && (ts!=null) && !ts.isEmpty()) {
 				TemplateVerifier tv=new TemplateVerifier();
-				for(StringWithProperties t:ts) {
+				for(SpeechActWithProperties t:ts) {
 					try {
 						if (!tv.verify(t.getText())) throw new Exception("Error in (S) templates in: '"+t+"'");
 					} catch (Exception e) {
@@ -259,7 +268,7 @@ public class EchoNLG extends NLG {
 					}
 				}
 			}
-			StringWithProperties line=(StringWithProperties)getConfiguration().getPicker().pick(sessionID, sa,ts);
+			SpeechActWithProperties line=(SpeechActWithProperties)getConfiguration().getPicker().pick(sessionID, sa,ts);
 			//StringWithProperties line=(StringWithProperties) NLBusBase.pickEarliestUsedOrStillUnused(sessionID, ts);
 			return line;
 		} else if (resources!=null && resources.containsKey(sa)) {
@@ -278,14 +287,14 @@ public class EchoNLG extends NLG {
 				}
 			}
 			Pair<String,String> r=(Pair<String, String>) NLBusBase.pickEarliestUsedOrStillUnused(null, rs);
-			StringWithProperties ret = new StringWithProperties();
+			SpeechActWithProperties ret = new SpeechActWithProperties();
 			ret.setText(r.getFirst());
 			ret.setProperty(NLG.PROPERTY_URL, r.getSecond());
 			return ret;
 		}
 		return null;
 	}
-	protected String processPickedLine(StringWithProperties line,Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+	protected String processPickedLine(SpeechActWithProperties line,Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
 		if (line!=null) {
 			if (validSpeechActs!=null && validSpeechActs.containsKey(sa)) {
 				String text=line.getText();

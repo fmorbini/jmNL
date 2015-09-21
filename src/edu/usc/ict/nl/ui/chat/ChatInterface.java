@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,7 +54,6 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -83,11 +83,13 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.modules.DM;
+import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
+import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.util.FunctionalLibrary;
@@ -825,7 +827,8 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				DM dm=null;
 				if (sid!=null && (dm=getDM(sid))!=null) {
 					try {
-						LineTester.createAndShowGUI(nlModule, sid, dm.getAllPossibleSystemLines());
+						Map<String, List<SpeechActWithProperties>> lines=getLines(nlModule.getNlg(sid),dm);
+						LineTester.createAndShowGUI(nlModule, sid,lines);
 					} catch (Exception ex) {ex.printStackTrace();}
 				}
 			}
@@ -833,6 +836,32 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 	}
 
+	protected Map<String, List<SpeechActWithProperties>> getLines(final NLGInterface nlg, final DM dm) throws Exception {
+		Map<String, List<SpeechActWithProperties>> ret = nlg.getAllLines();
+		List<DMSpeakEvent> pls = dm.getAllPossibleSystemLines();
+		if (pls!=null) {
+			Set<String> psas=null;
+			for(DMSpeakEvent ev:pls) {
+				if (ev!=null) {
+					String sa=ev.getName();
+					if (!StringUtils.isEmptyString(sa)) {
+						if (psas==null) psas=new HashSet<String>();
+						psas.add(sa);
+					}
+				}
+			}
+			if (psas!=null) {
+				for(List<SpeechActWithProperties> ls:ret.values()) {
+					if (ls!=null) {
+						for(SpeechActWithProperties l:ls) {
+							l.setProperty(NLG.PROPERTY_USED,psas.contains(l.getSA())+"");
+						}
+					}
+				}
+			}
+		}
+		return ret;
+	}
 	private void handleLoginEvent() {
 		try {
 			nlModule.handleLoginEvent(sid,null);

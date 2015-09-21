@@ -30,7 +30,7 @@ public class SimcoachUserXLSXFile implements NLUTrainingFileI {
 		setSkip(skip);
 	}
 
-	private void resetRowIterator(File input) throws InvalidFormatException, FileNotFoundException, IOException {
+	private void resetRowIterator(File input) throws Exception {
 		Sheet sheet = ExcelUtils.getSpreadSheet(input.getAbsolutePath(), 0);
 		if (sheet != null) {
 			rowIter = sheet.rowIterator();

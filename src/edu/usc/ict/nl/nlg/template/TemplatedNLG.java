@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
-import edu.usc.ict.nl.nlg.StringWithProperties;
+import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.vhmsg.VHBridge;
@@ -65,7 +65,7 @@ public class TemplatedNLG extends EchoNLG {
 	}
 	
 	@Override
-	protected String processPickedLine(StringWithProperties line, Long sessionId, String sa, DialogueKBInterface is,boolean simulate) throws Exception {
+	protected String processPickedLine(SpeechActWithProperties line, Long sessionId, String sa, DialogueKBInterface is,boolean simulate) throws Exception {
 		if (line!=null) {
 			String text=line.getText();
 			List<Function> functions = getFunctions(text);

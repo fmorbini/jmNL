@@ -2,9 +2,11 @@ package edu.usc.ict.nl.ui.chat;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -27,7 +29,9 @@ import javax.swing.event.ListSelectionListener;
 import edu.usc.ict.nl.bus.NLBus;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
+import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
+import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 
 public class LineTester extends JPanel implements ListSelectionListener {
 	private JList list;
@@ -37,13 +41,20 @@ public class LineTester extends JPanel implements ListSelectionListener {
 	private Long sessionID=null;
 	private NLBus bus=null;
 
-	public LineTester(final NLBus nlModule, final Long sid, final List<DMSpeakEvent> lines) throws Exception {
+	public LineTester(final NLBus nlModule, final Long sid, final Map<String, List<SpeechActWithProperties>> linesRaw) throws Exception {
 		super(new BorderLayout());
-
-		Collections.sort(lines,new Comparator<DMSpeakEvent>() {
+		List<SpeechActWithProperties> lines=new ArrayList<SpeechActWithProperties>();
+		if (linesRaw!=null) {
+			for(List<SpeechActWithProperties> ls:linesRaw.values()) {
+				lines.addAll(ls);
+			}
+		}
+		Collections.sort(lines,new Comparator<SpeechActWithProperties>() {
 			@Override
-			public int compare(DMSpeakEvent o1, DMSpeakEvent o2) {
-				return o1.getName().compareTo(o2.getName());
+			public int compare(SpeechActWithProperties o1, SpeechActWithProperties o2) {
+				int diff=o1.getProperty(NLG.PROPERTY_SA).compareTo(o2.getProperty(NLG.PROPERTY_SA));
+				if (diff==0) diff=o1.getProperty(NLG.PROPERTY_ROW).compareTo(o2.getProperty(NLG.PROPERTY_ROW));
+				return diff;
 			}
 		});
 		
@@ -53,17 +64,9 @@ public class LineTester extends JPanel implements ListSelectionListener {
 		final NLGInterface nlg = nlModule.getNlg(sessionID);
 
 		listModel = new DefaultListModel();
-		for(DMSpeakEvent ev:lines) {
-			ev.setSessionID(sessionID);
-			listModel.addElement(ev);
-			if (ev!=null) {
-				NLGEvent nlgEvent=nlg.doNLG(sessionID, ev, true);
-				if (nlgEvent!=null) {
-					System.out.println(ev.getName()+"\t"+nlgEvent.getName());
-				} else {
-					System.out.println(ev.getName()+"\t#######################failure retrieving line!");
-				}
-			}
+		for(SpeechActWithProperties l:lines) {
+			//ev.setSessionID(sessionID);
+			listModel.addElement(l);
 		}
 
 		//Create the list and put it in a scroll pane.
@@ -79,10 +82,9 @@ public class LineTester extends JPanel implements ListSelectionListener {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					int index=list.getSelectedIndex();
-					DMSpeakEvent ev = (DMSpeakEvent)listModel.getElementAt(index);
+					SpeechActWithProperties ev = (SpeechActWithProperties)listModel.getElementAt(index);
 					if (ev!=null) {
-						ev.setSessionID(sessionID);
-						NLGEvent nlgEvent = nlg.doNLG(sessionID, ev, false);
+						NLGEvent nlgEvent = nlg.doNLG(sessionID, new DMSpeakEvent(null,ev.getText(), sessionID, null,null),ev, false);
 						nlModule.handleNLGEvent(sessionID, nlgEvent);
 						Float duration=nlg.getDurationOfThisDMEvent(sessionID, nlgEvent);
 						if (duration!=null && duration>0) {
@@ -117,16 +119,20 @@ public class LineTester extends JPanel implements ListSelectionListener {
 
 	private void updateSelectedIndex(int index) {
 		list.setSelectedIndex(index);
-		DMSpeakEvent ev = (DMSpeakEvent)listModel.getElementAt(list.getSelectedIndex());
+		SpeechActWithProperties ev = (SpeechActWithProperties)listModel.getElementAt(list.getSelectedIndex());
 		if (ev!=null) {
-			extraInfoLabel.setText(ev.getName());
+			extraInfoLabel.setText(ev.toString(true));
 		}
 		list.ensureIndexIsVisible(index);
 	}
 
 	//This method is required by ListSelectionListener.
 	public void valueChanged(ListSelectionEvent e) {
-		if (e.getValueIsAdjusting() == false) {
+		if (e.getValueIsAdjusting() == false && extraInfoLabel!=null) {
+			SpeechActWithProperties ev = (SpeechActWithProperties)listModel.getElementAt(list.getSelectedIndex());
+			if (ev!=null) {
+				extraInfoLabel.setText(ev.toString(true));
+			}
 		}
 	}
 
@@ -136,8 +142,9 @@ public class LineTester extends JPanel implements ListSelectionListener {
 	 * event-dispatching thread.
 	 * @throws Exception 
 	 */
-	public static void createAndShowGUI(final NLBus nlModule,final Long sid,final List<DMSpeakEvent> lines) {
+	public static void createAndShowGUI(final NLBus nlModule,final Long sid,final Map<String, List<SpeechActWithProperties>> lines) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			
 			public void run() {
 				try {
 					//Create and set up the window.
