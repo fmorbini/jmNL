@@ -25,7 +25,7 @@
 		</property>
 		
 	</bean>
-	<bean id="echoNLG" parent="echoNLG">
+	<bean id="templateNLG" parent="echoNLG">
 		<property name="nlgClass" value="edu.usc.ict.nl.nlg.template.TemplatedNLG"/>
 	</bean>
 	<bean id="shuffle_and_least_recent" class="edu.usc.ict.nl.nlg.picker.ShuffleAndLeastRecent">
