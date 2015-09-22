@@ -23,7 +23,6 @@ public class NLBusConfig extends NLConfig {
 	// generic
 	private RunningMode mode=null;
 	private boolean loadBalancing = true;
-	private boolean alwaysPreferForms;
 	
 	//SimSenSei specific, directory where BML, sound, and viseme files are located
 	private String filestoreRoot;
@@ -155,9 +154,6 @@ public class NLBusConfig extends NLConfig {
 	/** Load-balancing Mode */
 	public final boolean getIsLoadBalancing() { return loadBalancing; }
 	public final void setIsLoadBalancing(boolean loadBalancing) { this.loadBalancing = loadBalancing; }
-	/** Prefer Forms Mode */
-	public final boolean getAlwaysPreferForms() { return alwaysPreferForms; }
-	public final void setAlwaysPreferForms(boolean status) { this.alwaysPreferForms = status; }
 	
 	/** content Root directory */
 	public String getContentRoot() {return contentRoot;}
@@ -331,7 +327,6 @@ public class NLBusConfig extends NLConfig {
 	static{
 		WIN_EXE_CONFIG.setRunningMode(RunningMode.EXE);
 		WIN_EXE_CONFIG.setIsLoadBalancing(false);
-		WIN_EXE_CONFIG.setAlwaysPreferForms(false);
 		WIN_EXE_CONFIG.setContentRoot("resources/characters/");
 		WIN_EXE_CONFIG.setDefaultCharacter("Bill_Ford_PB");
 		WIN_EXE_CONFIG.setStemmerClass("edu.usc.ict.nl.stemmer.KStemmer");

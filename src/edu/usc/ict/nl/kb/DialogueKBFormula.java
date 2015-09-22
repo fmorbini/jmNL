@@ -21,6 +21,7 @@ import edu.usc.ict.nl.kb.cf.CFPrint;
 import edu.usc.ict.nl.kb.cf.CFRandom;
 import edu.usc.ict.nl.kb.cf.CFRound;
 import edu.usc.ict.nl.kb.cf.CFTrace;
+import edu.usc.ict.nl.kb.cf.CFconcatenate;
 import edu.usc.ict.nl.kb.cf.CFcurrentTime;
 import edu.usc.ict.nl.kb.cf.CFfollows;
 import edu.usc.ict.nl.kb.cf.CFget;
@@ -52,6 +53,7 @@ public class DialogueKBFormula extends Node {
 
 	private static final HashMap<String,CustomFunctionInterface> customFunctions=new HashMap<String, CustomFunctionInterface>();
 	static {
+		addCustomFunction(new CFconcatenate());
 		addCustomFunction(new CFcurrentTime());
 		addCustomFunction(new CFfollows());
 		addCustomFunction(new CFif());

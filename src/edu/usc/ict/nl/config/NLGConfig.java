@@ -18,7 +18,8 @@ public class NLGConfig extends NLConfig {
 	private boolean displayFormAnswerInNlg=true;
 	private String lfNlgLexiconFile;
 	private NLGPickerI picker=new ShuffleAndLeastRecent();
-	
+	private boolean alwaysPreferForms;
+
 	public String getLfNlgLexiconFile() {
 		if (nlBusConfig!=null)
 			return nlBusConfig.getXLSXContentRoot()+lfNlgLexiconFile;
@@ -39,6 +40,10 @@ public class NLGConfig extends NLConfig {
 	public void setDisplayFormAnswerInNlg(boolean s) {this.displayFormAnswerInNlg=s;}
 	public boolean getAllowEmptyNLGOutput() {return allowEmptyNLGOutput;}
 	public void setAllowEmptyNLGOutput(boolean allowEmptyNLGOutput) {this.allowEmptyNLGOutput = allowEmptyNLGOutput;}
+
+	/** Prefer Forms Mode */
+	public final boolean getAlwaysPreferForms() { return alwaysPreferForms; }
+	public final void setAlwaysPreferForms(boolean status) { this.alwaysPreferForms = status; }
 
 	public void setPicker(NLGPickerI picker) {
 		this.picker = picker;
@@ -73,4 +78,7 @@ public class NLGConfig extends NLConfig {
 		return ret;
 	}
 	public static final NLGConfig WIN_EXE_CONFIG=new NLGConfig();
+	static {
+		WIN_EXE_CONFIG.setAlwaysPreferForms(false);
+	}
 }
