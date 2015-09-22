@@ -45,7 +45,7 @@ public class CFconcatenate implements CustomFunctionInterface {
 					out.append(eaString);
 				}
 			}
-			return out!=null?out.toString():null;
+			return out!=null?DialogueKBFormula.generateStringConstantFromContent(out.toString()):null;
 		}
 		return null;
 	}
@@ -59,7 +59,9 @@ public class CFconcatenate implements CustomFunctionInterface {
 		String r=eval(DialogueKBFormula.parse(getName()+"(a,12)"),is,false,null);
 		System.out.println(r);
 		r=eval(DialogueKBFormula.parse(getName()+"(a,' how are you ',a)"),is,false,null);
-		System.out.println(r);
+		DialogueKBFormula f = DialogueKBFormula.parse("Eq("+getName()+"(a,' how are you ',a)"+",'11 how are you 11')");
+		Object rr = is.evaluate(f, dm.getContext());
+		if (!rr.equals(true)) return false;
 		r=eval(DialogueKBFormula.parse(getName()+"(-1)"),is,false,null);
 		System.out.println(r);
 		r=eval(DialogueKBFormula.parse(getName()+"(-1,+(a,1))"),is,false,null);
