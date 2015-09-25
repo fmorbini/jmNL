@@ -56,7 +56,9 @@ public class TemplatedNLG extends EchoNLG {
 	public Object functionGetSA(FunctionArguments args) {
 		if (!args.simulate) {
 			try {
-				return getTextForSpeechAct(args.sessionId,args.stringArg, args.is, false);
+				SpeechActWithProperties line=pickLineForSpeechAct(args.sessionId, args.stringArg, args.is, false);
+				String text=processPickedLine(line, args.sessionId, args.stringArg, args.is, false);
+				return text;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
