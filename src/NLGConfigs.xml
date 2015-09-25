@@ -19,9 +19,7 @@
 		<property name="allowEmptyNLGOutput" value="true"/>
 		<property name="displayFormAnswerInNlg" value="false"/>
 		<property name="picker">
-			<list>
-				<ref bean="shuffle_and_least_recent"/>
-			</list>
+			<ref bean="shuffle_and_least_recent"/>
 		</property>
 		
 	</bean>
