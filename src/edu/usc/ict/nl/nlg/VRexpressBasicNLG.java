@@ -64,8 +64,12 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 			String id=getNextID(sessionID);
 			String policyCharacterName=getNLModule().getCharacterName4Session(sessionID);
 			vhBridge.sendMessage("vrExpress", buildVrExpress(policyCharacterName,characterName, id, sa.getName(), text));
-			activeMessages.put(id, nlg);
+			storeActiveMessage(id, nlg);
 		}
+	}
+	
+	protected void storeActiveMessage(String id,NLGEvent nlg) {
+		activeMessages.put(id, nlg);
 	}
 	
 	public String getNextID(Long sessionID) {
