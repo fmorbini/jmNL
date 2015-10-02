@@ -470,7 +470,7 @@ public class RewardPolicy {
 					for(DialogueOperatorEntranceTransition ec:op.getAllEntrancePossibilities()) {
 						String say=ec.getSay();
 						if (!StringUtils.isEmptyString(say)) {
-							NLGEvent result = nlg.doNLG(sid,new DMSpeakEvent(null,say, sid, null,null),true);
+							NLGEvent result = nlg.doNLG(sid,new DMSpeakEvent(null,say, sid, null,null),null,true);
 							if (result==null) {
 								String msg=say+" of entrance condition: "+ec+" of operator: "+op;
 								events.add(msg);
@@ -483,7 +483,7 @@ public class RewardPolicy {
 								DialogueOperatorNodeTransition tr=(DialogueOperatorNodeTransition) e;
 								if (tr.isSayTransition()) {
 									String say=tr.getEvent();
-									NLGEvent result = nlg.doNLG(sid,new DMSpeakEvent(null,say, sid, null,null),true);
+									NLGEvent result = nlg.doNLG(sid,new DMSpeakEvent(null,say, sid, null,null),null,true);
 									if (result==null) {
 										String msg=say+" in state: "+state+" of operator: "+op;
 										events.add(msg);

@@ -504,7 +504,7 @@ public abstract class NLBusBase implements NLBusInterface {
 				DM dm=getPolicyDMForSession(sessionId);
 				for (Event dmr : systemSpeechActs) {
 					if (dmr instanceof DMSpeakEvent) {
-						NLGEvent nlgResult = getNlg(sessionId).doNLG(sessionId, (DMSpeakEvent) dmr,false);
+						NLGEvent nlgResult = getNlg(sessionId).doNLG(sessionId, (DMSpeakEvent) dmr,null,false);
 						dm.logEventInChatLog(dmr);
 						if (nlgResult!=null) vcuResponses.add(nlgResult);
 					}

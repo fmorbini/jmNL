@@ -470,7 +470,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 							for(List<String> responses:reponsesWithAlternatives) {
 								if (reponsesWithAlternatives.size()>1) sb.append(" "+i+"\n");
 								for(String r:responses) {
-									NLGEvent nlgResponse = nlg.doNLG(sid, new DMSpeakEvent(null, r, sid, null, dm.getInformationState()), true);
+									NLGEvent nlgResponse = nlg.doNLG(sid, new DMSpeakEvent(null, r, sid, null, dm.getInformationState()), null,true);
 									sb.append("  "+nlgResponse.getName()+"\n");
 								}
 								i++;

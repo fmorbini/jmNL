@@ -154,7 +154,7 @@ public class NLBus extends NLBusBase {
 			queue.add(ev);
 		} else {
 			if (!getConfiguration().getNlgVhListening()) {
-				NLGEvent nlgOutput = getNlg(sessionID).doNLG(sessionID, (DMSpeakEvent) ev,false);
+				NLGEvent nlgOutput = getNlg(sessionID).doNLG(sessionID, (DMSpeakEvent) ev,null,false);
 				handleNLGEvent(sessionID, nlgOutput);
 			}
 			if (hasListeners()) {

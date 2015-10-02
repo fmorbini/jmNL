@@ -192,25 +192,23 @@ public class EchoNLG extends NLG {
 
 	@Override
 	public NLGEvent doNLG(Long sessionID,DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception {
-		NLGEvent result=null;
 		String evName=ev.getName();
     	DMEventsListenerInterface nl = getNLModule();
     	DM dm = (nl!=null)?nl.getPolicyDMForSession(sessionID):null;
     	DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
 
-    	if (line==null) line=pickLineForSpeechAct(sessionID, evName, is, simulate); 
-    	String text=processPickedLine(line, sessionID, evName, is, simulate);
-		if (StringUtils.isEmptyString(text)) {
+		if (line==null) line=pickLineForSpeechAct(sessionID, evName, is, simulate); 
+		NLGEvent output=processPickedLine(line, sessionID,evName, is, simulate);
+		output.setPayload(ev);
+		if (output==null || StringUtils.isEmptyString(output.getName())) {
 			if (!getConfiguration().getAllowEmptyNLGOutput()) return null;
 		}
 
-		result=new NLGEvent(text, sessionID, ev);
-
 		if (logger.isTraceEnabled()) {
-			logger.trace("Echo NLG, returning: "+result);
+			logger.trace("Echo NLG, returning: "+output);
 		}
 
-		return result;
+		return output;
 	}
 	
 	public static HashMap<String,String> getTemplateParams(InformationStateInterface infoState, String text) {
@@ -280,7 +278,13 @@ public class EchoNLG extends NLG {
 		}
 		return null;
 	}
-	protected String processPickedLine(SpeechActWithProperties line,Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+	
+	protected NLGEvent buildOutputEvent(String text,Long sessionID,DMSpeakEvent sourceEvent) {
+		return new NLGEvent(text, sessionID, sourceEvent);
+	}
+	
+	protected NLGEvent processPickedLine(SpeechActWithProperties line,Long sessionID,String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+		NLGEvent result=buildOutputEvent(null, sessionID, null);
 		if (line!=null) {
 			if (validSpeechActs!=null && validSpeechActs.containsKey(sa)) {
 				String text=line.getText();
@@ -297,7 +301,7 @@ public class EchoNLG extends NLG {
 						text+="\n"+rst.getFirst()+": "+responseText;
 					}
 				}
-				return text;
+				result.setName(text);
 			} else if (resources!=null && resources.containsKey(sa)) {
 				String text="";
 				if (line!=null) {
@@ -305,10 +309,10 @@ public class EchoNLG extends NLG {
 					if (!StringUtils.isEmptyString(rt)) text+=resolveTemplates(rt, is)+"\n";
 					text+=line.getProperty(NLG.PROPERTY_URL);
 				}
-				return text;
+				result.setName(text);
 			}
 		}
-		return null;
+		return result;
 	}
 
 	private static enum FormExtractionState {QUESTION,ANSWER};

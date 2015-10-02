@@ -61,8 +61,6 @@ public class LineTester extends JPanel implements ListSelectionListener {
 		this.bus=nlModule;
 		this.sessionID=sid;
 
-		final NLGInterface nlg = nlModule.getNlg(sessionID);
-
 		listModel = new DefaultListModel();
 		for(SpeechActWithProperties l:lines) {
 			//ev.setSessionID(sessionID);
@@ -83,7 +81,8 @@ public class LineTester extends JPanel implements ListSelectionListener {
 				try {
 					int index=list.getSelectedIndex();
 					SpeechActWithProperties ev = (SpeechActWithProperties)listModel.getElementAt(index);
-					if (ev!=null) {
+					NLGInterface nlg = nlModule.getNlg(sessionID);
+					if (ev!=null && nlg!=null) {
 						NLGEvent nlgEvent = nlg.doNLG(sessionID, new DMSpeakEvent(null,ev.getText(), sessionID, null,null),ev, false);
 						nlModule.handleNLGEvent(sessionID, nlgEvent);
 						Float duration=nlg.getDurationOfThisDMEvent(sessionID, nlgEvent);

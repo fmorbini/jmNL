@@ -50,9 +50,8 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	public NLBusInterface getNLModule() {return super.getNLModule();};
 	
 	@Override
-	public NLGEvent doNLG(Long sessionID,
-			DMSpeakEvent ev, boolean simulate) throws Exception {
-		NLGEvent nlg = super.doNLG(sessionID, ev, simulate);
+	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev, SpeechActWithProperties line, boolean simulate) throws Exception {
+		NLGEvent nlg = super.doNLG(sessionID, ev,line, simulate);
 		sendVrExpress(sessionID,nlg,simulate);
 		return nlg;
 	}

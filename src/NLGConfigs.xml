@@ -18,6 +18,7 @@
 		<property name="isNormalizeBlanksNLG" value="false"/>
 		<property name="allowEmptyNLGOutput" value="true"/>
 		<property name="displayFormAnswerInNlg" value="false"/>
+		<property name="defaultDuration" value="30"/>
 		<property name="picker">
 			<ref bean="shuffle_and_least_recent"/>
 		</property>

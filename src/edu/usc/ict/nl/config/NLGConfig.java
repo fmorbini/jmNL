@@ -19,7 +19,11 @@ public class NLGConfig extends NLConfig {
 	private String lfNlgLexiconFile;
 	private NLGPickerI picker=new ShuffleAndLeastRecent();
 	private boolean alwaysPreferForms;
+	private float defaultDuration=30f;
 
+	public float getDefaultDuration() {	return defaultDuration; }
+	public void setDefaultDuration(float defaultDuration) {	this.defaultDuration = defaultDuration; }
+	
 	public String getLfNlgLexiconFile() {
 		if (nlBusConfig!=null)
 			return nlBusConfig.getXLSXContentRoot()+lfNlgLexiconFile;

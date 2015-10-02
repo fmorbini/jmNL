@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.nlg.template;
 
+import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.vhmsg.VHBridge;
 
@@ -9,14 +10,16 @@ public class FunctionArguments {
 	public final String stringArg;
 	public boolean simulate=false;
 	public final String speechAct;
+	public final NLGEvent output;
 	public Long sessionId;
 	
-	public FunctionArguments(Long sessionId,final DialogueKBInterface is,final VHBridge vhBridge,final String stringArg,final String speechAct,final boolean simulate) {
+	public FunctionArguments(final NLGEvent output,final DialogueKBInterface is,final VHBridge vhBridge,final String stringArg,final String speechAct,final boolean simulate) {
 		this.is=is;
 		this.vhBridge=vhBridge;
 		this.stringArg=stringArg;
 		this.simulate=simulate;
+		this.output=output;
 		this.speechAct=speechAct;
-		this.sessionId=sessionId;
+		this.sessionId=output.getSessionID();
 	}
 }

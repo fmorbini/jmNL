@@ -38,14 +38,11 @@ public abstract class NLG implements NLGInterface {
 		getConfiguration().getPicker().setNLG(this);
 	}
 
+	@Override
 	public NLGConfig getConfiguration() {return configuration;}
 	public NLBusInterface getNLModule() {return nlModule;}
 	public void setNLModule(NLBusInterface nl) {this.nlModule=nl;}
-	
-	@Override
-	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,boolean simulate) throws Exception {
-		return doNLG(sessionID, ev, null, simulate);
-	}
+
 	@Override
 	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception {
 		throw new Exception("un-implemented");

@@ -17,6 +17,7 @@ import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
+import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
 import edu.usc.ict.nl.nlu.directablechar.LFNLU2;
 import edu.usc.ict.nl.nlu.directablechar.ObjectKB;
@@ -40,9 +41,7 @@ public class DirectableChar extends EchoNLG {
 	}
 
 	@Override
-	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev, boolean simulate)
-			throws Exception {
-		//return super.doNLG(sessionID, ev, simulate);
+	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev, SpeechActWithProperties line, boolean simulate) throws Exception {
 		NLBusInterface m = getNLModule();
 		NLUInterface nlu = m.getNlu(sessionID);
 		boolean pick=false;
@@ -130,7 +129,7 @@ public class DirectableChar extends EchoNLG {
 					}
 				}
 			} else {
-				return super.doNLG(sessionID, ev, simulate);
+				return super.doNLG(sessionID, ev, line,simulate);
 			}
 		}
 		return null;

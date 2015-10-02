@@ -7,11 +7,12 @@ import edu.usc.ict.nl.bus.NLBusInterface;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
+import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 
 public interface NLGInterface {
-	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,boolean simulate) throws Exception;
+	//NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,boolean simulate) throws Exception;
 	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception;
 	public DialogueKBInterface getKBForEvent(DMSpeakEvent ev) throws Exception;
 	public void setNLModule(NLBusInterface nlModule);
@@ -28,4 +29,6 @@ public interface NLGInterface {
 
 	public void kill() throws Exception;
 	public Map<String,List<SpeechActWithProperties>> getAllLines() throws Exception;
+	
+	public NLGConfig getConfiguration();
 }

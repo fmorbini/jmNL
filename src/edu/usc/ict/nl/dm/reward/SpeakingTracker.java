@@ -13,7 +13,9 @@ import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceInterruptedEvent;
 import edu.usc.ict.nl.bus.modules.DM;
+import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNodeTransition;
@@ -76,7 +78,9 @@ public class SpeakingTracker {
 	}
 	public void setSpeaking(NLGEvent ev) throws Exception {
 		speakingThis=ev;
-		durationOfThingSpoken=dm.getMessageBus().getNlg(dm.getSessionID()).getDurationOfThisDMEvent(dm.getSessionID(), speakingThis);
+		NLGInterface nlg = dm.getMessageBus().getNlg(dm.getSessionID());
+		NLGConfig nlgConfig=nlg.getConfiguration();
+		durationOfThingSpoken=nlg.getDurationOfThisDMEvent(dm.getSessionID(), speakingThis);
 		durationOfAudioPortionOfThingSpoken=durationOfThingSpoken;
 		final String say=getSpeakingSpeechAct();
 		dm.getLogger().info("got duration for event: "+say+" as: "+durationOfThingSpoken);
@@ -87,7 +91,7 @@ public class SpeakingTracker {
 
 			Timer timer = getTimer();
 			Float duration = durationOfThingSpoken;
-			if (duration==null || duration<=0) duration=30f;
+			if (duration==null || duration<=0) duration=nlgConfig.getDefaultDuration();
 			else duration*=1.2f; // increase the backup event duration by 20%
 			if (tasks.containsKey(say)) {
 				dm.getLogger().warn("NOT setting up BACKUP animation complete sender for '"+say+"' because one already present.");
