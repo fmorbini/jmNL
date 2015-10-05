@@ -316,7 +316,8 @@ public class VHProtocol extends Protocol {
 			DM dm=bus.getPolicyDMForSession(sessionID, false);
 			if (dm!=null && !dm.isSessionDone() && nlg!=null && (nlg instanceof VRSpeakSpokeTrackerInterface)) {
 				String sa=((VRSpeakSpokeTrackerInterface)nlg).getSpeechActIDFromVRMessageID(msg.getID());
-				if (sa!=null) { 
+				((VRSpeakSpokeTrackerInterface)nlg).receivedVrSpoke(sa);
+				if (((VRSpeakSpokeTrackerInterface)nlg).canSpeechactBeEnded(sa)) {
 					dm.handleEvent(new SystemUtteranceDoneEvent(sa, sessionID));
 				}
 			}

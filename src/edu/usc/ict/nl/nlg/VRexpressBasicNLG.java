@@ -1,8 +1,5 @@
 package edu.usc.ict.nl.nlg;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import edu.usc.ict.nl.bus.NLBusInterface;
 import edu.usc.ict.nl.bus.VRSpeakSpokeTrackerInterface;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
@@ -18,18 +15,18 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	private int counter=1;
 	private String characterName=null; 
 	
-	private Map<String,NLGEvent> activeMessages;
 	protected VHBridge vhBridge;
+	public UtteranceDoneTracker tracker;
 	
 	public VRexpressBasicNLG(NLGConfig c) {
 		super(c);
+		tracker=new UtteranceDoneTracker(logger);
 		try {
 			String activeMQserver=c.nlBusConfig.getVhServer();
 			String activeMQtopic=c.nlBusConfig.getVhTopic();
 			if (!StringUtils.isEmptyString(activeMQserver) && !StringUtils.isEmptyString(activeMQtopic)) {
 				vhBridge=new VHBridge(c.nlBusConfig.getVhServer(), c.nlBusConfig.getVhTopic());
 			}
-			activeMessages=new HashMap<String, NLGEvent>();
 			characterName=getConfiguration().nlBusConfig.getVhSpeaker();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -68,7 +65,7 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	}
 	
 	protected void storeActiveMessage(String id,NLGEvent nlg) {
-		activeMessages.put(id, nlg);
+		tracker.storeActiveMessage(id,nlg);
 	}
 	
 	public String getNextID(Long sessionID) {
@@ -88,15 +85,10 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	}
 
 	public String getSpeechActIDFromVRMessageID(String vrMessageID) {
-		NLGEvent nlg = activeMessages.get(vrMessageID);
-		if (nlg!=null) {
-			DMSpeakEvent ev=nlg.getPayload();
-			if (ev!=null) return ev.getName();
-		}
-		return null;
+		return tracker.getSpeechActIDFromVRMessageID(vrMessageID);
 	}
 	public void completeVRMessageWithID(String vrMessageID) {
-		activeMessages.remove(vrMessageID);
+		tracker.completeVRMessageWithID(vrMessageID);
 	}
 	
 	@Override
@@ -107,5 +99,14 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	
 	public VHBridge getVhBridge() {
 		return vhBridge;
+	}
+
+	@Override
+	public boolean canSpeechactBeEnded(String sa) throws InterruptedException {
+		return tracker.canSpeechactBeEnded(sa);
+	}
+	@Override
+	public void receivedVrSpoke(String sa) throws InterruptedException {
+		tracker.receivedVrSpoke(sa);
 	}
 }
