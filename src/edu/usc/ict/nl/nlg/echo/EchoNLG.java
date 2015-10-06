@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,19 +44,25 @@ public class EchoNLG extends NLG {
 	Map<String,List<SpeechActWithProperties>> validSpeechActs;
 	Map<String,List<Pair<String,String>>> formsResponses=null;
 	Map<String,List<Pair<String,String>>> resources;
-	
+
 	public EchoNLG(NLGConfig c) {
-		super(c);
-		try {
-			reloadData();
-		} catch (Exception e) {e.printStackTrace();}
+		this(c,true);
 	}
-	
+
+	public EchoNLG(NLGConfig c, boolean loadData) {
+		super(c);
+		if (loadData) {
+			try {
+				reloadData();
+			} catch (Exception e) {e.printStackTrace();}
+		}
+	}
+
 	@Override
 	public Map<String, List<SpeechActWithProperties>> getAllLines() {
 		return validSpeechActs;
 	}
-	
+
 	private void loadSystemResources() throws Exception {
 		NLGConfig config=getConfiguration();
 		resources=getResources(config.nlBusConfig.getSystemResources(), 0);
@@ -79,7 +86,7 @@ public class EchoNLG extends NLG {
 		if (getConfiguration().getIsAsciiNLG()) normalizeToASCII(validSpeechActs);
 		if (getConfiguration().getIsNormalizeBlanksNLG()) normalizeBLANKS(validSpeechActs);
 	}
-	
+
 	public static Map<String,List<SpeechActWithProperties>> extractMappingBetweenTheseTwoColumnsWithProperties(String file,int skip,int keyColumn,int valueColumn,int startPropertyColumn,int endPropertyColumn,boolean cleanupSpaces) throws Exception {
 		Map<String,List<SpeechActWithProperties>> ret=new LinkedHashMap<String, List<SpeechActWithProperties>>();
 		Sheet sheet = ExcelUtils.getSpreadSheet(file, 0);
@@ -166,7 +173,7 @@ public class EchoNLG extends NLG {
 			}
 		}
 	}
-	
+
 	@Override
 	public Float getDurationOfThisDMEvent(Long sessionID, NLGEvent ev) throws Exception {
 		if (getConfiguration().nlBusConfig.getSystemEventsHaveDuration()) {
@@ -188,14 +195,14 @@ public class EchoNLG extends NLG {
 		}
 		return false;
 	}
-	
+
 
 	@Override
 	public NLGEvent doNLG(Long sessionID,DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception {
 		String evName=ev.getName();
-    	DMEventsListenerInterface nl = getNLModule();
-    	DM dm = (nl!=null)?nl.getPolicyDMForSession(sessionID):null;
-    	DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
+		DMEventsListenerInterface nl = getNLModule();
+		DM dm = (nl!=null)?nl.getPolicyDMForSession(sessionID):null;
+		DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
 
 		if (line==null) line=pickLineForSpeechAct(sessionID, evName, is, simulate); 
 		NLGEvent output=processPickedLine(line, sessionID,evName, is, simulate);
@@ -210,7 +217,7 @@ public class EchoNLG extends NLG {
 
 		return output;
 	}
-	
+
 	public static HashMap<String,String> getTemplateParams(InformationStateInterface infoState, String text) {
 		Collection<String> keys = TemplateProcessing.getTemplateKeys(text);
 		HashMap<String,String> ret=new HashMap<String, String>();
@@ -220,7 +227,7 @@ public class EchoNLG extends NLG {
 		}
 		return ret;
 	}
-	
+
 	public static String resolveTemplates(String text,InformationStateInterface is) throws Exception {
 		try {
 			TemplateText template = new TemplateText(text);
@@ -278,11 +285,11 @@ public class EchoNLG extends NLG {
 		}
 		return null;
 	}
-	
+
 	protected NLGEvent buildOutputEvent(String text,Long sessionID,DMSpeakEvent sourceEvent) {
 		return new NLGEvent(text, sessionID, sourceEvent);
 	}
-	
+
 	protected NLGEvent processPickedLine(SpeechActWithProperties line,Long sessionID,String sa, DialogueKBInterface is, boolean simulate) throws Exception {
 		NLGEvent result=buildOutputEvent(null, sessionID, null);
 		if (line!=null) {
@@ -370,7 +377,7 @@ public class EchoNLG extends NLG {
 		}
 		return ret;
 	}
-	
+
 	public Map<String, List<Pair<String,String>>> getResources(String file,int skip) throws Exception {
 		HashMap<String, List<Pair<String,String>>> ret=new HashMap<String, List<Pair<String,String>>>();
 		Sheet sheet = null;
@@ -419,12 +426,12 @@ public class EchoNLG extends NLG {
 		}
 		return ret;
 	}
-	
+
 	@Override
 	public void interrupt(DMInterruptionRequest ev) throws Exception {
 		super.interrupt(ev);
 	}
-	
+
 	@Override
 	public void reloadData() throws Exception {
 		logger.info("re-loading data.");

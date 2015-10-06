@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
+import edu.usc.ict.nl.bus.protocols.Protocol;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.nlu.NLUOutput;
@@ -36,4 +37,8 @@ public interface NLBusInterface extends DMEventsListenerInterface,ExternalListen
 	public void saveInformationStateForSession(Long sid,boolean save) throws Exception;
 	public void loadInformationStateForSession(Long sid,Collection<DialogueOperatorEffect> content) throws Exception;
 	public void loadInformationStateForSession(Long sid,File fis) throws Exception;
+	
+	public List<Protocol> getProtocols();
+	
+	public boolean canDetectUtteranceCompleted();
 }

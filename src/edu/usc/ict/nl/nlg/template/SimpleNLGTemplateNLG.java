@@ -19,7 +19,10 @@ public class SimpleNLGTemplateNLG extends TemplatedNLG {
 	private Realiser realiser;
 
 	public SimpleNLGTemplateNLG(NLGConfig c) {
-		super(c);
+		this(c,true);
+	}
+	public SimpleNLGTemplateNLG(NLGConfig c,boolean loadData) {
+		super(c,loadData);
 		lexicon = Lexicon.getDefaultLexicon();
 		nlgFactory = new NLGFactory(lexicon);
 		realiser = new Realiser(lexicon);

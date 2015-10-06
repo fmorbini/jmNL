@@ -66,4 +66,8 @@ public abstract class Protocol implements ExternalListenerInterface {
 	public void terminateSession(Long sid) {
 	}
 
+	public boolean canDetectUtteranceCompleted() {
+		return false;
+	}
+	
 }

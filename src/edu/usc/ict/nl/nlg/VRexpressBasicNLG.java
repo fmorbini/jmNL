@@ -19,7 +19,11 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	public UtteranceDoneTracker tracker;
 	
 	public VRexpressBasicNLG(NLGConfig c) {
-		super(c);
+		this(c,true);
+	}
+
+	public VRexpressBasicNLG(NLGConfig c, boolean loadData) {
+		super(c,loadData);
 		tracker=new UtteranceDoneTracker(logger);
 		try {
 			String activeMQserver=c.nlBusConfig.getVhServer();

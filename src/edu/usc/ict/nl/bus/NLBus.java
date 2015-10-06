@@ -301,6 +301,7 @@ public class NLBus extends NLBusBase {
 		
 		character2unparsedPolicy=findAvailablePolicies(config.getContentRoot());
 		character2parsedPolicy=parseAvailablePolicies(character2unparsedPolicy);
+		character2NLG=startNLGs(character2unparsedPolicy.keySet());
 		validateAvailablePolicies(character2parsedPolicy);
 
 		List<String> ps=config.getProtocols();

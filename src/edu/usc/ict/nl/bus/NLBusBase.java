@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -30,7 +31,6 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.modules.DM;
-import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.bus.protocols.Protocol;
@@ -91,7 +91,8 @@ public abstract class NLBusBase implements NLBusInterface {
 	protected boolean hasListeners() {return listeners!=null && !listeners.isEmpty();}
 	protected List<ExternalListenerInterface> getListeners() {return listeners;}
 	protected boolean hasProtocols() {return protocols!=null && !protocols.isEmpty();}
-	protected List<Protocol> getProtocols() {return protocols;}
+	@Override
+	public List<Protocol> getProtocols() {return protocols;}
 	public void addProtocol(Protocol p) {
 		if (p!=null) {
 			if (this.protocols==null) this.protocols=new ArrayList<Protocol>();
@@ -99,20 +100,31 @@ public abstract class NLBusBase implements NLBusInterface {
 		}
 	}
 
+	@Override
+	public boolean canDetectUtteranceCompleted() {
+		List<Protocol> ps = getProtocols();
+		if (ps!=null) {
+			for(Protocol p:ps) {
+				if (p.canDetectUtteranceCompleted()) return true;
+			}
+		}
+		return false;
+	}
 
 	// PER SESSION INFORMATION
 	protected Map<Long,String> session2User = null;
 	protected Map<Long, Boolean> session2Ignore = null;
 	protected Map<Long, ReferenceToVirtualCharacter> session2Character = null;
 	protected ConcurrentHashMap<Long, Set<Long>> session2HandledEvents = null;
-	protected HashMap<Long,NLUInterface> session2NLU=null;
-	protected HashMap<Long,NLGInterface> session2NLG=null;
-	protected HashMap<Long,DM> session2PolicyDM=null;
-	protected HashMap<String,NLBusConfig> character2Config=null;
+	protected Map<Long,NLUInterface> session2NLU=null;
+	protected Map<Long,NLGInterface> session2NLG=null;
+	protected Map<String,NLGInterface> character2NLG=null;
+	protected Map<Long,DM> session2PolicyDM=null;
+	protected Map<String,NLBusConfig> character2Config=null;
 	// key: character name, value: unparsed POLICY associated with it
-	protected HashMap<String,String> character2unparsedPolicy = null;
+	protected Map<String,String> character2unparsedPolicy = null;
 	// key: character name, value: already parsed POLICY network associated with it
-	protected HashMap<String,Object> character2parsedPolicy=null;
+	protected Map<String,Object> character2parsedPolicy=null;
 	// stores timestamps for various objects in each session. Used for randomly selecting and rpeferring earlier used things.
 	private static Map<Long,Map<Integer,Long>> session2ContentTimestamps = null;
 
@@ -363,7 +375,7 @@ public abstract class NLBusBase implements NLBusInterface {
 	//##############################################################################
 	// library functions to find/compile/validate a dialog policy
 	//##############################################################################
-	public HashMap<String, String> findAvailablePolicies(String basePoliciesURL) throws Exception {
+	public Map<String, String> findAvailablePolicies(String basePoliciesURL) throws Exception {
 		logger.info("DIALOGUE POLICIES DIR: " + basePoliciesURL.toString());
 		URL policiesDirURL;
 		policiesDirURL = ClassLoader.getSystemResource(basePoliciesURL);
@@ -407,7 +419,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		return (fileForName!=null && fileForName.exists());
 	}
 
-	public HashMap<String, Object> parseAvailablePolicies(HashMap<String, String> unparsedPolicies) {
+	public Map<String, Object> parseAvailablePolicies(Map<String, String> unparsedPolicies) {
 		character2parsedPolicy.clear();
 		Set<String> toBeRemoved=null;
 		for (Entry<String, String> characterAndPolicyURL:unparsedPolicies.entrySet()) {
@@ -431,7 +443,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		}
 		return character2parsedPolicy;
 	}
-	protected void validateAvailablePolicies(HashMap<String, Object> charactersNames2ParsedPolicy) throws Exception {
+	protected void validateAvailablePolicies(Map<String, Object> charactersNames2ParsedPolicy) throws Exception {
 		if (charactersNames2ParsedPolicy!=null) {
 			NLBusConfig config=getConfiguration();
 			NLBusConfig.RunningMode mode=config.getRunningMode();
@@ -583,6 +595,21 @@ public abstract class NLBusBase implements NLBusInterface {
 	//##############################################################################
 	//  GET/CREATE NLG for a specific session
 	//##############################################################################
+	
+	public synchronized Map<String,NLGInterface> startNLGs(Collection<String> characters) {
+		character2NLG.clear();
+		if (characters!=null) {
+			for(String c:characters) {
+				try {
+					startNLGForCharacter(c,true);
+				} catch (Exception e) {
+					logger.error(e);
+				}
+			}
+		}
+		return character2NLG;
+	}
+	
 	@Override
 	public synchronized NLGInterface getNlg(Long sid) throws Exception {
 		return getNlg(sid, true);
@@ -592,16 +619,53 @@ public abstract class NLBusBase implements NLBusInterface {
 		if (nlg!=null) return nlg;
 		else if (createIfNotThereAlready) {
 			String characterName = getCharacterName4Session(sid);
-			NLGConfig config=getNLGConfigurationForCharacter(characterName);
-			logger.info("Starting NEW NLG for session "+sid+" for character "+characterName+" with nlg class: "+config.getNlgClass());
-			nlg=(NLGInterface) createSubcomponent(config,config.getNlgClass());
+			nlg=getNLGForCharacter(characterName);
+			logger.info("Using NLG for session "+sid+" for character "+characterName+" with nlg class: "+nlg.getClass().getName());
 			nlg.setNLModule(this);
 			session2NLG.put(sid, nlg);
 			return nlg;
 		}
 		return null;
 	}
-
+	private synchronized NLGInterface getNLGForCharacter(String characterName) throws Exception {
+		NLGInterface nlg=null;
+		int count=0;
+		while (nlg==null) {
+			nlg = character2NLG.get(characterName);
+			if (nlg==null) {
+				startNLGForCharacter(characterName,true);
+			}
+			else break;
+			if (count>5) {
+				logger.error("attempted "+count+" times to start nlg and failed.");
+				break;
+			}
+		}
+		character2NLG.put(characterName,null);
+		startNLGForCharacter(characterName,false); // build a new one for the character. don't wait.
+		return nlg;
+	}
+	private void startNLGForCharacter(String characterName,boolean wait) throws Exception {
+		Thread t=new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					if (!StringUtils.isEmptyString(characterName)) {
+						logger.info("starting new NLG for character: "+characterName);
+						NLGConfig nlgConfig = getNLGConfigurationForCharacter(characterName);
+						NLGInterface nlg=(NLGInterface) createSubcomponent(nlgConfig,nlgConfig.getNlgClass());
+						nlg.setNLModule(NLBusBase.this);
+						character2NLG.put(characterName, nlg);
+						logger.info("DONE starting new NLG for character: "+characterName);
+					}
+				} catch (Exception e) {
+					logger.error("error starting nlg for character: "+characterName,e);
+				}
+			}
+		});
+		t.start();
+		if (wait) t.join();
+	}
 	public void killNlg(Long sid) throws Exception {
 		NLGInterface nlg=session2NLG.get(sid);
 		if (nlg!=null) {
@@ -798,6 +862,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		character2parsedPolicy=new HashMap<String, Object>();
 		session2NLU=new HashMap<Long, NLUInterface>();
 		session2NLG=new HashMap<Long, NLGInterface>();
+		character2NLG=new HashMap<>();
 		session2PolicyDM=new HashMap<Long, DM>();
 		character2Config=new HashMap<String, NLBusConfig>();
 		session2Ignore=new HashMap<Long,Boolean>();

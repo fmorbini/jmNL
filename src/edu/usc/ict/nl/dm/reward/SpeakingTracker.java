@@ -91,7 +91,11 @@ public class SpeakingTracker {
 
 			Timer timer = getTimer();
 			Float duration = durationOfThingSpoken;
-			if (duration==null || duration<=0) duration=nlgConfig.getDefaultDuration();
+			boolean busTracksUtterancesDuration=dm.getMessageBus().canDetectUtteranceCompleted();
+			if (duration==null || duration<=0 || busTracksUtterancesDuration) {
+				if (busTracksUtterancesDuration) dm.getLogger().warn("setting duration to default as bus tracks utterances.");
+				duration=nlgConfig.getDefaultDuration();
+			}
 			else duration*=1.2f; // increase the backup event duration by 20%
 			if (tasks.containsKey(say)) {
 				dm.getLogger().warn("NOT setting up BACKUP animation complete sender for '"+say+"' because one already present.");

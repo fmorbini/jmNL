@@ -378,4 +378,9 @@ public class VHProtocol extends Protocol {
 			sendVrNLU(sessionId, ev.getPayload());
 		}
 	}
+	
+	@Override
+	public boolean canDetectUtteranceCompleted() {
+		return true;
+	}
 }

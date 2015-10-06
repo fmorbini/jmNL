@@ -28,7 +28,11 @@ public class TemplatedNLG extends EchoNLG {
 	private static final Pattern methodNamePattern=Pattern.compile("function([A-Z][\\S]*)");
 	
 	public TemplatedNLG(NLGConfig c) {
-		super(c);
+		this(c,true);
+	}
+
+	public TemplatedNLG(NLGConfig c, boolean loadData) {
+		super(c,loadData);
 		Class nlgClass=this.getClass();
 		while(nlgClass!=null) {
 			Method[] ms = nlgClass.getDeclaredMethods();
