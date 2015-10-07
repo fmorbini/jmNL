@@ -332,7 +332,8 @@ public abstract class NLBusBase implements NLBusInterface {
 				} catch (Exception e) {
 					logger.warn("error while saving state of: "+sessionId+"  (during termination event).",e);
 				}
-				if (dm!=null && !dm.isSessionDone()) dm.kill();
+				session2PolicyDM.remove(sessionId);
+				if (!dm.isSessionDone()) dm.kill();
 			}
 
 			try {
@@ -345,21 +346,20 @@ public abstract class NLBusBase implements NLBusInterface {
 			} catch (Exception e) {
 				logger.warn("exception killing NLG for: "+sessionId+"  (probably it's already been terminated).");
 			}
+			session2PolicyDM.remove(sessionId);
 			session2User.remove(sessionId);
 			session2Character.remove(sessionId);
-			session2PolicyDM.remove(sessionId);
 			session2Ignore.remove(sessionId);
 			character2specialVars.remove(sessionId);
 			Set<Long> handledEvents = session2HandledEvents.get(sessionId);
-			if (handledEvents != null)
-				handledEvents.clear();
+			if (handledEvents != null) handledEvents.clear();
 			session2HandledEvents.remove(sessionId);
-			logger.info("REMOVED terminated session: "+sessionId);
 			if (hasListeners()) {
 				for(ExternalListenerInterface l:getListeners()) {
 					l.terminateSession(sessionId);
 				}
 			}
+			logger.info("REMOVED terminated session: "+sessionId);
 		}
 	}
 	public synchronized boolean isThisEventNewForThisSession(Long eventID,Long sessionID) {
