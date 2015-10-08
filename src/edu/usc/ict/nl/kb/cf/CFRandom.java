@@ -1,7 +1,8 @@
 package edu.usc.ict.nl.kb.cf;
 
+import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.Collection;
-import java.util.Random;
 
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
@@ -15,7 +16,7 @@ import edu.usc.ict.nl.utils.FloatAndLongUtils;
 public class CFRandom implements CustomFunctionInterface {
 
 	private static final String name="random".toLowerCase();
-	private static Random seed=new Random(System.currentTimeMillis());
+	private static SecureRandom rng=new SecureRandom(ByteBuffer.allocate(Long.SIZE/Byte.SIZE).putLong(System.currentTimeMillis()).array());
 
 	@Override
 	public String getName() {return name;}
@@ -33,7 +34,7 @@ public class CFRandom implements CustomFunctionInterface {
 			Object result=is.evaluate(arg,context);
 			if (result instanceof Number) {
 				Integer n=((Number)result).intValue();
-				if (n>0) return seed.nextInt(n);
+				if (n>0) return rng.nextInt(n);
 			}
 		}
 		return null;
