@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
@@ -19,12 +18,10 @@ import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
 import edu.usc.ict.nl.util.StringUtils;
-import edu.usc.ict.nl.vhmsg.VHBridge;
 
 public class TemplatedNLG extends EchoNLG {
 
 	private Map<String,Method> methodMap;
-	protected VHBridge vhBridge=null;
 	private static final Pattern methodNamePattern=Pattern.compile("function([A-Z][\\S]*)");
 	
 	public TemplatedNLG(NLGConfig c) {
@@ -92,7 +89,7 @@ public class TemplatedNLG extends EchoNLG {
 				Method m=f.getMethod();
 				if (m!=null) {
 					String functionArgs=f.getArguments(text);
-					Object obj=m.invoke(this,new FunctionArguments(output,is,vhBridge,functionArgs,sa,simulate));
+					Object obj=m.invoke(this,new FunctionArguments(output,is,functionArgs,sa,simulate));
 					String replacement=getReplacement(obj);
 					if (f.getRequiredOutput() && StringUtils.isEmptyString(replacement)) {
 						logger.warn("function "+f+" returned null and requires non-null output. Cancelling entire text.");

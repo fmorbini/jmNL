@@ -41,9 +41,9 @@ import edu.usc.ict.nl.utils.ExcelUtils;
 
 public class EchoNLG extends NLG {
 
-	Map<String,List<SpeechActWithProperties>> validSpeechActs;
-	Map<String,List<Pair<String,String>>> formsResponses=null;
-	Map<String,List<Pair<String,String>>> resources;
+	private Map<String,List<SpeechActWithProperties>> validSpeechActs;
+	private Map<String,List<Pair<String,String>>> formsResponses=null;
+	private Map<String,List<Pair<String,String>>> resources;
 
 	public EchoNLG(NLGConfig c) {
 		this(c,true);
@@ -60,7 +60,7 @@ public class EchoNLG extends NLG {
 
 	@Override
 	public Map<String, List<SpeechActWithProperties>> getAllLines() {
-		return validSpeechActs;
+		return getValidSpeechActs();
 	}
 
 	private void loadSystemResources() throws Exception {
@@ -75,16 +75,16 @@ public class EchoNLG extends NLG {
 
 	private void loadSystemUtterances() throws Exception {
 		NLGConfig config=getConfiguration();
-		validSpeechActs=extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getSystemUtterances(), 0, 4, 5,6,-1,true);
+		setValidSpeechActs(extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getSystemUtterances(), 0, 4, 5,6,-1,true));
 		if (!StringUtils.isEmptyString(config.nlBusConfig.getNvbs())) {
 			File nvbFile=new File(config.nlBusConfig.getNvbs());
 			if (nvbFile.exists()) {
 				Map<String, List<SpeechActWithProperties>> nvb = extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getNvbs(), 0, 4, 5,6,-1,true);
-				validSpeechActs.putAll(nvb);
+				getValidSpeechActs().putAll(nvb);
 			}
 		}
-		if (getConfiguration().getIsAsciiNLG()) normalizeToASCII(validSpeechActs);
-		if (getConfiguration().getIsNormalizeBlanksNLG()) normalizeBLANKS(validSpeechActs);
+		if (getConfiguration().getIsAsciiNLG()) normalizeToASCII(getValidSpeechActs());
+		if (getConfiguration().getIsNormalizeBlanksNLG()) normalizeBLANKS(getValidSpeechActs());
 	}
 
 	public static Map<String,List<SpeechActWithProperties>> extractMappingBetweenTheseTwoColumnsWithProperties(String file,int skip,int keyColumn,int valueColumn,int startPropertyColumn,int endPropertyColumn,boolean cleanupSpaces) throws Exception {
@@ -245,9 +245,9 @@ public class EchoNLG extends NLG {
 
 
 	protected SpeechActWithProperties pickLineForSpeechAct(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
-		if (validSpeechActs!=null && validSpeechActs.containsKey(sa)) {
+		if (getValidSpeechActs()!=null && getValidSpeechActs().containsKey(sa)) {
 
-			List<SpeechActWithProperties> ts=validSpeechActs.get(sa);
+			List<SpeechActWithProperties> ts=getValidSpeechActs().get(sa);
 			// in simulate mode, do template resolution on all paraphrases.
 			if (simulate && (ts!=null) && !ts.isEmpty()) {
 				TemplateVerifier tv=new TemplateVerifier();
@@ -293,7 +293,7 @@ public class EchoNLG extends NLG {
 	protected NLGEvent processPickedLine(SpeechActWithProperties line,Long sessionID,String sa, DialogueKBInterface is, boolean simulate) throws Exception {
 		NLGEvent result=buildOutputEvent(null, sessionID, null);
 		if (line!=null) {
-			if (validSpeechActs!=null && validSpeechActs.containsKey(sa)) {
+			if (getValidSpeechActs()!=null && getValidSpeechActs().containsKey(sa)) {
 				String text=line.getText();
 				//String text=(String) FunctionalLibrary.pickRandomElement(ts);
 
@@ -439,5 +439,13 @@ public class EchoNLG extends NLG {
 		try {loadSystemForms();}catch (Exception e) {logger.error("error while reloading system forms: "+e.getMessage());}
 		try {loadSystemResources();}catch (Exception e) {logger.error("error while reloading system resources: "+e.getMessage());}
 		logger.info("done loading data.");
+	}
+
+	public Map<String,List<SpeechActWithProperties>> getValidSpeechActs() {
+		return validSpeechActs;
+	}
+
+	public void setValidSpeechActs(Map<String,List<SpeechActWithProperties>> validSpeechActs) {
+		this.validSpeechActs = validSpeechActs;
 	}
 }
