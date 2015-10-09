@@ -646,6 +646,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		return nlg;
 	}
 	private void startNLGForCharacter(String characterName,boolean wait) throws Exception {
+		//System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
 		Thread t=new Thread(new Runnable() {
 			@Override
 			public void run() {

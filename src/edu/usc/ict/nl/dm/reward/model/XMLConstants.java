@@ -6,6 +6,7 @@ public class XMLConstants {
 	public static final String PRECONDITIONID="precondition";
 	public static final String ENTRANCECONDITIONID="ec";
 	public static final String IDID="id";
+	public static final String DELAYID="delay";
 	public static final String REPORTID="report";
 	public static final String CONDITIONID="condition";
 	public static final String EVENTID="event";
@@ -18,6 +19,7 @@ public class XMLConstants {
 	public static final String SPEECHACTID="speech-act";
 	public static final String EFFECTID="effect";
 	public static final String SENDID="send";
+	public static final String WAITID="wait";
 	public static final String AssignmentLISTID="assignlist";
 	public static final String AssignmentID="assign";
 	public static final String implyID="imply";

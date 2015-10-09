@@ -24,6 +24,7 @@ public class DialogueOperatorNodeTransition extends Edge {
 
 	protected DialogueKBFormula condition;
 	protected String event;
+	protected Float delay;
 	protected EventMatcher<Object> eventMatcher;
 	protected TransitionType type;
 	protected boolean consumes;
@@ -34,15 +35,17 @@ public class DialogueOperatorNodeTransition extends Edge {
 	public void setPossibleEffects(List<List<DialogueOperatorEffect>> possibleEffects) {this.possibleEffects = possibleEffects;}
 	public List<List<DialogueOperatorEffect>> getPossibleEffects() {return possibleEffects;}
 
-	public enum TransitionType {SYSTEM,USER,NOEVENT,ENTRY};
+	public enum TransitionType {SYSTEM,USER,NOEVENT,ENTRY,WAIT};
 	
 	public boolean isSayTransition() {return type==TransitionType.SYSTEM;}
+	public boolean isWaitTransition() {return type==TransitionType.WAIT;}
 	public boolean isListenTransition() {return type==TransitionType.USER;}
 	public boolean isNoEventTransition() {return type==TransitionType.NOEVENT;}
 	public void setType(String nodeType) throws Exception {
 		if(nodeType.equals(XMLConstants.SAYID)) type=TransitionType.SYSTEM;
 		else if(nodeType.equals(XMLConstants.LISTENID)) type=TransitionType.USER;
 		else if(nodeType.equals(XMLConstants.TRANSITIONID)) type=TransitionType.NOEVENT;
+		else if(nodeType.equals(XMLConstants.WAITID)) type=TransitionType.WAIT;
 		else throw new Exception("Invalid type: "+nodeType);
 	}
 	public DialogueOperator getOperator() {return operator;}
@@ -62,6 +65,8 @@ public class DialogueOperatorNodeTransition extends Edge {
 	}
 	public void setConsumes(boolean consumes) {this.consumes=consumes;}
 	public boolean doesConsume() {return this.consumes;}
+	public Float getDelay() {return delay;}
+	public void setDelay(Float delay) {this.delay = delay;}
 	
 	public void setInterruptible(boolean isInterruptible) {
 		this.interruptible = isInterruptible;
@@ -99,6 +104,7 @@ public class DialogueOperatorNodeTransition extends Edge {
 		tr.setOperator(o);
 		tr.setEvent(getEvent(attributes),o);
 		tr.setConsumes(getConsumes(attributes));
+		tr.setDelay(getDelay(attributes));
 		String target=getTarget(attributes);
 		if (target!=null) {
 			DialogueOperatorNode state=o.getStateNamed(target);
@@ -149,6 +155,12 @@ public class DialogueOperatorNodeTransition extends Edge {
 			else return event;
 		} else return null;
 	}
+	private Float getDelay(NamedNodeMap att) {
+		Node cndNode = att.getNamedItem(XMLConstants.DELAYID);
+		if (cndNode!=null) {
+			return Float.parseFloat(cndNode.getNodeValue());
+		} else return null;
+	}
 	private boolean getConsumes(NamedNodeMap att) {
 		Node cndNode = att.getNamedItem(XMLConstants.CONSUMEID);
 		if (cndNode!=null) {
@@ -163,6 +175,7 @@ public class DialogueOperatorNodeTransition extends Edge {
 	public boolean isTransitionNode(Node n) {
 		return (n.getNodeType()==Node.ELEMENT_NODE) && (
 				n.getNodeName().toLowerCase().equals(XMLConstants.SAYID) ||
+				n.getNodeName().toLowerCase().equals(XMLConstants.WAITID) ||
 				n.getNodeName().toLowerCase().equals(XMLConstants.LISTENID) ||
 				n.getNodeName().toLowerCase().equals(XMLConstants.TRANSITIONID)
 				);
@@ -223,15 +236,17 @@ public class DialogueOperatorNodeTransition extends Edge {
 		String transitionType=null;
 		if (isListenTransition()) transitionType=XMLConstants.LISTENID;
 		else if (isSayTransition()) transitionType=XMLConstants.SAYID;
+		else if (isWaitTransition()) transitionType=XMLConstants.WAITID;
 		else if (isNoEventTransition()) transitionType=XMLConstants.TRANSITIONID;
-		if (shortForm) return "<"+getSource()+"->"+getTarget()+": "+((event!=null)?event:"")+" "+((condition==null)?"":condition)+">";
+		if (shortForm) return "<"+getSource()+"->"+getTarget()+": "+((event!=null)?event:"")+((delay!=null)?" "+delay+" seconds":"")+((condition==null)?"":" "+condition)+">";
 		//if (shortForm)
 		//	if ((event!=null) || (condition!=null))
 		//		return "<"+((event!=null)?event:"")+" "+((condition==null)?"":condition)+">";
 		//	else
 		//		return "";
 		else return "<"+transitionType+" "+((event!=null)?XMLConstants.EVENTID+"=\""+XMLUtils.escapeStringForXML(event)+"\" ":" ")+
-		((condition!=null)?XMLConstants.CONDITIONID+"=\""+condition.toString()+"\" ":" ")+
+				((delay!=null)?XMLConstants.DELAYID+"=\""+delay+"\" ":" ")+
+				((condition!=null)?XMLConstants.CONDITIONID+"=\""+condition.toString()+"\" ":" ")+
 		XMLConstants.TARGETID+"=\""+getTarget().getName()+"\" "+
 		((doesConsume())?XMLConstants.CONSUMEID+"=\"true\" ":" ")+
 		"/>";

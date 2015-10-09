@@ -8,6 +8,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.Event;
@@ -15,6 +17,7 @@ import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.events.changes.DMStateChangeEvent;
 import edu.usc.ict.nl.bus.events.changes.StateChange;
 import edu.usc.ict.nl.dm.reward.RewardDM;
+import edu.usc.ict.nl.dm.reward.SpeakingTracker;
 import edu.usc.ict.nl.dm.reward.SwapoutReason;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
@@ -265,19 +268,19 @@ public class DialogueAction {
 	}
 	
 	public void setTransitionAsSaid(DialogueOperatorNodeTransition tr) {
-		if (tr.isSayTransition()) {
+		if (tr.isSayTransition() || tr.isWaitTransition()) {
 			if (sayStateTracker.containsKey(tr)) sayStateTracker.put(tr, SAYState.SAID);
 			else dm.getLogger().error("attempted to set not currently speaking transition to SAID.");
 		}
 	}
 	public void setTransitionAsInterrupted(DialogueOperatorNodeTransition tr) throws Exception {
-		if (tr.isSayTransition()) {
+		if (tr.isSayTransition() || tr.isWaitTransition()) {
 			if (sayStateTracker.containsKey(tr)) sayStateTracker.put(tr, SAYState.INTERRUPTED);
 			else dm.getLogger().error("attempted to set not currently speaking transition to INTERRUPTED.");
 		}
 	}
 	public void setTransitionAsSaying(DialogueOperatorNodeTransition tr) {
-		if (tr.isSayTransition()) sayStateTracker.put(tr, SAYState.SAYING);
+		if (tr.isSayTransition() || tr.isWaitTransition()) sayStateTracker.put(tr, SAYState.SAYING);
 	}
 	
 	/** 
@@ -346,6 +349,29 @@ public class DialogueAction {
 				setTransitionAsSaying(tr);
 				tr.execute(this,context,sourceEvent);
 			}
+		} else if (tr.isWaitTransition() && !hasTransitionAlreadyBeenSaid(tr)) {
+			RewardDM dm = getDM();
+			DialogueOperator op=getOperator();
+			dm.getLogger().info("Operator '"+op+"' will pause for: '"+tr.getDelay()+"' seconds.");
+			setAsPaused(tr, sourceEvent, "because a wait transition is being executed.");
+			SpeakingTracker st = dm.getSpeakingTracker();
+			Timer timer = st.getTimer();
+			long ms=Math.round(tr.delay*1000f);
+			dm.getLogger().info("Setting up timer event for wait transition.");
+			TimerTask task = new TimerTask() {
+				@Override
+				public void run() {
+					dm.getLogger().warn("sending end of wait timer: '"+tr+"'");
+					try {
+						setTransitionAsSaid(tr);
+						resumeExeFromFinishedSystemAction(tr, sourceEvent);
+					} catch (Exception e) {
+						dm.getLogger().error(e);
+					}
+				}
+			};
+			timer.schedule(task,ms);
+			setTransitionAsSaying(tr);
 		} else {
 			if (!hasTransitionAlreadyBeenAttempted(tr)) {
 				tr.execute(this, context, sourceEvent);
@@ -379,13 +405,8 @@ public class DialogueAction {
 						
 						DialogueOperatorNodeTransition trc=(DialogueOperatorNodeTransition)NLBusBase.pickEarliestUsedOrStillUnused(dm.getSessionID(),possibilities);
 						
-						/*int l=possibilities.size();
-						int i=new Random().nextInt(l);
-						DialogueOperatorNodeTransition trc = (DialogueOperatorNodeTransition) possibilities.get(i);
-						*/
-						
 						takeTransition(trc, context,sourceEvent,stopCondition,false);
-					} else if (first.isNoEventTransition()) {
+					} else if (first.isNoEventTransition() || first.isWaitTransition()) {
 						// check and take the first one in order that is executable
 						for(Edge e:transitions) {
 							DialogueOperatorNodeTransition trc=(DialogueOperatorNodeTransition) e;

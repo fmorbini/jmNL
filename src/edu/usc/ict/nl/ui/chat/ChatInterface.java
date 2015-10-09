@@ -91,6 +91,7 @@ import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
+import edu.usc.ict.nl.nlg.echo.EchoNLGData;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
@@ -159,7 +160,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private JButton sendFeedback;
 	private final JMenuItem showDMReplies = new JCheckBoxMenuItem();
 
-	Map<String, List<Pair<String, String>>> formsResponses=null;
 	FormList formResponseList=null;
 	JScrollPane formScrollPane=null;
 
@@ -268,10 +268,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		nlModule.addBusListener(this);
 		NLBusConfig config=nlModule.getConfiguration();
 		_instance=this;
-
-		try {
-			formsResponses = EchoNLG.getFormsResponses(config.getSystemForms());
-		} catch (Exception e) {NLBus.logger.error("Error while loading form responses in chat: "+e.getMessage());}
 
 		//Create the list and put it in a scroll pane.
 		JTextPane list = new JTextPane();
@@ -815,7 +811,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			public void actionPerformed(ActionEvent e) {
 				try {
 					NLGInterface nlg = nlModule.getNlg(sid);
-					if (nlg!=null) nlg.reloadData();
+					if (nlg!=null) nlg.reloadData(true);
 				} catch (Exception t) {
 					displayError(t,false);
 				}
@@ -929,6 +925,9 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private boolean setFormForEvent(DMSpeakEvent ev) throws Exception {
 		if (ev!=null) {
 			String sa=ev.getName();
+			NLGInterface nlg = nlModule.getNlg(sid,false);
+			EchoNLGData data = nlg.getData();
+			Map<String, List<Pair<String, String>>> formsResponses = data.getFormResponses();
 			if (formsResponses!=null) {
 				List<Pair<String, String>> choices=formsResponses.get(sa);
 				if (choices!=null) {
@@ -936,7 +935,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 					listModel.clear();
 					for(Pair<String, String>c:choices) {
 						String text=c.getSecond();
-						NLGInterface nlg = nlModule.getNlg(sid);
 						DialogueKBInterface is = nlg.getKBForEvent(ev);
 						text=EchoNLG.resolveTemplates(text,is);
 						final String nlu=c.getFirst();

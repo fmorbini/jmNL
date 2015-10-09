@@ -109,6 +109,14 @@ public class TextFormatGrammar {
 	content+="<say event=\""+XMLUtils.escapeStringForXML(say)+"\" target=\""+getStateName(target)+"\" interruptible=\""+interruptible+"\"/>";
 	allStates.put(sn,content);
   }
+  private static void addDelayToState(int sn,Float delay,boolean interruptible,int target,int line) throws ParseException {
+  	canAddOutgoingTransitionToState(sn,line);
+    if (delay==null || delay<=0) throw new ParseException("invalid delay argument at line "+line);
+	String content="";
+	if (allStates.containsKey(sn)) content=allStates.get(sn);
+	content+="<wait delay=\""+delay+"\" target=\""+getStateName(target)+"\" interruptible=\""+interruptible+"\"/>";
+	allStates.put(sn,content);
+  }
   
   private static void canAddOutgoingTransitionToState(int sn,int line) throws ParseException {
   	if (sn==endState) throw new ParseException("Trying to add outgoing edge to final state. Line: "+line);
@@ -164,9 +172,10 @@ SKIP:
 | <FORGET: <AN>"forget:"(<SPACE>)*>:TEXT
 | <TTCND: <AN>"turntaking condition:"(<SPACE>)*>:TEXT
 | <TOPIC: <AN>"topic:"(<SPACE>)*>
-| <USER: "user:"(<SPACE>)*>:TEXT
+| <USER: "user:">:TEXT
 | <SYSTEM: "system:">:TEXT
 | <ISYSTEM: "isystem:">:TEXT
+| <WAIT: "wait:"(<SPACE>)*>
 | <EC: <AN>"entrance condition:"(<SPACE>)*>
 | <UI: "current NLU speech act"(<SPACE>)*"="(<SPACE>)*>:TEXT
 | <SI: "system initiative">
@@ -398,7 +407,15 @@ int ReadEdge(int cs):{
 			addToState(ns,"");
 			return ns;
 		}
+	} |
+	(pos=<WAIT> say=<ID>) {
+		try {
+			addDelayToState(cs,Float.parseFloat(say.image),interruptible,ns,say.beginLine);
+			addToState(ns,"");
+			return ns;
+		} catch (Exception e) {throw new ParseException("Invalid float argument for wait: "+say.image+" at line "+say.beginLine+" column: "+say.beginColumn);}
 	}
+	
 }
 
 void CurrentStateAnnotation(int cs,int ss,boolean isRoot):{

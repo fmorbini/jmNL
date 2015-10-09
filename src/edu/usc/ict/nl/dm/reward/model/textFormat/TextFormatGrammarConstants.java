@@ -41,51 +41,53 @@ public interface TextFormatGrammarConstants {
   /** RegularExpression Id. */
   int ISYSTEM = 23;
   /** RegularExpression Id. */
-  int EC = 24;
+  int WAIT = 24;
   /** RegularExpression Id. */
-  int UI = 25;
+  int EC = 25;
   /** RegularExpression Id. */
-  int SI = 26;
+  int UI = 26;
   /** RegularExpression Id. */
-  int GV = 27;
+  int SI = 27;
   /** RegularExpression Id. */
-  int RO = 28;
+  int GV = 28;
   /** RegularExpression Id. */
-  int IS = 29;
+  int RO = 29;
   /** RegularExpression Id. */
-  int NETWORK = 30;
+  int IS = 30;
   /** RegularExpression Id. */
-  int FINAL = 31;
+  int NETWORK = 31;
   /** RegularExpression Id. */
-  int DAEMON = 32;
+  int FINAL = 32;
   /** RegularExpression Id. */
-  int CONDITION = 33;
+  int DAEMON = 33;
   /** RegularExpression Id. */
-  int CE = 34;
+  int CONDITION = 34;
   /** RegularExpression Id. */
-  int OR = 35;
+  int CE = 35;
   /** RegularExpression Id. */
-  int END = 36;
+  int OR = 36;
   /** RegularExpression Id. */
-  int GOTOEND = 37;
+  int END = 37;
   /** RegularExpression Id. */
-  int NOP = 38;
+  int GOTOEND = 38;
   /** RegularExpression Id. */
-  int IF = 39;
+  int NOP = 39;
   /** RegularExpression Id. */
-  int ELSE = 40;
+  int IF = 40;
   /** RegularExpression Id. */
-  int CM = 41;
+  int ELSE = 41;
   /** RegularExpression Id. */
-  int IGNORE = 42;
+  int CM = 42;
   /** RegularExpression Id. */
-  int ID = 43;
+  int IGNORE = 43;
   /** RegularExpression Id. */
-  int ENDTEXT = 44;
+  int ID = 44;
   /** RegularExpression Id. */
-  int URL = 45;
+  int ENDTEXT = 45;
   /** RegularExpression Id. */
-  int ANY = 46;
+  int URL = 46;
+  /** RegularExpression Id. */
+  int ANY = 47;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -119,9 +121,10 @@ public interface TextFormatGrammarConstants {
     "<FORGET>",
     "<TTCND>",
     "<TOPIC>",
-    "<USER>",
+    "\"user:\"",
     "\"system:\"",
     "\"isystem:\"",
+    "<WAIT>",
     "<EC>",
     "<UI>",
     "\"system initiative\"",
@@ -146,7 +149,7 @@ public interface TextFormatGrammarConstants {
     "<URL>",
     "<ANY>",
     "\"*/\"",
-    "<token of kind 48>",
+    "<token of kind 49>",
   };
 
 }

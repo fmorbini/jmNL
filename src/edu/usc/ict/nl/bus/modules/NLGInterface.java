@@ -10,6 +10,7 @@ import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlg.SpeechActWithProperties;
+import edu.usc.ict.nl.nlg.echo.EchoNLGData;
 
 public interface NLGInterface {
 	//NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,boolean simulate) throws Exception;
@@ -23,12 +24,14 @@ public interface NLGInterface {
 	/**
 	 * call this to force the nlg to reload data required by it. For example, the file of system utterances. A NLG that uses already dynamically sourced
 	 *  information may ignore this call. The dialog manager policy is not reloaded by this call.
+	 * @param forceReload 
 	 * @throws Exception
 	 */
-	public void reloadData() throws Exception;
+	public void reloadData(boolean forceReload) throws Exception;
 
 	public void kill() throws Exception;
 	public Map<String,List<SpeechActWithProperties>> getAllLines() throws Exception;
 	
 	public NLGConfig getConfiguration();
+	public EchoNLGData getData();
 }
