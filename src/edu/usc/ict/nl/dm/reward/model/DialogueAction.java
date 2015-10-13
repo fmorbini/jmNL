@@ -305,7 +305,7 @@ public class DialogueAction {
 		takeTransition(tr, context.setInformationState(internalKB), sourceEvent, STOP.NOTHING, true);
 	}
 	private static enum STOP {SYSTEM,USER,NOTHING};
-	public void takeTransition(final DialogueOperatorNodeTransition tr,EvalContext context,Event sourceEvent,STOP stopCondition,boolean root) throws Exception {
+	public void takeTransition(final DialogueOperatorNodeTransition tr,EvalContext context,final Event sourceEvent,STOP stopCondition,boolean root) throws Exception {
 		if (root) dm.getLogger().info("Starting execution of action. Stop criterion: "+stopCondition);
 		DialogueOperatorNode startState = (DialogueOperatorNode) tr.getSource();
 		DialogueOperatorNode endState = (DialogueOperatorNode) tr.getTarget();
@@ -350,7 +350,7 @@ public class DialogueAction {
 				tr.execute(this,context,sourceEvent);
 			}
 		} else if (tr.isWaitTransition() && !hasTransitionAlreadyBeenSaid(tr)) {
-			RewardDM dm = getDM();
+			final RewardDM dm = getDM();
 			DialogueOperator op=getOperator();
 			dm.getLogger().info("Operator '"+op+"' will pause for: '"+tr.getDelay()+"' seconds.");
 			setAsPaused(tr, sourceEvent, "because a wait transition is being executed.");
