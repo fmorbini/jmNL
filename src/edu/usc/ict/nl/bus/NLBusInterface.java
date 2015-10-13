@@ -7,10 +7,13 @@ import java.util.List;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.bus.protocols.Protocol;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
+import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.nlu.NLUOutput;
 
 public interface NLBusInterface extends DMEventsListenerInterface,ExternalListenerInterface {
+	public NLBusConfig getConfiguration();
+
 	public void setDialogSession2User(Long sessionID,String user);
 
 	public List<SpecialVar> getSpecialVariables(Long sessionId);

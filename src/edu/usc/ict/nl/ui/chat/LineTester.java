@@ -26,7 +26,7 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import edu.usc.ict.nl.bus.NLBus;
+import edu.usc.ict.nl.bus.NLBusInterface;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.modules.NLG;
@@ -39,9 +39,9 @@ public class LineTester extends JPanel implements ListSelectionListener {
 	private JLabel extraInfoLabel=null;
 
 	private Long sessionID=null;
-	private NLBus bus=null;
+	private NLBusInterface bus=null;
 
-	public LineTester(final NLBus nlModule, final Long sid, final Map<String, List<SpeechActWithProperties>> linesRaw) throws Exception {
+	public LineTester(final NLBusInterface nlModule, final Long sid, final Map<String, List<SpeechActWithProperties>> linesRaw) throws Exception {
 		super(new BorderLayout());
 		List<SpeechActWithProperties> lines=new ArrayList<SpeechActWithProperties>();
 		if (linesRaw!=null) {
@@ -141,7 +141,7 @@ public class LineTester extends JPanel implements ListSelectionListener {
 	 * event-dispatching thread.
 	 * @throws Exception 
 	 */
-	public static void createAndShowGUI(final NLBus nlModule,final Long sid,final Map<String, List<SpeechActWithProperties>> lines) {
+	public static void createAndShowGUI(final NLBusInterface nlModule,final Long sid,final Map<String, List<SpeechActWithProperties>> lines) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			
 			public void run() {

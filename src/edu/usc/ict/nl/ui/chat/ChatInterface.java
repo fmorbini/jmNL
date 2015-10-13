@@ -134,7 +134,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 					if (msg!=null && msg.equals("reset")) {
 						try {
 							reloadLock.acquire();
-							sid=nlModule.startSession(nlModule.getCharacterName4Session(sid),chatInterfaceSingleSessionID);
+							sid=nlModule.startSession(nlModule.getCharacterName4Session(chatInterfaceSingleSessionID),chatInterfaceSingleSessionID);
 						} catch (Exception e1) {
 							displayError(e1,false);
 						} finally {
@@ -978,7 +978,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 		ChatInterface newContentPane = getInstance();
 
-		float zoom=newContentPane.nlModule.getConfiguration().getZoomFactorChat();
+		float zoom=ChatInterface.nlModule.getConfiguration().getZoomFactorChat();
 		window.setPreferredSize(new Dimension((int)(hSize*zoom), (int)(vSize*zoom)));
 		window.addWindowListener(newContentPane);
 		//Create and set up the content pane.
