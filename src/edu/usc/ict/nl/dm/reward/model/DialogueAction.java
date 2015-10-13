@@ -305,7 +305,7 @@ public class DialogueAction {
 		takeTransition(tr, context.setInformationState(internalKB), sourceEvent, STOP.NOTHING, true);
 	}
 	private static enum STOP {SYSTEM,USER,NOTHING};
-	public void takeTransition(DialogueOperatorNodeTransition tr,EvalContext context,Event sourceEvent,STOP stopCondition,boolean root) throws Exception {
+	public void takeTransition(final DialogueOperatorNodeTransition tr,EvalContext context,Event sourceEvent,STOP stopCondition,boolean root) throws Exception {
 		if (root) dm.getLogger().info("Starting execution of action. Stop criterion: "+stopCondition);
 		DialogueOperatorNode startState = (DialogueOperatorNode) tr.getSource();
 		DialogueOperatorNode endState = (DialogueOperatorNode) tr.getTarget();
