@@ -36,6 +36,7 @@ import edu.usc.ict.nl.kb.cf.CFisQuestion;
 import edu.usc.ict.nl.kb.cf.CFlen;
 import edu.usc.ict.nl.kb.cf.CFmatch;
 import edu.usc.ict.nl.kb.cf.CFnluQuery;
+import edu.usc.ict.nl.kb.cf.CFnumToString;
 import edu.usc.ict.nl.kb.cf.CFnumberIPUs;
 import edu.usc.ict.nl.kb.cf.CFtoUnit;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
@@ -70,6 +71,7 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFMin());
 		addCustomFunction(new CFnluQuery());
 		addCustomFunction(new CFnumberIPUs());
+		addCustomFunction(new CFnumToString());
 		addCustomFunction(new CFPrint());
 		addCustomFunction(new CFRandom());
 		addCustomFunction(new CFRound());
