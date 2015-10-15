@@ -71,8 +71,9 @@ public class TemplatedNLG extends EchoNLG {
 	
 	@Override
 	protected NLGEvent processPickedLine(SpeechActWithProperties line, Long sessionID,String sa, DialogueKBInterface is,boolean simulate) throws Exception {
-		NLGEvent output=buildOutputEvent(null, sessionID, null);
+		NLGEvent output=null;
 		if (line!=null) {
+			output=buildOutputEvent(null, sessionID, null);
 			String text=line.getText();
 			List<Function> functions = getFunctions(text);
 			text=applyFunctions(output,text,functions,is,sa,simulate);

@@ -49,6 +49,7 @@ import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
+import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.util.FileUtils;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
@@ -466,12 +467,13 @@ public class RewardPolicy {
 		if (nlModule!=null) {
 			NLGInterface nlg=nlModule.getNlg(sid);
 			if (nlg!=null) {
+				Map<String, List<SpeechActWithProperties>> lines = nlg.getAllLines();
 				for(DialogueOperator op:getOperators(OpType.NORMAL)) {
 					for(DialogueOperatorEntranceTransition ec:op.getAllEntrancePossibilities()) {
 						String say=ec.getSay();
 						if (!StringUtils.isEmptyString(say)) {
-							NLGEvent result = nlg.doNLG(sid,new DMSpeakEvent(null,say, sid, null,null),null,true);
-							if (result==null) {
+							boolean speechAct=lines!=null?lines.containsKey(say):nlg.doNLG(sid,new DMSpeakEvent(null,say, sid, null,null),null,true)!=null;
+							if (!speechAct) {
 								String msg=say+" of entrance condition: "+ec+" of operator: "+op;
 								events.add(msg);
 							}
@@ -483,8 +485,8 @@ public class RewardPolicy {
 								DialogueOperatorNodeTransition tr=(DialogueOperatorNodeTransition) e;
 								if (tr.isSayTransition()) {
 									String say=tr.getEvent();
-									NLGEvent result = nlg.doNLG(sid,new DMSpeakEvent(null,say, sid, null,null),null,true);
-									if (result==null) {
+									boolean speechAct=lines!=null?lines.containsKey(say):nlg.doNLG(sid,new DMSpeakEvent(null,say, sid, null,null),null,true)!=null;
+									if (!speechAct) {
 										String msg=say+" in state: "+state+" of operator: "+op;
 										events.add(msg);
 									}

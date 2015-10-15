@@ -101,8 +101,9 @@ public class EchoNLG extends NLG {
 
 		if (line==null) line=pickLineForSpeechAct(sessionID, evName, is, simulate); 
 		NLGEvent output=processPickedLine(line, sessionID,evName, is, simulate);
-		output.setPayload(ev);
+		if (output!=null) output.setPayload(ev);
 		if (output==null || StringUtils.isEmptyString(output.getName())) {
+			output=null;
 			if (!getConfiguration().getAllowEmptyNLGOutput()) return null;
 		}
 
@@ -188,7 +189,7 @@ public class EchoNLG extends NLG {
 	}
 
 	protected NLGEvent processPickedLine(SpeechActWithProperties line,Long sessionID,String sa, DialogueKBInterface is, boolean simulate) throws Exception {
-		NLGEvent result=buildOutputEvent(null, sessionID, null);
+		NLGEvent result=null;
 		if (line!=null) {
 			Map<String, List<SpeechActWithProperties>> vsas = getValidSpeechActs();
 			Map<String, List<Pair<String, String>>> resources = getResources();
@@ -208,6 +209,7 @@ public class EchoNLG extends NLG {
 						text+="\n"+rst.getFirst()+": "+responseText;
 					}
 				}
+				result=buildOutputEvent(null, sessionID, null);
 				result.setName(text);
 			} else if (resources!=null && resources.containsKey(sa)) {
 				String text="";
@@ -216,6 +218,7 @@ public class EchoNLG extends NLG {
 					if (!StringUtils.isEmptyString(rt)) text+=resolveTemplates(rt, is)+"\n";
 					text+=line.getProperty(NLG.PROPERTY_URL);
 				}
+				result=buildOutputEvent(null, sessionID, null);
 				result.setName(text);
 			}
 		}
