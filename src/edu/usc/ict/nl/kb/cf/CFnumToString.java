@@ -23,7 +23,7 @@ public class CFnumToString implements CustomFunctionInterface {
 
 	@Override
 	public boolean checkArguments(Collection<DialogueKBFormula> args) {
-		return (args!=null && args.size()==1);
+		return (args!=null && args.size()>=1 && args.size()<=2);
 	}
 
 	@Override

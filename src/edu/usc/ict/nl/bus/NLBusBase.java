@@ -595,7 +595,7 @@ public abstract class NLBusBase implements NLBusInterface {
 	//##############################################################################
 	//  GET/CREATE NLG for a specific session
 	//##############################################################################
-	
+
 	public synchronized Map<String,NLGInterface> startNLGs(Collection<String> characters) {
 		character2NLG.clear();
 		if (characters!=null) {
@@ -609,7 +609,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		}
 		return character2NLG;
 	}
-	
+
 	@Override
 	public synchronized NLGInterface getNlg(Long sid) throws Exception {
 		return getNlg(sid, true);
@@ -680,14 +680,16 @@ public abstract class NLBusBase implements NLBusInterface {
 	//##############################################################################
 	public static Object createSubcomponent(NLConfig config, String nluClassName) throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 		if (config!=null) {
-			Class cc = Class.forName(nluClassName);
-			Class configClass=config.getClass();
-			while(configClass!=null) {
-				try {
-					Constructor nluconstructor = cc.getConstructor(configClass);
-					return nluconstructor.newInstance(config);
-				} catch (NoSuchMethodException e) {
-					configClass=configClass.getSuperclass();
+			if (nluClassName!=null) {
+				Class cc = Class.forName(nluClassName);
+				Class configClass=config.getClass();
+				while(configClass!=null) {
+					try {
+						Constructor nluconstructor = cc.getConstructor(configClass);
+						return nluconstructor.newInstance(config);
+					} catch (NoSuchMethodException e) {
+						configClass=configClass.getSuperclass();
+					}
 				}
 			}
 		}

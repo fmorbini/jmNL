@@ -972,7 +972,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	 */
 	private static ChatInterface createAndShowGUI() throws Exception {
 		//Create and set up the window.
-		window = new JFrame(buildTitleString(sid));
+		window = new JFrame(buildTitleString(ChatInterface.chatInterfaceSingleSessionID));
 		window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		window.setState(startMinimized?JFrame.ICONIFIED:JFrame.NORMAL);
 

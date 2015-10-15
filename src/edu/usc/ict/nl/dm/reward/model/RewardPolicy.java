@@ -506,9 +506,9 @@ public class RewardPolicy {
 		// check all events in listening transitions
 		if (nlModule!=null) {
 			NLUInterface nlu=nlModule.getNlu(sid);
-			NLUConfig nluConfig=nlu.getConfiguration();
 			Set<String> possibilities;
 			if (nlu!=null && ((possibilities= nlu.getAllSimplifiedPossibleOutputs())!=null)) {
+				NLUConfig nluConfig=nlu.getConfiguration();
 				Set<String> unUsedPossibilities=new HashSet<String>(possibilities);
 				String ev=c.getTimerEvent();
 				if (!StringUtils.isEmptyString(ev)) possibilities.add(ev);
