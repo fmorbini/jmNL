@@ -603,7 +603,7 @@ public abstract class NLBusBase implements NLBusInterface {
 				try {
 					startNLGForCharacter(c,true);
 				} catch (Exception e) {
-					logger.error(e);
+					logger.error("error while starting NLG",e);
 				}
 			}
 		}

@@ -279,7 +279,7 @@ public class RewardDM extends DM {
 						try {
 							handleDefaultEvent(ev);
 						} catch (Exception e) {
-							logger.error(e);
+							logger.error("error while calling handleDefaultEvent.",e);
 							e.printStackTrace();
 						}
 						eventLock.release();
@@ -288,7 +288,7 @@ public class RewardDM extends DM {
 					}
 				}
 			} catch (Exception e) {
-				logger.error(e);
+				logger.error("error in main event loop handleEvent",e);
 				e.printStackTrace();
 			}
 	
@@ -1366,7 +1366,7 @@ public class RewardDM extends DM {
 						try {
 							vt.setter();
 						} catch (Exception e) {
-							logger.error(e);
+							logger.error("error with value tracker: "+vt.getClass().getCanonicalName(),e);
 						}
 					}
 				}

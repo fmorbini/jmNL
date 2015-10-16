@@ -103,7 +103,6 @@ public class EchoNLG extends NLG {
 		NLGEvent output=processPickedLine(line, sessionID,evName, is, simulate);
 		if (output!=null) output.setPayload(ev);
 		if (output==null || StringUtils.isEmptyString(output.getName())) {
-			output=null;
 			if (!getConfiguration().getAllowEmptyNLGOutput()) return null;
 		}
 
