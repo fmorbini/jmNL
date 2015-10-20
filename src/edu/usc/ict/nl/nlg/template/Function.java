@@ -20,8 +20,8 @@ public class Function implements Comparable<Function> {
 	
 	@Override
 	public int compareTo(Function o) {
-		if (o.start>=start && o.end<=end) return +1; //this function is less than o.
-		else if (start>=o.start && end<=o.end) return -1;
+		if (o.getStart()>=getStart() && o.getEnd()<=getEnd()) return +1; //this function is less than o.
+		else if (getStart()>=o.getStart() && getEnd()<=o.getEnd()) return -1;
 		else return 0; // irrelevant how they are sorted.
 	}
 	
@@ -116,8 +116,9 @@ public class Function implements Comparable<Function> {
 	
 	@Override
 	public String toString() {
-		if (m!=null) return m.getName()+"<"+start+","+end+">";
-		else return "<"+start+","+end+">";
+		int s=getStart(), e=getEnd();
+		if (m!=null) return m.getName()+"<"+s+","+e+">";
+		else return "<"+s+","+e+">";
 	}
 
 	/**
@@ -126,9 +127,9 @@ public class Function implements Comparable<Function> {
 	 * @param ds: the current (before change to the string) position at which the change will be applied
 	 */
 	public void updateIndexes(int delta,int ds) {
-		if (ds>startBracket && ds<end) {
+		if (ds>getStartBracket() && ds<getEnd()) {
 			withinDelta+=delta;
-		} else if (ds<start) {
+		} else if (ds<getStart()) {
 			beforeDelta+=delta;
 		}
 	}
@@ -138,9 +139,13 @@ public class Function implements Comparable<Function> {
 	}
 
 	public String getArguments(String text) {
-		return text.substring(startBracket+beforeDelta+1, getEnd());
+		return text.substring(getStartBracket()+1, getEnd());
 	}
 
+	public int getStartBracket() {
+		return startBracket+beforeDelta;
+	}
+	
 	public int getStart() {
 		return start+beforeDelta;
 	}
