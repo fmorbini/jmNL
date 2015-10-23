@@ -97,8 +97,8 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	
 	@Override
 	public void interrupt(DMInterruptionRequest ev) throws Exception {
-		super.interrupt(ev);
 		sendInterruptMessage(ev);
+		super.interrupt(ev);
 	}
 	
 	protected void sendInterruptMessage(DMInterruptionRequest ev) {
