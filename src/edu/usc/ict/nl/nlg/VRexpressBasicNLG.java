@@ -98,9 +98,13 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 	@Override
 	public void interrupt(DMInterruptionRequest ev) throws Exception {
 		super.interrupt(ev);
-		vhBridge.sendMessage("sb","scene.getBmlProcessor().interruptCharacter(\""+characterName+"\", .5)");		
+		sendInterruptMessage(ev);
 	}
 	
+	protected void sendInterruptMessage(DMInterruptionRequest ev) {
+		vhBridge.sendMessage("sb","scene.getBmlProcessor().interruptCharacter(\""+characterName+"\", .5)");		
+	}
+
 	public VHBridge getVhBridge() {
 		return vhBridge;
 	}
