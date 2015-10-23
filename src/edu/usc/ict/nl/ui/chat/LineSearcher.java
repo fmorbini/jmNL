@@ -24,7 +24,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 import edu.usc.ict.nl.nlg.SpeechActWithProperties;
-import edu.usc.ict.nl.nlu.wikidata.dumps.LuceneQueryConstants;
 import edu.usc.ict.nl.util.StringUtils;
 
 public class LineSearcher {
@@ -38,7 +37,9 @@ public class LineSearcher {
 	private static final String ID="sa";
 	private static final String ROW="row";
 	private static final String TEXT="text";
-	
+	public static final String START="luceneTextFieldStart";
+	public static final String END="luceneTextFieldStop";
+
 	public LineSearcher(Map<String, List<SpeechActWithProperties>> linesRaw) throws Exception {
 		analyzerClass=Class.forName("org.apache.lucene.analysis.standard.StandardAnalyzer");
 		rebuildIndex(linesRaw);
@@ -80,14 +81,14 @@ public class LineSearcher {
 		Document doc = new Document();
 		doc.add(new IntField(ROW, l.getRow(), Store.YES));
 		doc.add(new StringField(ID, l.getSA().toLowerCase(), Store.NO));
-		doc.add(new TextField(TEXT, LuceneQueryConstants.START+" "+l.getText().toLowerCase()+" "+LuceneQueryConstants.END, Store.NO));
+		doc.add(new TextField(TEXT, START+" "+l.getText().toLowerCase()+" "+END, Store.NO));
 		return doc;
 	}
 
 	public List<SpeechActWithProperties> find(String query,int n) throws Exception {
 		query=StringUtils.removeLeadingAndTrailingSpaces(query);
-		if (query.startsWith("^")) query=LuceneQueryConstants.START+" "+query.substring(1);
-		if (query.endsWith("$")) query=query.substring(0, query.length()-1)+" "+LuceneQueryConstants.END;
+		if (query.startsWith("^")) query=START+" "+query.substring(1);
+		if (query.endsWith("$")) query=query.substring(0, query.length()-1)+" "+END;
 		Query q = queryParser.parse(query);
 		//System.out.println("query: "+q.getClass()+" "+q);
 		TopDocs result = searcher.search(q,n);
