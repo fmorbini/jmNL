@@ -19,7 +19,15 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import edu.usc.ict.nl.audio.util.Audio;
 import edu.usc.ict.nl.bus.NLBusBase;
@@ -74,12 +82,12 @@ import edu.usc.ict.nl.util.Triple;
 import edu.usc.ict.nl.util.graph.Edge;
 
 public class RewardDM extends DM {
-	
+
 	// keeps track if the current DM session has reached a final state.
 	private boolean done=false;
 
 	private static int MAX_SEARCH_LEVELS;
-	private static long MAX_SEARCH_TIME = 300;
+	private static long MAX_SEARCH_TIME = 300;//milliseconds
 	private static final int highSpeedTimerDelay=200;
 	private static int MAX_ITERATIONS;
 
@@ -91,7 +99,7 @@ public class RewardDM extends DM {
 	public SpeakingTracker getSpeakingTracker() {return speakingTracker;}
 	private List<ValueTracker> trackers=null;
 	private SystemFinishedSpeakingTracker systemFinishedSpeakingTracker=null;
-	
+
 	private OperatorHistoryNode historyOfExecutedOperators=null;
 
 	private DialogueAction activeAction=null;
@@ -157,16 +165,16 @@ public class RewardDM extends DM {
 		}
 		return currentAction;
 	}
-	
+
 	protected EvalContext context;
 	protected RewardPolicy dp=null;
 	public RewardPolicy getPolicy() {return dp;}
-	
+
 	private int eventCounter=0;
-	
+
 	private Timer timerEventThread=null,highSpeedTimerThread=null;
 	public Timer getTimerThread() {return timerEventThread;}
-	
+
 	private boolean isTimerEvent(Event ev) {
 		if (timerEventThread!=null) {
 			if (ev!=null) {
@@ -238,71 +246,98 @@ public class RewardDM extends DM {
 					}
 				}
 			}
-			
+
 		}
 	}
-	
-	private final Semaphore eventLock=new Semaphore(1);
+
+	private ConcurrentLinkedQueue<Event> events=null;
+	private final ExecutorService executor = Executors.newCachedThreadPool();
 	@Override
-	public synchronized List<Event> handleEvent(Event ev) {
+	public List<Event> handleEvent(Event ev) {
 		logger.info("=> received event '"+ev+"' ("+(ev!=null?ev.getClass().getCanonicalName():null)+")");
 		if (!getPauseEventProcessing()) {
-			super.handleEvent(ev);
-			try {
-				if (ev.isEmptyNLUEvent(this)) {
-					logger.info("Empty NLU event received, ignoring.");
-				} else {
-					if (ev instanceof NLUEvent && getConfiguration().getUserAlwaysInterrupts()) {
-						logger.info("/ Interrupting current speaking action (speaking="+getSpeakingTracker().isSpeaking()+") as received user event and global interruption policy is enabled.");
-						interruptCurrentlySpeakingAction(ev);
-						logger.info("\\ Done interruption. (speaking="+getSpeakingTracker().isSpeaking()+")Continue processsing trigger event '"+ev+"' ("+(ev!=null?ev.getClass().getCanonicalName():null)+")");
-					}
-					updateInformationStateWithEvent(ev);
-					runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.DAEMON));
-					runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.NORMAL));
-					if (ev instanceof SystemUtteranceDoneEvent) {
-						handleDoneEvent((SystemUtteranceDoneEvent)ev);
-					} else if (ev instanceof SystemUtteranceLengthEvent) {
-						handleLengthEvent((SystemUtteranceLengthEvent)ev);
-					} else if (ev instanceof DMSpeakEvent) {
-						// update info state covers this case
-					} else if (ev instanceof NLGEvent) {
-						// update info state covers this case
-					} else if (ev instanceof DMInternalEvent || ev instanceof NLUEvent) {
-						boolean lockResult=eventLock.tryAcquire();
-						if (!lockResult) {
-							Exception e=new Exception("recursive call of DM event handler.");;
-							logger.error("Recursive call of event handler method.", e);
-							throw e;
-						}
-						// NLU and timer events
-						try {
-							handleDefaultEvent(ev);
-						} catch (Exception e) {
-							logger.error("error while calling handleDefaultEvent.",e);
-							e.printStackTrace();
-						}
-						eventLock.release();
-					} else {
-						logger.error("Unhandled event type: "+ev.getClass().getCanonicalName());
-					}
-				}
-			} catch (Exception e) {
-				logger.error("error in main event loop handleEvent",e);
-				e.printStackTrace();
-			}
-	
-			if (visualizer!=null) visualizer.updatedKB();
-			
-			//LinkedBlockingQueue<Event> collectedEvents = getMessageBus().getUnprocessedResponseEvents(getSessionID());
-			//if (collectedEvents!=null && !collectedEvents.isEmpty()) return new ArrayList<Event>(collectedEvents);
-			//else return null;
+			events.add(ev);
+			logger.info("length of queue: "+events.size());
 		} else {
-			logger.info("Event received but processing paused: "+ev);
+			logger.info("Event received but processing paused, ignoring: "+ev);
 		}
 		return null;
 	}
-	
+	private class EventProcessor implements Runnable {
+		@Override
+		public void run() {
+			while(!isSessionDone()) {
+				Event ev=events.poll();
+				if (ev!=null) {
+					try {
+						Callable<Object> task = new Callable<Object>() {
+							public Object call() throws Exception {
+								return actualHandleEvent(ev);
+							}
+						};
+						Future<Object> future = executor.submit(task);
+						try {
+							Object result = future.get(5, TimeUnit.SECONDS); 
+						} catch (TimeoutException ex) {
+							logger.error("Timeout while handling event.",ex);
+						} catch (Exception e) {
+							logger.error("Other error while handling event.",e);
+						} finally {
+							future.cancel(true);
+						}
+					} catch (Exception e) {
+						logger.error("error while processing event "+ev,e);
+					}
+				}
+			}
+			logger.info("Done event processor.");
+		}
+	}
+	private List<Event> actualHandleEvent(Event ev) {
+		logger.info("==> processing event '"+ev+"' ("+(ev!=null?ev.getClass().getCanonicalName():null)+")");
+		super.handleEvent(ev);
+		try {
+			if (ev.isEmptyNLUEvent(this)) {
+				logger.info("Empty NLU event received, ignoring.");
+			} else {
+				if (ev instanceof NLUEvent && getConfiguration().getUserAlwaysInterrupts()) {
+					logger.info("/ Interrupting current speaking action (speaking="+getSpeakingTracker().isSpeaking()+") as received user event and global interruption policy is enabled.");
+					interruptCurrentlySpeakingAction(ev);
+					logger.info("\\ Done interruption. (speaking="+getSpeakingTracker().isSpeaking()+")Continue processsing trigger event '"+ev+"' ("+(ev!=null?ev.getClass().getCanonicalName():null)+")");
+				}
+				updateInformationStateWithEvent(ev);
+				runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.DAEMON));
+				runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.NORMAL));
+				if (ev instanceof SystemUtteranceDoneEvent) {
+					handleDoneEvent((SystemUtteranceDoneEvent)ev);
+				} else if (ev instanceof SystemUtteranceLengthEvent) {
+					handleLengthEvent((SystemUtteranceLengthEvent)ev);
+				} else if (ev instanceof DMSpeakEvent) {
+					// update info state covers this case
+				} else if (ev instanceof NLGEvent) {
+					// update info state covers this case
+				} else if (ev instanceof DMInternalEvent || ev instanceof NLUEvent) {
+					// NLU and timer events
+					try {
+						handleDefaultEvent(ev);
+					} catch (Exception e) {
+						logger.error("error while calling handleDefaultEvent.",e);
+						e.printStackTrace();
+					}
+				} else {
+					logger.error("Unhandled event type: "+ev.getClass().getCanonicalName());
+				}
+			}
+		} catch (Exception e) {
+			logger.error("error in main event loop handleEvent",e);
+			e.printStackTrace();
+		}
+
+		if (visualizer!=null) visualizer.updatedKB();
+
+		return null;
+	}
+
 	private void runForwardInferenceInTheseDormantActionsLocalKBs(DormantActions dacsContainer) throws Exception {
 		if (dacsContainer!=null) {
 			Collection<DialogueAction> dacs = dacsContainer.getDormantActions();
@@ -317,7 +352,7 @@ public class RewardDM extends DM {
 			}
 		}
 	}
-	
+
 	public void interruptCurrentlySpeakingAction(Event sourceEvent) {
 		try {
 			NLGEvent ev=getSpeakingTracker().getCurrentlySpeackingEvent();
@@ -332,11 +367,11 @@ public class RewardDM extends DM {
 		}
 	}
 
-	synchronized private void handleDoneEvent(SystemUtteranceDoneEvent ev) throws Exception {
+	private void handleDoneEvent(SystemUtteranceDoneEvent ev) throws Exception {
 		logger.info("====>received done event: "+ev);
 		getSpeakingTracker().finishedSpeakingThis(ev);
 	}
-	synchronized private void handleLengthEvent(SystemUtteranceLengthEvent ev) throws Exception {
+	private void handleLengthEvent(SystemUtteranceLengthEvent ev) throws Exception {
 		String event=ev.getName();
 		Float duration=ev.getPayload();
 		logger.info("====>received length event: "+ev+" = "+duration);
@@ -380,11 +415,11 @@ public class RewardDM extends DM {
 		cleanupDormantActions();
 		updateActiveAndDormantVariables();
 		runDaemons(ev);
-		
+
 		// contains the input event. If no operator handled that event it stays like the input event.
 		// Otherwise it's the exact event handled (in case the input is a multi nlu or chart nlu output).
 		Event userInputEvent=ev; 
-		
+
 		int iterations=0;
 		while (!isSessionDone() && iterations<MAX_ITERATIONS) {
 			iterations++;
@@ -396,20 +431,20 @@ public class RewardDM extends DM {
 			logger.info(" dormant actions '"+((dormantActions!=null)?dormantActions.getDormantOperators():null)+"'");
 			runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.DAEMON));
 			runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.NORMAL));
-			
+
 			if (currentAction!=null && currentAction.isPaused() && !ev.isUserEvent() && getSpeakingTracker().isSpeaking()) {
 				logger.info("Input event is not a user event, current action is paused and speaking => delay running search for new action.");
 				break;
 			} else {
 				// select action and pick exact event handled (the nlu event can contain multiple simple events, select one among them).
 				Event handledEvent=runForwardSearchForEventAndActivateResult(ev);
-				
+
 				getInformationState().store(DialogueOperatorEffect.createAssignment(NLBusBase.lastEventVariableName, DialogueKBFormula.create("'"+handledEvent+"'", null)),ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 				// update the event variable with the handled event (null if input event is ignored)
 				if (handledEvent!=null) userInputEvent=handledEvent;
 				// this line is here to store the variable attached to the default event to remember which user event generated the default event.
 				if (iterations==1) updateISwithNLUvariablesFromEvent(getRootInformationState(),userInputEvent); 
-	
+
 				cleanupDormantActions();
 				updateActiveAndDormantVariables();
 				currentAction=getCurrentActiveAction();
@@ -450,7 +485,7 @@ public class RewardDM extends DM {
 			}
 		}
 	}
-	
+
 	private Event runForwardSearchForEventAndActivateResult(Event ev) throws Exception {
 		return sendEventToCurrentActionOrToSearchOrUserProvidedSearchResult(ev, null);
 	}
@@ -479,7 +514,7 @@ public class RewardDM extends DM {
 
 		return handledEvent;
 	}
-	
+
 	private int isThereADialogloop() {
 		if (stateTracker!=null) {
 			return stateTracker.containsLoop();
@@ -536,7 +571,7 @@ public class RewardDM extends DM {
 			logger.warn("Failed to send messages as the message bus is NULL.");
 		}
 	}
-	synchronized public void updateInformationStateWithEvent(final Event ev) throws Exception {
+	public void updateInformationStateWithEvent(final Event ev) throws Exception {
 		DialogueKB localIS = getInformationState();
 		DialogueKB baseIS=getRootInformationState();
 		if (ev!=null) {
@@ -590,7 +625,7 @@ public class RewardDM extends DM {
 			} else if (isTimerEvent(ev)) {
 				DialogueAction currentAction=getCurrentActiveAction();
 				if (currentAction!=null) currentAction.incrementTimerEventsInCurrentState();
-				
+
 				localIS.store(incrementTimeSinceStart, ACCESSTYPE.AUTO_OVERWRITEAUTO, true);
 				localIS.store(incrementTimeSinceLastResource, ACCESSTYPE.AUTO_OVERWRITEAUTO, true);
 
@@ -621,20 +656,20 @@ public class RewardDM extends DM {
 					lastItem=userEventsHistoryContent.peekFirst();
 					if (lastItem==null) userEventsHistoryContent.push(lastItem=new LinkedList<NLUOutput>());
 				}
-				
+
 				NLUOutput sa=(NLUOutput) ev.getPayload();
 				if (sa!=null) {
 					is.store(DialogueOperatorEffect.createAssignment(NLBusBase.lastUserText,sa.getText()),ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 					lastItem.push(sa);
 				}
-				
+
 				if (thisIsTheRealLast!=null) {
 					userEventsHistoryContent.push(thisIsTheRealLast);
 				}
 			}
 			is.store(DialogueOperatorEffect.createAssignment(NLBusBase.userEventsHistory,userEventsHistoryContent),ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 		}
-		
+
 	}
 
 	/*private Event pickOutSingleMainEventIfMultipleEvents(Event ev,NLUOutput sa, DialogueAction currentAction, DialogueKBInterface is) throws Exception {
@@ -662,7 +697,7 @@ public class RewardDM extends DM {
 						runISautoUpdates(eventName,is);
 						if (!eventName.equals(config.getLowConfidenceEvent())) {
 							List<DialogueOperatorEntranceTransition> handlers = getOperatorsThatSupportThisEvent(is, eventName);
-							
+
 							if (currentAction!=null && currentAction.handles(eventName)) {
 								expectedEvents.add(pcNLU);
 							}
@@ -821,11 +856,8 @@ public class RewardDM extends DM {
 		}
 		return null;
 	}
-	public static enum SearchTermination {KEEP_CURRENT_ACTION_IGNORE_EVENT,
-		KEEP_CURRENT_ACTION_HANDLE_EVENT,
-		DROP_CURRENT_ACTION_IGNORE_EVENT,
-		DROP_CURRENT_ACTION_HANDLE_EVENT};
-		public static final Set<SearchTermination> ALL_TERMINATION_METHODS=new HashSet<RewardDM.SearchTermination>();
+	public static enum SearchTermination {KEEP_CURRENT_ACTION_IGNORE_EVENT,KEEP_CURRENT_ACTION_HANDLE_EVENT,DROP_CURRENT_ACTION_IGNORE_EVENT,DROP_CURRENT_ACTION_HANDLE_EVENT};
+	public static final Set<SearchTermination> ALL_TERMINATION_METHODS=new HashSet<RewardDM.SearchTermination>();
 	static {
 		ALL_TERMINATION_METHODS.add(SearchTermination.KEEP_CURRENT_ACTION_IGNORE_EVENT);
 		ALL_TERMINATION_METHODS.add(SearchTermination.KEEP_CURRENT_ACTION_HANDLE_EVENT);
@@ -833,19 +865,19 @@ public class RewardDM extends DM {
 		ALL_TERMINATION_METHODS.add(SearchTermination.DROP_CURRENT_ACTION_HANDLE_EVENT);
 	}
 	public static final Set<SearchTermination> HANDLER_TERMINATION_METHODS=new HashSet<RewardDM.SearchTermination>();
-	
+
 	static {
 		HANDLER_TERMINATION_METHODS.add(SearchTermination.KEEP_CURRENT_ACTION_HANDLE_EVENT);
 		HANDLER_TERMINATION_METHODS.add(SearchTermination.DROP_CURRENT_ACTION_HANDLE_EVENT);
 	}
-	
+
 	private boolean isChangeDrivenByNonUserEvent(FoundDialogueOperatorEntranceTransition ec,Event ev, DialogueAction currentAction) {
 		return (currentAction!=null) &&
-			!isUserEvent(ev) && 
-			(ec!=null) && (ec.getEntranceCondition()!=null) &&
-			(ec.getEntranceCondition().getOperator()!=currentAction.getOperator());
+				!isUserEvent(ev) && 
+				(ec!=null) && (ec.getEntranceCondition()!=null) &&
+				(ec.getEntranceCondition().getOperator()!=currentAction.getOperator());
 	}
-	
+
 	// this method returns the best operator given the current state and event
 	// it may chose to ignore the given event and pick some other operator
 	private FoundDialogueOperatorEntranceTransition selectAndPushBestOperatorForGivenEvent(Event ev, DialogueAction currentAction) throws Exception {
@@ -868,10 +900,10 @@ public class RewardDM extends DM {
 				}
 			}
 		}
-		
+
 		// check if we should prefer to the selected entrance condition, handlers for the ignore or unhandled events (if there).
 		ec = checkIgnoredAndUnhandledHandlers(ev, currentAction, br);
-		
+
 		if (ec!=null && ec.getEntranceCondition().getOperator().canItBeExecutedNow(getInformationState())) {
 			// ec here contains the selected entrance condition. Now it's time to enable it.
 			updateCurrentActionGivenSelection(ec,currentAction);
@@ -882,13 +914,13 @@ public class RewardDM extends DM {
 
 		return ec;
 	}
-	
+
 	private FoundDialogueOperatorEntranceTransition checkIgnoredAndUnhandledHandlers(
 			Event ev, DialogueAction currentAction, NextActionSelector br) throws Exception {
 		// if current action unchanged and current action not handling current event,
 		// then send the unhandled event.
 		FoundDialogueOperatorEntranceTransition ec = br.getBest();
-		
+
 		if (isUserEvent(ev) && ec!=null && !ec.getEntranceCondition().isEventGoodForTransition(ev.getName())) {
 			logger.info("selected action doesn't handle input user event. Looking for ignore/unhandled event.");
 			//selectedEntranceCondition==null && isUserEvent(ev)) {
@@ -926,7 +958,7 @@ public class RewardDM extends DM {
 		}
 		return ec;
 	}
-	
+
 	private void updateCurrentActionGivenSelection(FoundDialogueOperatorEntranceTransition ec, DialogueAction currentAction) throws Exception {
 		if (ec!=null) {
 			DialogueOperatorEntranceTransition selectedEntranceCondition=ec.getEntranceCondition();
@@ -952,7 +984,7 @@ public class RewardDM extends DM {
 			}
 		}
 	}
-	
+
 	public boolean isIgnoreCurrentEvent(SearchTermination mode) {
 		return mode==SearchTermination.DROP_CURRENT_ACTION_IGNORE_EVENT || mode==SearchTermination.KEEP_CURRENT_ACTION_IGNORE_EVENT;
 	}
@@ -962,7 +994,7 @@ public class RewardDM extends DM {
 	public boolean isHandleMode(SearchTermination mode) {
 		return (mode==SearchTermination.DROP_CURRENT_ACTION_HANDLE_EVENT) || (mode==SearchTermination.KEEP_CURRENT_ACTION_HANDLE_EVENT);
 	}
-	
+
 	private Map<String,Object> nluVariables=null;
 
 	private DialogueKBFormula previousUnhandledCounter;
@@ -971,7 +1003,7 @@ public class RewardDM extends DM {
 	private DMVisualizerI visualizer=null;
 
 	private static Rectangle visualizerBounds=null;
-	
+
 	private static DialogueOperatorEffect incrementUnhandledCounterVariable,incrementUnhandledInTurnCounterVariable,incrementTimeSinceLastResource,incrementTimeSinceStart;
 	static {
 		try {
@@ -1049,7 +1081,7 @@ public class RewardDM extends DM {
 				systemFinishedSpeakingTracker.touch();
 			}
 		}
-		
+
 		is.setValueOfVariable(NLBusBase.lengthOfLastUserTurnVarName,DialogueKBFormula.create("0", null),ACCESSTYPE.AUTO_OVERWRITEAUTO);
 	}
 
@@ -1080,12 +1112,12 @@ public class RewardDM extends DM {
 			}
 		}
 	}
-	
+
 	public List<DialogueOperatorEntranceTransition> getOperatorsThatCanBeStartedByThisEvent(PossibleIS pis, Event ev,DialogueAction currentAction,OpType type) throws Exception {
 		List<DialogueOperatorEntranceTransition> ret;
-		
+
 		EvalContext context=pis.getEvalContextFromThis();
-		
+
 		if (ev==null) {
 			ret=getOperatorsThatSupportSystemInitiative(context,pis.getDormantOperators(),type);
 			if (currentAction!=null) removeECsThatBelongsToOperator(ret,currentAction.getOperator());
@@ -1105,13 +1137,13 @@ public class RewardDM extends DM {
 	/*private List<DialogueOperatorEntranceTransition> getOperatorsThatSupportSystemInitiative(PossibleIS pis) throws Exception {
 		//logger.debug("    Looking for operators that can be initiated by the system.");
 		List<DialogueOperatorEntranceTransition> handlers=null;
-		
+
 		Set<DialogueOperator> sis = dp.getSystemInitiatableOperators();
 		DormantActions dormantActions = pis.getDormantOperators();
 		LinkedHashSet<DialogueOperator> operators = new LinkedHashSet<DialogueOperator>();
 		if (sis!=null) operators.addAll(sis);
 		if (dormantActions!=null) operators.addAll(dormantActions.getDormantOperators());
-		
+
 		DialogueKBInterface is = pis.getValue();
 		for(DialogueOperator op:operators) {
 			LinkedHashSet<DialogueOperatorEntranceTransition> ecs = (pis.isDormant(op))?op.getReEntranceOptions():op.getEntranceConditions();
@@ -1139,7 +1171,7 @@ public class RewardDM extends DM {
 	private List<DialogueOperatorEntranceTransition> getOperatorsThatSupportSystemInitiative(EvalContext context,DormantActions dormantActions,OpType type) {
 		//logger.debug("    Looking for operators that can be initiated by the system.");
 		List<DialogueOperatorEntranceTransition> handlers=null;
-		
+
 		Set<DialogueOperator> sis=null;
 		try {
 			sis = dp.getSystemInitiatableOperators(type);
@@ -1149,7 +1181,7 @@ public class RewardDM extends DM {
 		LinkedHashSet<DialogueOperator> operators = new LinkedHashSet<DialogueOperator>();
 		if (sis!=null) operators.addAll(sis);
 		if (dormantActions!=null) operators.addAll(dormantActions.getDormantOperators());
-		
+
 		for(DialogueOperator op:operators) {
 			LinkedHashSet<DialogueOperatorEntranceTransition> ecs = null;
 			if (dormantActions!=null && dormantActions.isThisDormant(op)) {
@@ -1232,8 +1264,8 @@ public class RewardDM extends DM {
 									}
 									else logger.debug("     Removing operator "+op.getName()+" because dormant and not re-enterable.");
 								} else {*/
-									if (handlers==null) handlers=new ArrayList<DialogueOperatorEntranceTransition>();
-									handlers.add(ec);
+								if (handlers==null) handlers=new ArrayList<DialogueOperatorEntranceTransition>();
+								handlers.add(ec);
 								//}
 								break;
 							}
@@ -1251,13 +1283,13 @@ public class RewardDM extends DM {
 
 		SearchSpace ss = (ev!=null)?new SearchSpace(this,currentAction,ev):new SearchSpace(this,currentAction);
 		Pair<TERMINATION_CAUSE, Integer> endState = ss.runForwardSearch();
-		
+
 		WeightedDialogueOperatorEntranceTransition rr = ss.computeRewardForIgnoringEvent();
 		if (rr!=null) bestSelector.updateBestWith(rr, SearchTermination.DROP_CURRENT_ACTION_IGNORE_EVENT);
 
 		rr = ss.computeRewardForHandlingEvent();
 		if (rr!=null) bestSelector.updateBestWith(rr, SearchTermination.DROP_CURRENT_ACTION_HANDLE_EVENT);
-		
+
 		rr = ss.computeRewardForContinuingCurrentAction();
 		if (rr!=null) bestSelector.updateBestWith(rr, SearchTermination.KEEP_CURRENT_ACTION_IGNORE_EVENT);
 
@@ -1282,19 +1314,19 @@ public class RewardDM extends DM {
 			});
 			visualizer.addSearchResult(possibilities, null);
 		}
-		
+
 		Float reward=bestSelector.getBestReward();
 		if (reward==null || reward<=0) {
 			logger.debug("     no best action or best action has no reward (="+reward+"), ignoring it.");
 			bestSelector.setBest(null);
 		}
-			
+
 		FoundDialogueOperatorEntranceTransition best = bestSelector.getBest();
 		logger.debug("    Best action selected: "+best);
 
 		return bestSelector;
 	}
-	
+
 	private static String loopEvent=null;
 	public RewardDM(NLBusConfig config) {
 		super(config);
@@ -1311,7 +1343,9 @@ public class RewardDM extends DM {
 		this.dormantActions=new DormantActions();
 		this.dormantDaemonActions=new DormantActions();
 		this.historyOfExecutedOperators=new OperatorHistoryNode();
-		
+		this.events=new ConcurrentLinkedQueue<>();
+		new Thread(new EventProcessor()).start();
+
 		this.dp = dp;
 		setSessionID(sessionID);
 		if (config.getVisualizerConfig()!=null && config.getVisualizerClass()!=null) {
@@ -1319,15 +1353,15 @@ public class RewardDM extends DM {
 			Constructor c = vc.getConstructor(DM.class,Rectangle.class);
 			visualizer=(DMVisualizerI) c.newInstance(this,visualizerBounds);
 		}
-		
+
 		if (!StringUtils.isEmptyString(config.getUnhandledEventName()))
 			unhandledUserEvent=new DMInternalEvent(config.getUnhandledEventName(), sessionID);
 		if (!StringUtils.isEmptyString(config.getForcedIgnoreEventName()))
 			forcedIgnoreUserEvent=new DMInternalEvent(config.getForcedIgnoreEventName(), sessionID);
-		
+
 		//informationState.addTracingFor("donequestion");
 		this.context=new EvalContext(new TrivialDialogueKB(this));
-		
+
 		DialogueKB informationState=getInformationState();
 		initializeInformationState(informationState);
 		//Collection map = FunctionalLibrary.map(getMessageBus().getSpecialVariables(sessionID),SpecialVar.class.getMethod("getName"));
@@ -1336,7 +1370,7 @@ public class RewardDM extends DM {
 		sendVarChangeEventsCausedby(changes, DMInternalEvent.INIT);
 
 		loadGoalValuesInIS(informationState,dp.getGoals());
-				
+
 		float timer=config.getTimerInterval();
 		highSpeedTimerThread=new Timer("RewardDMSpeedTimer-"+getSessionID());
 		timerEventThread = new Timer("RewardDMTimer-"+getSessionID());
@@ -1386,7 +1420,7 @@ public class RewardDM extends DM {
 		} else {
 			logger.info("NOT starting high speed thread as default thread runs every: "+msTimerDelay+"[ms] (high speed is: "+highSpeedTimerDelay+"[ms]).");
 		}
-		
+
 		if (getTimerThread() != null)
 			this.speakingTracker=new SpeakingTracker(this,getTimerThread());
 		else
@@ -1469,7 +1503,7 @@ public class RewardDM extends DM {
 			logger.error("Error while getting special variables.", e1);
 		}
 	}
-	
+
 	private void loadGoalValuesInIS(DialogueKBInterface is,HashMap<String, Pair<DialogueKBFormula, String>> goals) throws Exception {
 		if(goals!=null) {
 			for (String gn:goals.keySet()) {
@@ -1491,11 +1525,11 @@ public class RewardDM extends DM {
 		else if ((System.currentTimeMillis()-startTime)>MAX_SEARCH_TIME) return TERMINATION_CAUSE.TIMEOUT;
 		else return null;
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// START REWARD CALCULATION
 	//////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	private float computeNodeReward(boolean isCopyNode,float nodeReward,float nodeWeight,float treeReward,float stepLoss, PossibleIS node) {
 		assert((nodeReward>0)?nodeWeight>0:true);
 		if (logger.isDebugEnabled()) {
@@ -1519,7 +1553,7 @@ public class RewardDM extends DM {
 				contributes.put(op, r*nodeWeight);
 			}
 		}
-		
+
 		if (isCopyNode) return (nodeReward+treeReward*stepLoss)*nodeWeight;
 		else return (nodeReward+treeReward*stepLoss)*nodeWeight;
 	}
@@ -1540,7 +1574,7 @@ public class RewardDM extends DM {
 	 */
 	public float getPossibilityReward(PossibleIS node) throws Exception {
 		float treeReward=0,nodeWeight=node.getWeight(),nodeReward=node.getChainReward(),stepLoss=dp.getStepLoss();
-		
+
 		List<Edge> possibilities;
 		switch (node.getType()) {
 		case ROOT:
@@ -1567,7 +1601,7 @@ public class RewardDM extends DM {
 						for(Edge pst:possibilities) {
 							PossibleTransition ctr=(PossibleTransition)pst;
 							PossibleIS nextNode=(PossibleIS) ctr.getTarget();
-		
+
 							float childReward=getPossibilityReward(nextNode);
 							ctr.setReward(childReward);
 							if ((bestChildReward==null) || (childReward>bestChildReward)) {
@@ -1576,10 +1610,10 @@ public class RewardDM extends DM {
 							}
 						}
 					}
-					
+
 					treeReward=(bestChildReward==null)?0:bestChildReward;
 				}
-	
+
 				node.setTreeReward(treeReward);
 				return computeNodeReward(isMergedNode,nodeReward, nodeWeight, treeReward, stepLoss,node);
 			}
@@ -1606,7 +1640,7 @@ public class RewardDM extends DM {
 					if (logger.isDebugEnabled()) node.setContributes(childrenContributes);
 				}
 				treeReward=childrenReward;
-	
+
 				node.setTreeReward(treeReward);
 				return computeNodeReward(false,0, 1, treeReward, stepLoss,node);
 			}
@@ -1632,7 +1666,7 @@ public class RewardDM extends DM {
 				PossibleTransition ctr=(PossibleTransition)pst;
 				PossibleIS nextNode=(PossibleIS) ctr.getTarget();
 				assert(nextNode.isEntranceCondition());
-				
+
 				DialogueOperatorEntranceTransition ec = ctr.getEntranceCondition();
 				float childReward=getPossibilityReward(nextNode);
 				ctr.setReward(childReward);
@@ -1656,7 +1690,7 @@ public class RewardDM extends DM {
 		}
 		return new WeightedDialogueOperatorEntranceTransition(bestEC,bestChildReward);
 	}
-	
+
 	private boolean thisReentersNearerToActiveStateThan(DialogueOperatorEntranceTransition n,DialogueOperatorEntranceTransition o) throws Exception {
 		if (n!=null && o!=null && n.getOperator()==o.getOperator()) {
 			DialogueOperator op=n.getOperator();
@@ -1686,7 +1720,7 @@ public class RewardDM extends DM {
 			float reward=0;
 			PossibleIS pis = new PossibleIS(op,PossibleIS.Type.ROOT,"tmp", is, null);
 			pis.setChainReward(0);
-			
+
 			for(DialogueOperatorNodesChain pathAndEffects:effectsSets) {
 				Pair<DialogueKB, Float> is_reward = pis.updateISAndgetReward(is,pathAndEffects);
 				//System.out.println(is_reward.getSecond());
@@ -1695,11 +1729,11 @@ public class RewardDM extends DM {
 			return reward;
 		} else return 0;
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////////////////////
 	// END REWARD CALCULATION
 	//////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	public void setDone(boolean d) {
 		this.done=d;
 		if (d) {
@@ -1770,7 +1804,7 @@ public class RewardDM extends DM {
 			DialogueAction currentAction=getCurrentActiveAction();
 			SearchSpace ss = new SearchSpace(this,currentAction,pes);
 			Pair<TERMINATION_CAUSE, Integer> endState = ss.runForwardSearch();
-			
+
 			NextActionSelector[] selectors=new NextActionSelector[pes.length];
 			WeightedDialogueOperatorEntranceTransition ignoring = ss.computeRewardForIgnoringEvent();
 			WeightedDialogueOperatorEntranceTransition[] handling = ss.computeRewardsForHandlingEvents();
@@ -1781,18 +1815,18 @@ public class RewardDM extends DM {
 				selectors[i].updateBestWith(handling[i], SearchTermination.DROP_CURRENT_ACTION_HANDLE_EVENT);
 				selectors[i].updateBestWith(continuing, SearchTermination.KEEP_CURRENT_ACTION_IGNORE_EVENT);
 			}
-			
+
 			for(i=0;i<pes.length;i++) {
 				NLUOutput usa=pes[i].getPayload();
 				FoundDialogueOperatorEntranceTransition best=selectors[i].getBest();
 				List<List<String>> systemActions=null;
-				
+
 				TrivialDialogueKB tmp=new TrivialDialogueKB(getInformationState());
 				FoundDialogueOperatorEntranceTransition fec = checkIgnoredAndUnhandledHandlers(pes[i], currentAction, selectors[i]);
 				DialogueOperatorEntranceTransition ec=fec.getEntranceCondition();
 				best.setEntranceCondition(ec);
-				
-				
+
+
 				NLUEvent handledEvent = (NLUEvent)sendEventToCurrentActionOrToSearchOrUserProvidedSearchResult(pes[i], best);
 				updateISwithNLUvariablesFromEvent(tmp,handledEvent!=null?handledEvent:pes[i]);
 				tmp.store(DialogueOperatorEffect.createAssignment(NLBusBase.lastEventVariableName, DialogueKBFormula.create("'"+handledEvent+"'", null)),ACCESSTYPE.AUTO_OVERWRITETHIS,true);
@@ -1816,10 +1850,10 @@ public class RewardDM extends DM {
 					handledEvent=null; // because it's consumed by the entrance condition.
 					systemActions=op.simulateAndCollectAllSystemActions(handledEvent,tmp,activeStates);
 				}
-				
+
 				mapping.put(usa, systemActions);
 			}
-			
+
 		}
 		logger.info("DONE WITH CALL TO getPossibleSystemResponsesForThesePossibleInputs.");
 		return mapping;
@@ -1840,13 +1874,13 @@ public class RewardDM extends DM {
 		}
 		return mapping;*/
 	}
-	
+
 	@Override
 	public List<NLUOutput> getHandledUserEventsInCurrentState(List<NLUOutput> userInputs) throws Exception {
 		throw new Exception("unsupported");
 	}
 
-	
+
 	@Override
 	public RewardPolicy parseDialoguePolicy(String policyURL) throws Exception {
 		RewardPolicy p=new RewardPolicy(getConfiguration()).parseDialoguePolicyFile(policyURL);
@@ -1856,7 +1890,7 @@ public class RewardDM extends DM {
 	public void validatePolicy(NLBusBase nlModule) throws Exception {
 		dp.validate(getSessionID(),nlModule);
 	}
-	
+
 	@Override
 	public RewardDM createPolicyDM(Object preparsedDialoguePolicy,Long sid,NLBusInterface listener) throws Exception {
 		RewardDM dm;
@@ -1864,7 +1898,7 @@ public class RewardDM extends DM {
 		dm = new RewardDM(sid,dp, getConfiguration(),listener);
 		return dm;
 	}
-	
+
 	@Override
 	public boolean isSessionDone() {return done;}
 
@@ -1876,7 +1910,7 @@ public class RewardDM extends DM {
 	public void resetActiveStatesTo(Set<String> activeStateIds) throws Exception {
 		throw new Exception("unsupported operation");
 	}
-	
+
 	@Override
 	public List<DMSpeakEvent> getAllPossibleSystemLines() throws Exception {
 		RewardPolicy p=getPolicy();

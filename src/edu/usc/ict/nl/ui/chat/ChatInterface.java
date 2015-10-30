@@ -614,7 +614,9 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 						chatLogFileName=dm.getCurrentChatLogFile();
 					}
 
-					window.setTitle(buildTitleString(sid));
+					if (window!=null) {
+						window.setTitle(buildTitleString(sid));
+					}
 
 					displayState=MainDisplayStatus.CHAT;
 					setDisplayAccordingToState();
