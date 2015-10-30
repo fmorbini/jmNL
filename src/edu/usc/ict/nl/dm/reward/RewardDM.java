@@ -21,11 +21,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -267,7 +265,7 @@ public class RewardDM extends DM {
 		@Override
 		public void run() {
 			while(!isSessionDone()) {
-				Event ev=events.poll();
+				final Event ev=events.poll();
 				if (ev!=null) {
 					try {
 						Callable<Object> task = new Callable<Object>() {
