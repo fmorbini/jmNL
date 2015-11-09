@@ -287,6 +287,10 @@ public class RewardDM extends DM {
 						logger.error("error while processing event "+ev,e);
 					}
 				}
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+				}
 			}
 			logger.info("Done event processor.");
 		}
