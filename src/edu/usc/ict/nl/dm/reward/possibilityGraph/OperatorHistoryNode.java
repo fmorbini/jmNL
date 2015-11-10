@@ -44,10 +44,12 @@ public class OperatorHistoryNode extends Node {
 			if (thiso!=no && thiso!=null) {
 				newhn = new OperatorHistoryNode(action);
 				this.addEdgeTo(newhn, true, true);
+				return newhn;
 			} else if (action.getDone()!=getDone() || thiso==null) {
 				set(no, action.getDone());
+				return newhn;
 			}
-			return newhn;
+			return null;
 		}
 		return null;
 	}

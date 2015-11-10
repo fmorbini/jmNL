@@ -26,13 +26,16 @@ import edu.usc.ict.nl.util.StringUtils;
 
 public class SpeakingTracker {
 
+	private static DialogueOperatorEffect setSpeackingAsTrue,setSpeackingAsFalse;
+	static {
+		try{
+			setSpeackingAsTrue=DialogueOperatorEffect.createAssignment(NLBusBase.systemSpeakingStateVarName, true);
+			setSpeackingAsFalse=DialogueOperatorEffect.createAssignment(NLBusBase.systemSpeakingStateVarName, false);
+		} catch (Exception e) {e.printStackTrace();}
+	}
+
 	private boolean waitForSystemDone=false;
-	private NLGEvent speakingThis=null;
-	private Float durationOfThingSpoken=0f;
-	private Float durationOfAudioPortionOfThingSpoken=0f;
-	private Long timeStartedSpeaking=null;
-	private DialogueAction waitingAction=null;
-	private Pair<DialogueOperatorNodeTransition,Event> waitingTransitionWithState=null;
+	private DialogueActionSpeakingTransitionWaiting speakingActionState=null;
 	private final DM dm;
 	private Timer tt;
 	private Map<String,TimerTask> tasks = new ConcurrentHashMap<String,TimerTask>();
@@ -46,9 +49,9 @@ public class SpeakingTracker {
 	}
 
 	public boolean isSpeaking() {
-		if (waitForSystemDone && speakingThis!=null) {
+		if (waitForSystemDone && speakingActionState!=null) {
 			try {
-				Float duration=durationOfThingSpoken;
+				Float duration=speakingActionState.getExpectedLengthOfSpeech();
 				if ((duration==null) || (duration>0)) return true;
 				else return false;
 			} catch (Exception e) {
@@ -62,111 +65,111 @@ public class SpeakingTracker {
 	 * @return a number between 0 and 1 that indicates the portion of the amount of time allocated for this utterance that has passed.
 	 */
 	public Float getSpokenFraction() {
-		if (durationOfAudioPortionOfThingSpoken!=null && timeStartedSpeaking!=null && durationOfAudioPortionOfThingSpoken>=0 && timeStartedSpeaking>0) {
-			float p=(durationOfAudioPortionOfThingSpoken>0)?((float)(System.currentTimeMillis()-timeStartedSpeaking))/(durationOfAudioPortionOfThingSpoken*1000f):1;
-			if (p>1) p=1;
-			return p;
-		}
-		return null;
+		if (speakingActionState!=null) return speakingActionState.getSpokenFraction();
+		else return null;
 	}
-	private static DialogueOperatorEffect setSpeackingAsTrue,setSpeackingAsFalse;
-	static {
-		try{
-			setSpeackingAsTrue=DialogueOperatorEffect.createAssignment(NLBusBase.systemSpeakingStateVarName, true);
-			setSpeackingAsFalse=DialogueOperatorEffect.createAssignment(NLBusBase.systemSpeakingStateVarName, false);
-		} catch (Exception e) {e.printStackTrace();}
-	}
-	public void setSpeaking(NLGEvent ev) throws Exception {
-		speakingThis=ev;
-		NLGInterface nlg = dm.getMessageBus().getNlg(dm.getSessionID());
-		NLGConfig nlgConfig=nlg.getConfiguration();
-		durationOfThingSpoken=nlg.getDurationOfThisDMEvent(dm.getSessionID(), speakingThis);
-		durationOfAudioPortionOfThingSpoken=durationOfThingSpoken;
-		final String say=getSpeakingSpeechAct();
-		dm.getLogger().info("got duration for event: "+say+" as: "+durationOfThingSpoken);
-		if (isSpeaking()) {
-			timeStartedSpeaking=System.currentTimeMillis();
-			DialogueKBInterface is = dm.getInformationState();
-			is.store(setSpeackingAsTrue, ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 
-			Timer timer = getTimer();
-			Float duration = durationOfThingSpoken;
-			boolean busTracksUtterancesDuration=dm.getMessageBus().canDetectUtteranceCompleted();
-			if (duration==null || duration<=0 || busTracksUtterancesDuration) {
-				if (busTracksUtterancesDuration) dm.getLogger().warn("setting duration to default as bus tracks utterances.");
-				duration=nlgConfig.getDefaultDuration();
+	public void setSpeaking(NLGEvent ev) throws Exception {
+		final Logger logger = dm.getLogger();
+		if (speakingActionState.setSpeakingEvent(ev)) {
+			NLGInterface nlg = dm.getMessageBus().getNlg(dm.getSessionID());
+			NLGConfig nlgConfig=nlg.getConfiguration();
+			speakingActionState.setExpectedLengthOfSpeech(nlg.getDurationOfThisDMEvent(dm.getSessionID(), ev));
+			final String say=getSpeakingSpeechAct();
+			logger.info("got duration for event: "+say+" as: "+speakingActionState.getExpectedLengthOfSpeech());
+			if (isSpeaking()) {
+				speakingActionState.setStartOfSpeech(System.currentTimeMillis());
+				DialogueKBInterface is = dm.getInformationState();
+				is.store(setSpeackingAsTrue, ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
+
+				Timer timer = getTimer();
+				Float duration = speakingActionState.getExpectedLengthOfSpeech();
+				boolean busTracksUtterancesDuration=dm.getMessageBus().canDetectUtteranceCompleted();
+				if (duration==null || duration<=0 || busTracksUtterancesDuration) {
+					if (busTracksUtterancesDuration) dm.getLogger().warn("setting buckup timer duration to default as bus tracks utterances.");
+					duration=nlgConfig.getDefaultDuration();
+				}
+				else duration*=1.2f; // increase the backup event duration by 20%
+				if (tasks.containsKey(say)) {
+					logger.warn("NOT setting up BACKUP animation complete sender for '"+say+"' because one already present.");
+					logger.warn(" -> ms until execution: "+(System.currentTimeMillis()-tasks.get(say).scheduledExecutionTime()));
+				} else {
+					long ms=Math.round(duration*1000);
+					logger.info("Setting up BACKUP animation complete sender for '"+say+"' with duration: "+duration);
+					TimerTask task = new TimerTask() {
+						@Override
+						public void run() {
+							logger.warn("sending BACKUP animation complete event for: '"+say+"'");
+							dm.handleEvent(new SystemUtteranceDoneEvent(say, dm.getSessionID()));
+						}
+					};
+					tasks.put(say, task);
+					timer.schedule(task,ms);
+				}
 			}
-			else duration*=1.2f; // increase the backup event duration by 20%
-			if (tasks.containsKey(say)) {
-				dm.getLogger().warn("NOT setting up BACKUP animation complete sender for '"+say+"' because one already present.");
-				dm.getLogger().warn(" -> ms until execution: "+(System.currentTimeMillis()-tasks.get(say).scheduledExecutionTime()));
-			} else {
-				long ms=Math.round(duration*1000);
-				dm.getLogger().info("Setting up BACKUP animation complete sender for '"+say+"' with duration: "+duration);
-				TimerTask task = new TimerTask() {
-					@Override
-					public void run() {
-						dm.getLogger().warn("sending BACKUP animation complete event for: '"+say+"'");
-						dm.handleEvent(new SystemUtteranceDoneEvent(say, dm.getSessionID()));
-					}
-				};
-				tasks.put(say, task);
-				timer.schedule(task,ms);
-			}
+		} else {
+			logger.error("invalid tracker state (while setting thing spoken): "+speakingActionState);
+			resetTrackerState();
 		}
 	}
 	public Timer getTimer() {return tt;}
-	public DialogueOperatorNodeTransition getWaitingTransition() {return (waitingTransitionWithState!=null)?waitingTransitionWithState.getFirst():null;}
-	public void setWaitingTransition(DialogueAction waitingAction,DialogueOperatorNodeTransition waitingTransition, Event sourceEvent) {
+	public DialogueOperatorNodeTransition getWaitingTransition() {return (speakingActionState!=null)?speakingActionState.getTransition():null;}
+	public void setSpeakingTransition(DialogueAction speakingAction,DialogueOperatorNodeTransition speakingTransition, String speakingThisSA,Event sourceEvent) {
 		Logger logger = dm.getLogger();
 		if (hasAlreadyAWaitingAction()) {
-			if (this.waitingAction!=waitingAction) {
-				logger.warn(" speaking tracker: has already a waiting action: "+this.waitingAction.getOperator().getName());
-				logger.warn(" speaking tracker: setting old waiting action as running. Replacing waiting action with: "+waitingAction.getOperator().getName());
-				this.waitingAction.setAsRunning();
-			} else if (waitingTransition!=this.waitingTransitionWithState.getFirst()) {
-				logger.warn(" speaking tracker: has already the action waiting but setting a different transition: "+waitingTransition);
+			if (!speakingActionState.byThisAction(speakingAction)) {
+				logger.warn(" speaking tracker: has already a waiting action: "+speakingActionState.getOperator());
+				logger.warn(" speaking tracker: setting old waiting action as running. Replacing waiting action with: "+speakingAction.getOperator().getName());
+				speakingActionState.getAction().setAsRunning();
+				speakingActionState.setWaitingState(speakingAction,speakingTransition,speakingThisSA);
+			} else if (!speakingActionState.byThisTransition(speakingTransition)) {
+				logger.warn(" speaking tracker: has already the action waiting but setting a different transition: "+speakingTransition);
+				speakingActionState.setWaitingState(speakingAction,speakingTransition,speakingThisSA);
 			}
+		} else {
+			speakingActionState=new DialogueActionSpeakingTransitionWaiting(speakingAction,speakingTransition,speakingThisSA,sourceEvent,logger);
 		}
-		this.waitingAction=waitingAction;
-		this.waitingTransitionWithState=new Pair<DialogueOperatorNodeTransition,Event>(waitingTransition,sourceEvent);
 	}
-	private boolean hasAlreadyAWaitingAction() {return waitingAction!=null && waitingTransitionWithState!=null;}
+	private boolean hasAlreadyAWaitingAction() {return speakingActionState!=null;}
 
-	private String getSpeakingSpeechAct() {
-		if (speakingThis!=null) {
-			return speakingThis.getDMEventName();
-		}
-		return null;
-	}
-	public NLGEvent getCurrentlySpeackingEvent() {return speakingThis;}
+	private String getSpeakingSpeechAct() {return speakingActionState!=null?speakingActionState.getSpeechAct():null;}
+	public NLGEvent getCurrentlySpeackingEvent() {return speakingActionState.getNLGEvent();}
+	public String getCurrentlySpeackingSA() {return speakingActionState.getSpeechAct();}
 	
 	public void finishedSpeakingThis(Event evSaid) throws Exception {
 		String thingSaid=evSaid.getName();
 		String spokenSpeechAct=getSpeakingSpeechAct();
 		if (tasks.containsKey(thingSaid))
 			tasks.remove(thingSaid).cancel();
+		Logger logger = dm.getLogger();
 		if (!StringUtils.isEmptyString(spokenSpeechAct) && hasAlreadyAWaitingAction()) {
-			Float f=getSpokenFraction();
-			Float th=dm.getConfiguration().getSpokenFractionForSaid();
-			if (f != null && th!=null && f<th) {
-				dm.getLogger().info("setting action '"+waitingAction+"' as interrupted. Percentage completed: "+f+" th="+th);
-				waitingAction.setTransitionAsInterrupted(waitingTransitionWithState.getFirst());
-			} else {
-				dm.getLogger().info("setting action '"+waitingAction+"' as said. Percentage completed: "+f+" th="+th);
-				waitingAction.setTransitionAsSaid(waitingTransitionWithState.getFirst());
-			}
-			if (waitingAction.isPaused()) {
+			if (speakingActionState.isPaused()) {
 				if (!spokenSpeechAct.equals(thingSaid)) {
-					dm.getLogger().error("no match between waiting event: '"+spokenSpeechAct+"' and received done event. Doing NOTHING.");
+					logger.error("no match between waiting event: '"+spokenSpeechAct+"' and received done event. Doing NOTHING.");
 				} else {
-					dm.getLogger().info("MATCH between waiting event: '"+spokenSpeechAct+"' and received done event. AWAKENING action '"+waitingAction.getOperator().getName()+"'");
-					DialogueAction actionToBeAwoken=waitingAction;
-					DialogueOperatorNodeTransition transitionToBeTaken=waitingTransitionWithState.getFirst();
-					Event sourceEvent=waitingTransitionWithState.getSecond();
+					logger.info("MATCH between waiting event: '"+spokenSpeechAct+"' and received done event.");
+					
+					if (speakingActionState.isSpeaking()) {
+						Float f=getSpokenFraction();
+						Float th=dm.getConfiguration().getSpokenFractionForSaid();
+						DialogueAction waitingAction=speakingActionState.getAction();
+						if (f != null && th!=null && f<th) {
+							logger.info("setting action '"+waitingAction+"' as interrupted. Percentage completed: "+f+" th="+th);
+							waitingAction.setTransitionAsInterrupted(speakingActionState.getTransition());
+						} else {
+							logger.info("setting action '"+waitingAction+"' as said. Percentage completed: "+f+" th="+th);
+							waitingAction.setTransitionAsSaid(speakingActionState.getTransition());
+						}
+					}
+					
+					logger.info("AWAKENING action '"+speakingActionState.getOperator()+"'");
+
+					DialogueAction actionToBeAwoken=speakingActionState.getAction();
+					DialogueOperatorNodeTransition transitionToBeTaken=speakingActionState.getTransition();
+					Event sourceEvent=speakingActionState.getSourceEvent();
 					resetTrackerState();
 					if (transitionToBeTaken==null) {
-						dm.getLogger().error("Waiting action has no waiting transiton. Don't know what to do.");
+						logger.error("Waiting action has no waiting transiton. Don't know what to do.");
 					} else {
 						actionToBeAwoken.setAsRunning();
 						if (evSaid instanceof SystemUtteranceInterruptedEvent) {
@@ -177,25 +180,26 @@ public class SpeakingTracker {
 						}
 					}
 				}
-			} else if (waitingAction.isInInvalidState()) {
-				dm.getLogger().warn(" action '"+waitingAction.getOperator().getName()+"' is in an INVALID state.");
+			} else if (speakingActionState.getAction().isInInvalidState()) {
+				logger.warn(" action '"+speakingActionState.getOperator()+"' is in an INVALID state.");
 				resetTrackerState();
 			} else {
-				dm.getLogger().warn(" action '"+waitingAction.getOperator().getName()+"' is not anymore waiting.");
+				logger.warn(" action '"+speakingActionState.getOperator()+"' is not anymore waiting.");
 				resetTrackerState();
 			}
 		} else {
-			if (!hasAlreadyAWaitingAction())
-				dm.getLogger().info("Received an animation complete for "+thingSaid+" but no waiting action.");
-			else
-				dm.getLogger().error("Incorrect speaking tracker state: "+speakingThis+" action: "+waitingAction+" paused while taking transiton: "+waitingTransitionWithState);
+			if (!hasAlreadyAWaitingAction()) {
+				logger.info("Received an animation complete for "+thingSaid+" but no waiting action.");
+			} else {
+				logger.error("Incorrect speaking tracker state:\n "+speakingActionState);
+			}
 			resetTrackerState();
 		}
 	}
 	public void gotLengthForThisEvent(String thingSaid,Float length) {
 		if (getSpeakingSpeechAct()!=null && getSpeakingSpeechAct().equals(thingSaid)) {
-			timeStartedSpeaking=System.currentTimeMillis();
-			durationOfAudioPortionOfThingSpoken=length;
+			speakingActionState.setStartOfSpeech(System.currentTimeMillis());
+			speakingActionState.setExpectedLengthOfSpeech(length);
 		}
 	}
 
@@ -203,12 +207,7 @@ public class SpeakingTracker {
 	
 	private void resetTrackerState() {
 		dm.getLogger().info("resetting speaking tracker state.");
-		waitingAction=null;
-		waitingTransitionWithState=null;
-		speakingThis=null;
-		durationOfThingSpoken=null;
-		durationOfAudioPortionOfThingSpoken=null;
-		timeStartedSpeaking=null;
+		speakingActionState=null;
 		interruptionSourceEvent=null;
 		try {
 			DialogueKBInterface is = dm.getInformationState();

@@ -43,7 +43,7 @@ public class CFisInterruptible implements CustomFunctionInterface {
 		tr.setEvent("test", null);
 		SpeakingTracker tracker = dm.getSpeakingTracker();
 		DialogueAction aa = dm.getCurrentActiveAction();
-		tracker.setWaitingTransition(aa, tr, null);
+		tracker.setSpeakingTransition(aa, tr, "test.sa",null);
 		Boolean r=eval(DialogueKBFormula.parse(getName()+"()"),dm.getInformationState(),false,null);
 		if (!r.equals(false)) return false;
 		tr.setInterruptible(true);

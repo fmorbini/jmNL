@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.log4j.Logger;
+
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLUEvent;
@@ -103,12 +105,11 @@ public class DialogueAction {
 		if (isInInvalidState()) dm.getLogger().error("FAILED to set state as action is in INVALID state.");
 		else state=ActionState.RUNNING;
 	}
-	public void setAsPaused(DialogueOperatorNodeTransition waitingTransition, Event sourceEvent,String reason) throws Exception {
+	public void setAsPaused(String reason) throws Exception {
 		dm.getLogger().info("setting action "+getOperator().getName()+" as paused. Reason: "+reason);
 		if (isInInvalidState()) dm.getLogger().error("FAILED to set state as action is in INVALID state.");
 		else {
 			state=ActionState.PAUSED;
-			dm.getSpeakingTracker().setWaitingTransition(this,waitingTransition,sourceEvent);
 		}
 	}
 	public void setAsReentered(DialogueOperatorEntranceTransition ec) {
@@ -248,6 +249,12 @@ public class DialogueAction {
 		}
 	}
 	
+	public boolean isTransitionBeingSpoken(DialogueOperatorNodeTransition tr) {
+		if (sayStateTracker.containsKey(tr)) {
+			SAYState state=sayStateTracker.get(tr);
+			return (state==SAYState.SAYING);
+		} else return false;
+	}
 	private boolean hasTransitionAlreadyBeenSaid(DialogueOperatorNodeTransition tr) {
 		if (sayStateTracker.containsKey(tr)) {
 			SAYState state=sayStateTracker.get(tr);
@@ -279,8 +286,25 @@ public class DialogueAction {
 			else dm.getLogger().error("attempted to set not currently speaking transition to INTERRUPTED.");
 		}
 	}
-	public void setTransitionAsSaying(DialogueOperatorNodeTransition tr) {
-		if (tr.isSayTransition() || tr.isWaitTransition()) sayStateTracker.put(tr, SAYState.SAYING);
+	public void setTransitionAsSaying(DialogueOperatorNodeTransition tr,Event sourceEvent) {
+		boolean isSayTransition=tr.isSayTransition();
+		if (isSayTransition || tr.isWaitTransition()) sayStateTracker.put(tr, SAYState.SAYING);
+		if (isSayTransition) {
+			String sa=tr.getSay();
+			if (!StringUtils.isEmptyString(sa)) {
+				dm.getSpeakingTracker().setSpeakingTransition(this,tr,sa,sourceEvent);
+			} else {
+				dm.getLogger().error("!!not setting waiting transition in tracker as say event is null!!");
+			}
+		}
+	}
+	public void setTransitionAsWaitingForCurrentSpeach(DialogueOperatorNodeTransition tr,Event sourceEvent) {
+		String sa=dm.getSpeakingTracker().getCurrentlySpeackingSA();
+		if (!StringUtils.isEmptyString(sa)) {
+			dm.getSpeakingTracker().setSpeakingTransition(this,tr,sa,sourceEvent);
+		} else {
+			dm.getLogger().error("!!not setting waiting transition in tracker as current event event is null!!");
+		}
 	}
 	
 	/** 
@@ -306,12 +330,13 @@ public class DialogueAction {
 	}
 	private static enum STOP {SYSTEM,USER,NOTHING};
 	public void takeTransition(final DialogueOperatorNodeTransition tr,EvalContext context,final Event sourceEvent,STOP stopCondition,boolean root) throws Exception {
-		if (root) dm.getLogger().info("Starting execution of action. Stop criterion: "+stopCondition);
+		final Logger logger = dm.getLogger();
+		if (root) logger.info("Starting execution of action. Stop criterion: "+stopCondition);
 		DialogueOperatorNode startState = (DialogueOperatorNode) tr.getSource();
 		DialogueOperatorNode endState = (DialogueOperatorNode) tr.getTarget();
 
 		if (hasTransitionBeenInterrupted(tr)) {
-			dm.getLogger().info("swapping out '"+this.getOperator().getName()+"' because it has been interrupted at: "+tr);
+			logger.info("swapping out '"+this.getOperator().getName()+"' because it has been interrupted at: "+tr);
 			((DialogueOperatorNode)tr.getTarget()).doSwapOut(this,new SwapoutReason(tr));
 			return;
 		}
@@ -339,29 +364,33 @@ public class DialogueAction {
 		boolean sayTransitionToBeSaid=tr.isSayTransition() && tr.willSay(context) && !hasTransitionAlreadyBeenSaid(tr);
 		boolean eventsHaveDurations=dm.getConfiguration().getSystemEventsHaveDuration();
 		if (sayTransitionToBeSaid && stopCondition!=null && stopCondition==STOP.SYSTEM && !root) {
-			dm.getLogger().info("Stopping execution of action because reached a system line.");
+			logger.info("Stopping execution of action because reached a system line.");
 			return;
 		}
 		if (sayTransitionToBeSaid && eventsHaveDurations) {
-			setAsPaused(tr, sourceEvent,"Action is going to say: "+tr);
+			setAsPaused("Action is going to say: "+tr);
 			boolean isSpeaking=dm.getSpeakingTracker().isSpeaking();
 			if (!isSpeaking) {
-				setTransitionAsSaying(tr);
+				logger.info("system not speaking. Continuing execution of: "+tr);
+				setTransitionAsSaying(tr,sourceEvent);
 				tr.execute(this,context,sourceEvent);
+			} else {
+				setTransitionAsWaitingForCurrentSpeach(tr, sourceEvent);
+				logger.info("system speaking. Not continuing execution of: "+tr);
 			}
 		} else if (tr.isWaitTransition() && !hasTransitionAlreadyBeenSaid(tr)) {
 			final RewardDM dm = getDM();
 			DialogueOperator op=getOperator();
-			dm.getLogger().info("Operator '"+op+"' will pause for: '"+tr.getDelay()+"' seconds.");
-			setAsPaused(tr, sourceEvent, "because a wait transition is being executed.");
+			logger.info("Operator '"+op+"' will pause for: '"+tr.getDelay()+"' seconds.");
+			setAsPaused("because a wait transition is being executed.");
 			SpeakingTracker st = dm.getSpeakingTracker();
 			Timer timer = st.getTimer();
 			long ms=Math.round(tr.delay*1000f);
-			dm.getLogger().info("Setting up timer event for wait transition.");
+			logger.info("Setting up timer event for wait transition.");
 			TimerTask task = new TimerTask() {
 				@Override
 				public void run() {
-					dm.getLogger().warn("sending end of wait timer: '"+tr+"'");
+					logger.warn("sending end of wait timer: '"+tr+"'");
 					try {
 						setTransitionAsSaid(tr);
 						resumeExeFromFinishedSystemAction(tr, sourceEvent);
@@ -371,13 +400,13 @@ public class DialogueAction {
 				}
 			};
 			timer.schedule(task,ms);
-			setTransitionAsSaying(tr);
+			setTransitionAsSaying(tr,sourceEvent);
 		} else {
 			if (!hasTransitionAlreadyBeenAttempted(tr)) {
 				tr.execute(this, context, sourceEvent);
 			}
 			if (!activeStates.contains(startState)) {
-				dm.getLogger().error("takeTransition called on transition not from an active state.\n" +
+				logger.error("takeTransition called on transition not from an active state.\n" +
 						"transition from: "+startState+" to "+endState+"\n"+
 						"but active states are: "+activeStates);
 			}
@@ -393,7 +422,7 @@ public class DialogueAction {
 			
 			if (endState.isFinal() && isFinal()) {
 				dm.setDone(true);
-				dm.getLogger().info("   reached final state of action '"+this+"' that is a final action. Put DM in DONE state.");
+				logger.info("   reached final state of action '"+this+"' that is a final action. Put DM in DONE state.");
 			}
 
 			if (!endState.isSwapOut()) {

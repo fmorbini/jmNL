@@ -103,7 +103,9 @@ public abstract class DM implements DMInterface {
 					Constructor<? extends FileAppender> c = ofa.getClass().getConstructor(Layout.class,String.class,boolean.class);
 					FileAppender fa=c.newInstance(ofa.getLayout(),ofa.getFile(),ofa.getAppend());
 					logger.addAppender(fa);
+					System.err.println(ofa.getFile());
 					fa.setFile(ofa.getFile()+"-"+getIDPortionLogFileName());
+					System.err.println(fa.getFile());
 					logger.removeAppender(ofa);
 					fa.activateOptions();
 				} catch (Exception e) {
