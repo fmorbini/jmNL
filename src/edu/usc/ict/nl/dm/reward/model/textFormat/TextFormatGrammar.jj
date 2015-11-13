@@ -100,13 +100,17 @@ public class TextFormatGrammar {
 	content+="<listen event=\""+StringUtils.cleanupSpaces(event)+"\" target=\""+getStateName(target)+"\" condition=\""+((cnd!=null)?cnd.toString():"")+"\" consume=\""+ce+"\"/>";
 	allStates.put(sn,content);
   }
-  private static void addSayToState(int sn,String say,boolean interruptible,int target,int line) throws ParseException {
+  private static void addSayToState(int sn,String say,boolean interruptible,int target,int line,Token wait) throws ParseException {
   	canAddOutgoingTransitionToState(sn,line);
     if (StringUtils.isEmptyString(StringUtils.cleanupSpaces(say)))
     	throw new ParseException("empty system argument at line "+line);
+    Float waitTime=null;
+    if (wait!=null) try{waitTime=Float.parseFloat(wait.image);} catch (Exception e) {
+		throw new ParseException("error parsing float for wait at line: "+line);
+    }
 	String content="";
 	if (allStates.containsKey(sn)) content=allStates.get(sn);
-	content+="<say event=\""+XMLUtils.escapeStringForXML(say)+"\" target=\""+getStateName(target)+"\" interruptible=\""+interruptible+"\"/>";
+	content+="<say event=\""+XMLUtils.escapeStringForXML(say)+"\" target=\""+getStateName(target)+"\" interruptible=\""+interruptible+"\""+(waitTime!=null?" wait=\""+waitTime+"\"":"")+"/>";
 	allStates.put(sn,content);
   }
   private static void addDelayToState(int sn,Float delay,boolean interruptible,int target,int line) throws ParseException {
@@ -161,7 +165,7 @@ SKIP:
 <DEFAULT> TOKEN :
 {
   <LBRACE: "{"(<SPACE>)*>
-| <#AN: "#"(<SPACE>)*>
+| <AN: "#"(<SPACE>)*>
 | <#SPACE: ([" ", "\t", "\n", "\r"])+>
 | <RBRACE: "}"(<SPACE>)*>
 | <LRB: "("(<SPACE>)*>
@@ -362,6 +366,7 @@ int ReadEdge(int cs):{
 	Token say=null;
 	Token cnd=null;
 	Token ce=null;
+	Token wait=null;
 	String ret;
 	List<String> events;
 	DialogueKBFormula f=null;
@@ -391,17 +396,17 @@ int ReadEdge(int cs):{
 			return ns;
 		}
 	} |
-	(((pos=<SYSTEM>)|(pos=<ISYSTEM>){interruptible=true;}) say=<ANY><ENDTEXT>) {
+	((((pos=<SYSTEM>)|(pos=<ISYSTEM>){interruptible=true;}) say=<ANY><ENDTEXT>)(<AN><WAIT>wait=<ID>)?) {
 		events=getEvents(say.image);
 		if (events.size()==1) {
 			String event=events.get(0);
-			addSayToState(cs,event,interruptible,ns,pos.beginLine);
+			addSayToState(cs,event,interruptible,ns,pos.beginLine,wait);
 			addToState(ns,"");
 			return ns;
 		} else {
 			for(String event: events) {
 				int ms=getID();
-				addSayToState(cs,event,interruptible,ms,pos.beginLine);
+				addSayToState(cs,event,interruptible,ms,pos.beginLine,wait);
 				addTransitionToState(ms,null,ns,pos.beginLine);
 			}
 			addToState(ns,"");

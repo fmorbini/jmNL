@@ -85,9 +85,16 @@ public class SpeakingTracker {
 				Timer timer = getTimer();
 				Float duration = speakingActionState.getExpectedLengthOfSpeech();
 				boolean busTracksUtterancesDuration=dm.getMessageBus().canDetectUtteranceCompleted();
-				if (duration==null || duration<=0 || busTracksUtterancesDuration) {
-					if (busTracksUtterancesDuration) dm.getLogger().warn("setting buckup timer duration to default as bus tracks utterances.");
-					duration=nlgConfig.getDefaultDuration();
+				Float defaultDuration=ev.getPayload()!=null?ev.getPayload().getDefaultWait():null;
+				if (duration==null || duration<=0 || busTracksUtterancesDuration || defaultDuration!=null) {
+					if (busTracksUtterancesDuration) logger.warn("setting backup timer duration to default as bus tracks utterances.");
+					if (defaultDuration!=null) logger.info("system line sets a specific default duration: "+defaultDuration);
+					if (defaultDuration!=null && defaultDuration>0) {
+						logger.info("system line has specific default duration: "+defaultDuration+" using that.");
+						duration=defaultDuration;
+					} else {
+						duration=nlgConfig.getDefaultDuration();
+					}
 				}
 				else duration*=1.2f; // increase the backup event duration by 20%
 				if (tasks.containsKey(say)) {

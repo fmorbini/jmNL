@@ -5,6 +5,7 @@ import edu.usc.ict.nl.kb.DialogueKBInterface;
 public class DMSpeakEvent extends DMGeneratedEvent {
 
 	private DialogueKBInterface localInformationState=null;
+	Float defaultWait=null;
 
 	public DMSpeakEvent(Event sourceEvent,String name, Long sid, Object payload,DialogueKBInterface customKB) {
 		super(sourceEvent,name, sid, payload);
@@ -24,6 +25,13 @@ public class DMSpeakEvent extends DMGeneratedEvent {
 	
 	public DMSpeakEvent clone(DMSpeakEvent sourceEvent) {
 		return new DMSpeakEvent(sourceEvent.getSourceEvent(),sourceEvent.getName(),sourceEvent.getSessionID(),sourceEvent.getPayload(),sourceEvent.getLocalInformationState());
+	}
+	
+	public Float getDefaultWait() {
+		return defaultWait;
+	}
+	public void setDefaultWait(Float defaultWait) {
+		this.defaultWait = defaultWait;
 	}
 
 }

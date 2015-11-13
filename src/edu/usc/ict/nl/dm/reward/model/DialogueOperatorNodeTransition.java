@@ -24,7 +24,7 @@ public class DialogueOperatorNodeTransition extends Edge {
 
 	protected DialogueKBFormula condition;
 	protected String event;
-	protected Float delay;
+	protected Float delay,wait;
 	protected EventMatcher<Object> eventMatcher;
 	protected TransitionType type;
 	protected boolean consumes;
@@ -67,6 +67,8 @@ public class DialogueOperatorNodeTransition extends Edge {
 	public boolean doesConsume() {return this.consumes;}
 	public Float getDelay() {return delay;}
 	public void setDelay(Float delay) {this.delay = delay;}
+	public void setDefaultWait(Float wait) {this.wait = wait;}
+	public Float getDefaultWait() {return this.wait;}
 	
 	public void setInterruptible(boolean isInterruptible) {
 		this.interruptible = isInterruptible;
@@ -101,6 +103,7 @@ public class DialogueOperatorNodeTransition extends Edge {
 			tr.setCondition(cnd);
 		}
 		tr.setInterruptible(isInterruptible(attributes));
+		tr.setDefaultWait(getDefaultWait(attributes));
 		tr.setOperator(o);
 		tr.setEvent(getEvent(attributes),o);
 		tr.setConsumes(getConsumes(attributes));
@@ -157,6 +160,12 @@ public class DialogueOperatorNodeTransition extends Edge {
 	}
 	private Float getDelay(NamedNodeMap att) {
 		Node cndNode = att.getNamedItem(XMLConstants.DELAYID);
+		if (cndNode!=null) {
+			return Float.parseFloat(cndNode.getNodeValue());
+		} else return null;
+	}
+	private Float getDefaultWait(NamedNodeMap att) {
+		Node cndNode = att.getNamedItem(XMLConstants.WAITID);
 		if (cndNode!=null) {
 			return Float.parseFloat(cndNode.getNodeValue());
 		} else return null;
@@ -276,7 +285,9 @@ public class DialogueOperatorNodeTransition extends Edge {
 					if (tt!=null) tt.setMark(getOperator().getName(),TimemarksTracker.TYPES.SAY,say);
 					dm.getLogger().info("Operator '"+op+"' will say: '"+say+"'");
 					//dm.updateSystemSayTracker(say);
-					messageBus.handleDMResponseEvent(new DMSpeakEvent(sourceEvent,say,sid,null,context.getInformationState()));
+					DMSpeakEvent sayEvent=new DMSpeakEvent(sourceEvent,say,sid,null,context.getInformationState());
+					sayEvent.setDefaultWait(getDefaultWait());
+					messageBus.handleDMResponseEvent(sayEvent);
 				} else {
 					dm.getLogger().warn("False condition! Operator '"+op+"' will NOT say: '"+say+"'");
 				}
