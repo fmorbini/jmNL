@@ -328,13 +328,26 @@ public class NLBus extends NLBusBase {
 			}
 	}
 	public void shutdown() throws Exception {
-		logger.info("Stopping NLU module.");
-		for (NLUInterface nlu:session2NLU.values())
-			try { nlu.kill(); } catch (Exception e) {}
-		logger.info("Stopping DM module.");
+		logger.info("Stopping NLU modules.");
+		if (session2NLU!=null) {
+			for (NLUInterface nlu:session2NLU.values()) {
+				try { nlu.kill(); } catch (Exception e) {}
+			}
+		}
+		logger.info("Stopping DM modules.");
 		DM dm=getDM();
-		if (dm != null)
-			try { dm.kill(); } catch (Exception e) {}
+		if (dm != null) try { dm.kill(); } catch (Exception e) {}
+		if (session2PolicyDM!=null) {
+			for (DM dmi:session2PolicyDM.values()) {
+				try { dmi.kill(); } catch (Exception e) {}
+			}
+		}
+		logger.info("Stopping NLG modules.");
+		if (session2NLG!=null) {
+			for (NLGInterface nlg:session2NLG.values()) {
+				try { nlg.kill(); } catch (Exception e) {}
+			}
+		}
 		
 		if (context!=null) context.destroy();
 		if (hasProtocols()) {
