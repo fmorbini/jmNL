@@ -165,7 +165,7 @@ SKIP:
 <DEFAULT> TOKEN :
 {
   <LBRACE: "{"(<SPACE>)*>
-| <AN: "#"(<SPACE>)*>
+| <#AN: "#"(<SPACE>)*>
 | <#SPACE: ([" ", "\t", "\n", "\r"])+>
 | <RBRACE: "}"(<SPACE>)*>
 | <LRB: "("(<SPACE>)*>
@@ -180,6 +180,7 @@ SKIP:
 | <SYSTEM: "system:">:TEXT
 | <ISYSTEM: "isystem:">:TEXT
 | <WAIT: "wait:"(<SPACE>)*>
+| <SYSWAIT: <AN>"wait:"(<SPACE>)*>
 | <EC: <AN>"entrance condition:"(<SPACE>)*>
 | <UI: "current NLU speech act"(<SPACE>)*"="(<SPACE>)*>:TEXT
 | <SI: "system initiative">
@@ -396,7 +397,7 @@ int ReadEdge(int cs):{
 			return ns;
 		}
 	} |
-	((((pos=<SYSTEM>)|(pos=<ISYSTEM>){interruptible=true;}) say=<ANY><ENDTEXT>)(<AN><WAIT>wait=<ID>)?) {
+	((((pos=<SYSTEM>)|(pos=<ISYSTEM>){interruptible=true;}) say=<ANY><ENDTEXT>)(<SYSWAIT>wait=<ID>)?) {
 		events=getEvents(say.image);
 		if (events.size()==1) {
 			String event=events.get(0);

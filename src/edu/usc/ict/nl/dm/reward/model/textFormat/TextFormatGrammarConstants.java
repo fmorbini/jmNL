@@ -43,51 +43,53 @@ public interface TextFormatGrammarConstants {
   /** RegularExpression Id. */
   int WAIT = 24;
   /** RegularExpression Id. */
-  int EC = 25;
+  int SYSWAIT = 25;
   /** RegularExpression Id. */
-  int UI = 26;
+  int EC = 26;
   /** RegularExpression Id. */
-  int SI = 27;
+  int UI = 27;
   /** RegularExpression Id. */
-  int GV = 28;
+  int SI = 28;
   /** RegularExpression Id. */
-  int RO = 29;
+  int GV = 29;
   /** RegularExpression Id. */
-  int IS = 30;
+  int RO = 30;
   /** RegularExpression Id. */
-  int NETWORK = 31;
+  int IS = 31;
   /** RegularExpression Id. */
-  int FINAL = 32;
+  int NETWORK = 32;
   /** RegularExpression Id. */
-  int DAEMON = 33;
+  int FINAL = 33;
   /** RegularExpression Id. */
-  int CONDITION = 34;
+  int DAEMON = 34;
   /** RegularExpression Id. */
-  int CE = 35;
+  int CONDITION = 35;
   /** RegularExpression Id. */
-  int OR = 36;
+  int CE = 36;
   /** RegularExpression Id. */
-  int END = 37;
+  int OR = 37;
   /** RegularExpression Id. */
-  int GOTOEND = 38;
+  int END = 38;
   /** RegularExpression Id. */
-  int NOP = 39;
+  int GOTOEND = 39;
   /** RegularExpression Id. */
-  int IF = 40;
+  int NOP = 40;
   /** RegularExpression Id. */
-  int ELSE = 41;
+  int IF = 41;
   /** RegularExpression Id. */
-  int CM = 42;
+  int ELSE = 42;
   /** RegularExpression Id. */
-  int IGNORE = 43;
+  int CM = 43;
   /** RegularExpression Id. */
-  int ID = 44;
+  int IGNORE = 44;
   /** RegularExpression Id. */
-  int ENDTEXT = 45;
+  int ID = 45;
   /** RegularExpression Id. */
-  int URL = 46;
+  int ENDTEXT = 46;
   /** RegularExpression Id. */
-  int ANY = 47;
+  int URL = 47;
+  /** RegularExpression Id. */
+  int ANY = 48;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -125,6 +127,7 @@ public interface TextFormatGrammarConstants {
     "\"system:\"",
     "\"isystem:\"",
     "<WAIT>",
+    "<SYSWAIT>",
     "<EC>",
     "<UI>",
     "\"system initiative\"",
@@ -149,7 +152,7 @@ public interface TextFormatGrammarConstants {
     "<URL>",
     "<ANY>",
     "\"*/\"",
-    "<token of kind 49>",
+    "<token of kind 50>",
   };
 
 }
