@@ -472,8 +472,8 @@ public class RewardDM extends DM {
 		int loops=isThereADialogloop();
 		if (loops>1) {
 			logger.warn("POSSIBLE DIALOG LOOP: "+loops);
-			logger.warn("\n"+stateTracker);
 			if (!StringUtils.isEmptyString(loopEvent)) {
+				logger.warn("\n"+stateTracker);
 				logger.info("sending loop event: "+loopEvent);
 				TimerTask task = new TimerTask() {
 					@Override
