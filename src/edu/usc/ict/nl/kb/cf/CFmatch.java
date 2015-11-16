@@ -29,8 +29,12 @@ public class CFmatch implements CustomFunctionInterface {
 		Object re=is.evaluate(reArg2,context);
 		String name=(event!=null)?event.toString():null;
 		if ((name!=null) && (re instanceof String)) {
-			name=DialogueKBFormula.getStringValue((String)name);
-			re=DialogueKBFormula.getStringValue((String)re);
+			try {
+				name=DialogueKBFormula.getStringValue((String)name);
+			} catch (Exception e) {}
+			try {
+				re=DialogueKBFormula.getStringValue((String)re);
+			} catch (Exception e) {}
 			if (name!=null && !StringUtils.isEmptyString((String) re)) {
 				return ((String)name).matches((String)re);
 			}
