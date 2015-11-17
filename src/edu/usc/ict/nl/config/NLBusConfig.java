@@ -35,6 +35,8 @@ public class NLBusConfig extends NLConfig {
 	private boolean pmlListening=false;
 	private boolean minatListening=false;
 	
+	private boolean validatePolicies=true;
+	
 	// vh toolkit
 	protected boolean isVRexpressBasicNLG() {
 		return nlgConfig.getNlgClass().equals(VRexpressBasicNLG.class.getCanonicalName());
@@ -320,6 +322,11 @@ public class NLBusConfig extends NLConfig {
 	}
 	public void setProtocols(List<String> protocols) {
 		this.protocols = protocols;
+	}
+	
+	public boolean getValidatePolicies() {return validatePolicies;}
+	public void setValidatePolicies(boolean validatePolicies) {
+		this.validatePolicies = validatePolicies;
 	}
 	
 	// sample config used to run mxnlu during testing

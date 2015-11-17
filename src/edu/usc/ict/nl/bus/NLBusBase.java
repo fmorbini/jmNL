@@ -446,23 +446,27 @@ public abstract class NLBusBase implements NLBusInterface {
 	protected void validateAvailablePolicies(Map<String, Object> charactersNames2ParsedPolicy) throws Exception {
 		if (charactersNames2ParsedPolicy!=null) {
 			NLBusConfig config=getConfiguration();
-			NLBusConfig.RunningMode mode=config.getRunningMode();
-			try {
-				for(String cn:charactersNames2ParsedPolicy.keySet()) {
-					Long sid=startSession(cn,null);
-					if (sid!=null) {
-						DM dm=getPolicyDMForSession(sid);
-						dm.setPauseEventProcessing(true);
-						dm.validatePolicy(this);
-						dm.kill();
-						terminateSession(sid);
+			if (config.getValidatePolicies()) {
+				NLBusConfig.RunningMode mode=config.getRunningMode();
+				try {
+					for(String cn:charactersNames2ParsedPolicy.keySet()) {
+						Long sid=startSession(cn,null);
+						if (sid!=null) {
+							DM dm=getPolicyDMForSession(sid);
+							dm.setPauseEventProcessing(true);
+							dm.validatePolicy(this);
+							dm.kill();
+							terminateSession(sid);
+						}
 					}
+				} catch (Exception e) {
+					config.setRunningMode(mode);
+					throw e;
 				}
-			} catch (Exception e) {
 				config.setRunningMode(mode);
-				throw e;
+			} else {
+				logger.info("configuration set to skip policy validation.");
 			}
-			config.setRunningMode(mode);
 		}
 	}
 	@Override
