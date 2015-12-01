@@ -84,11 +84,10 @@ public class Console {
 
 	
 	public static NLBus getNLBus(String beanName) {
-		System.out.println("Initializing NL configuration with bean named: '"+beanName+"'");
-		if (springConfig==null)
-			context = new ClassPathXmlApplicationContext(new String[] {"chat.xml"});
-		else 
-			context = new ClassPathXmlApplicationContext(new String[] {springConfig});
+		String fileName="chat.xml";
+		if (springConfig!=null) fileName=springConfig;
+		context = new ClassPathXmlApplicationContext(new String[] {fileName});
+		System.out.println("Initializing NL configuration with bean named: '"+beanName+"' from file: "+fileName);
 		NLBus nlModule = (NLBus) context.getBean(beanName);
 		return nlModule;
 	}
