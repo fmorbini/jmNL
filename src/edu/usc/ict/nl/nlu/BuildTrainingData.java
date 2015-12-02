@@ -294,66 +294,7 @@ public class BuildTrainingData {
 	}
 
 	
-	public void dumpIORDataInImportableTXT(HashMap<String, Pair<String, Collection<String>>> iorData,String lineFile,String speechActFile,String linksFile) throws IOException {
-		BufferedWriter lineOut=new BufferedWriter(new FileWriter(lineFile));
-		BufferedWriter saOut=new BufferedWriter(new FileWriter(speechActFile));
-		BufferedWriter linksOut=new BufferedWriter(new FileWriter(linksFile));
-		HashSet<String> sas=new HashSet<String>();
-		for (String line:iorData.keySet()) {
-			Pair<String, Collection<String>> saAndSystemUttsPrecedingIt=iorData.get(line);
-			String sa=saAndSystemUttsPrecedingIt.getFirst();
-			Collection<String> systemUtts=saAndSystemUttsPrecedingIt.getSecond();
-			
-			String userLine="";
-			for (String systemUtt:systemUtts) {
-				userLine+="SIMCOACH: "+systemUtt+"\n";
-			}
-			userLine+="=> "+line+"\n\n";
 
-			if (!StringUtils.isEmptyString(sa)) {
-				sas.add(sa);
-				linksOut.write(userLine+"\n\n"+sa+"\n\n");
-			}
-
-			lineOut.write(userLine);
-		}
-		for(String sa:sas) {
-			saOut.write(sa+"\n\n");
-		}
-		lineOut.close();
-		saOut.close();
-		linksOut.close();
-	}
-	public HashMap<String, Pair<String, Collection<String>>> produceDataForIOR(List<TrainingDataFormat> data, List<Pair<String, String>> suPairs) throws Exception {
-		HashMap<String, Pair<String, Collection<String>>> ad=new HashMap<String, Pair<String,Collection<String>>>();
-		HashMap<String,Collection<String>> userSystemMap=new HashMap<String, Collection<String>>();
-		// first build the map of user utterance paired to the list of preceding system utterances.
-		for(Pair<String, String> su:suPairs) {
-			String systemUtt=su.getFirst();
-			String userUtt=prepareUtteranceForClassification(su.getSecond());
-			Collection<String> systemUtts=userSystemMap.get(userUtt);
-			if (systemUtts==null) userSystemMap.put(userUtt, systemUtts=new HashSet<String>());
-			systemUtts.add(systemUtt);
-		}
-		// then build the map of user utterances paired to the speech act and system utterances preceding that user utterance.
-		for(TrainingDataFormat d:data) {
-			String userUtterance=prepareUtteranceForClassification(d.getUtterance());
-			String userUtteranceSpeechAct=d.getLabel();
-			Pair<String, Collection<String>> saAndsystemUttsPair = ad.get(userUtterance);
-			String a=(saAndsystemUttsPair!=null)?saAndsystemUttsPair.getFirst():null;
-			if (!StringUtils.isEmptyString(a)) {
-				if (!a.equals(userUtteranceSpeechAct)) {
-					System.out.println("Line '"+userUtterance+"' was '"+a+"' and now it is '"+userUtteranceSpeechAct+"'.");
-				}
-			} else {
-				if (saAndsystemUttsPair==null) saAndsystemUttsPair=new Pair<String, Collection<String>>(userUtteranceSpeechAct, new HashSet<String>());
-				if (userSystemMap.containsKey(userUtterance))
-					saAndsystemUttsPair.getSecond().addAll(userSystemMap.get(userUtterance));
-				ad.put(userUtterance, saAndsystemUttsPair);
-			}
-		}
-		return ad;
-	}
 	public List<TrainingDataFormat> getAllSimcoachData() throws InvalidFormatException, FileNotFoundException, IOException {
 		List<TrainingDataFormat> td = buildTrainingData();
 		for (File f:FileUtils.getAllFiles(new File("resources/data/"), ".*\\.xlsx$")) {
@@ -741,7 +682,7 @@ public class BuildTrainingData {
 		
 		System.out.println(" frequency of only in 1: "+((float)countOnly1/(float)sas1.size())+" only in 2: "+((float)countOnly2/(float)sas2.size()));
 	}
-
+/*
 	public static final LinkedHashMap<TokenTypes, Pattern> defaultTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(){
 		private static final long serialVersionUID = 1L;
 		{
@@ -750,6 +691,7 @@ public class BuildTrainingData {
 			put(TokenTypes.OTHER,Pattern.compile("[^\\w\\s]+"));
 		}
 	};
+	*/
 	public static List<Token> tokenize(String u) throws Exception {
 		return tokenize(u, defaultTokenTypes);
 	}
@@ -801,6 +743,7 @@ public class BuildTrainingData {
 		}
 		return ret;
 	}
+	/*
 	public static String untokenize(List<Token> tokens) {
 		String utterance="";
 		boolean first=true;
@@ -811,19 +754,107 @@ public class BuildTrainingData {
 		}
 		return utterance;
 	}
+	*/
 	public List<NamedEntityExtractorI> getNamedEntityExtractors() {
 		return getConfiguration().getNluNamedEntityExtractors();
 	}
-	public List<Token> generalize(List<Token> tokens) {
+	/**
+	 * original list of tokens (one token for each word)
+	 * 
+	 * for each NE the list of tokens introduced
+	 * 
+	 * for each token get the list of tokens overlapping with it
+	 * 
+	 * for each token get list of tokens not overlapping with it (maybe only those that come after it)
+	 * @return 
+	 *
+	 */
+	public List<List<Token>> generalize(List<Token> tokens) {
 		List<NamedEntityExtractorI> nes = getNamedEntityExtractors();
+		
+		Map<Token,Set<Token>> overlappingTokens=null; // for a given token, returns the set of other tokens that overlap with it.
+		for(NamedEntityExtractorI ne:nes) {
+			List<Token> modified=ne.getModifiedTokens(tokens);
+			if (modified!=null) {
+				if (overlappingTokens==null || overlappingTokens.isEmpty()) {
+					if (overlappingTokens==null) overlappingTokens=new HashMap<>();
+					for(Token m:modified) overlappingTokens.put(m,null);
+				} else {
+					for(Token m:modified) {
+						updateOverlappingTokens(m,overlappingTokens);
+					}
+				}
+			}
+		}
+		
+		List<Token> sortedModifiedTokens=new ArrayList<>(overlappingTokens.keySet());
+		Collections.sort(sortedModifiedTokens);
+		List<List<Token>> sols=new ArrayList<>();
+		getNESoptions(sortedModifiedTokens.get(0),sortedModifiedTokens,null,sols,overlappingTokens);
+		return sols;
+		
+	}
+	/** input: t initial token (first generalized token (by start position)) 
+	 *         S=current solution (null initially)
+	 *         SOLS=list of solutions
+	 *         
+	 *  ots=overlapping tokens(t) + t
+	 *  boolean usedCurrentSolution=false;
+	 *  for each ot in ots
+	 *    if (usedCurrentSolution || S==null)
+	 *     if S==null S=new list
+	 *     else S=new list(S)
+	 *     SOLS.add(S)
+	 *     userCurrentSolution=true
+	 *    S.add(ot)
+	 *    nextTs=getNonOverlappingAhead(t)
+	 *    recursiveCall(nextTs,S,SOLS)
+	 * @param overlappingTokens 
+	 * 
+	 */
+	private void getNESoptions(Token current, List<Token> sortedTokens,List<Token> sol, List<List<Token>> sols, Map<Token, Set<Token>> overlappingTokens) {
+		Set<Token> ots = overlappingTokens.get(current);
+		boolean usedCurrentSolution=false;
+		for(Token ot:ots) {
+			if (usedCurrentSolution || sol==null) {
+				if (sol==null) sol=new ArrayList<>();
+				else sol=new ArrayList<>(sol);
+				sols.add(sol);
+			}
+			usedCurrentSolution=true;
+			sol.add(ot);
+			Token nextToken=getNonOverlappingAhead(ot,sortedTokens);
+			getNESoptions(nextToken,sortedTokens,sol,sols,overlappingTokens);
+		}
+	}
+	
+	private Token getNonOverlappingAhead(Token current, List<Token> sortedTokens) {
+		for(Token next:sortedTokens) {
+			if (next.getStart()>=current.getEnd()) return next;
+		}
+		return null;
+	}
+	
+	/*
+	public List<List<Token>> generalize(List<Token> tokens) {
+		return List<List<Token>> options = computePossibleNESoptions(tokens);
+		
 		List<Token> ret=new ArrayList<Token>(tokens);
-		TokenTypes type;
+		
+		
+		
 		boolean generalized=false;
 		if (nes!=null) {
 			for(NamedEntityExtractorI ne:nes) {
+				boolean changed=ne.generalize(ret);
+				if (changed) {
+					
+				}
+				
 				generalized|=ne.generalize(ret);
 			}
 		}
+		TokenTypes type;
 		if (!generalized && getConfiguration().getGeneralizeNumbers()) {
 			for(int i=0;i<ret.size();i++) {
 				Token t=ret.get(i);
@@ -834,8 +865,44 @@ public class BuildTrainingData {
 			}
 		}
 		return ret;
-	}
+	}*/
 
+	private void updateOverlappingTokens(Token tobeadded, Map<Token, Set<Token>> overlappingTokens) {
+		updateOverlappingTokens(tobeadded, overlappingTokens,new HashSet<Token>());
+	}
+	/**
+	 * properly updates the overlappingTokens parameter given the new token tobeadded.
+	 * @param existing
+	 * @param tobeadded
+	 * @param overlappingTokens
+	 * @param visited
+	 */
+	private void updateOverlappingTokens(Token tobeadded, Map<Token, Set<Token>> overlappingTokens,Set<Token> visited) {
+		//if overlappingtokens already contains tobeadded, terminate doing nothing
+		//adds to be added as a key of overlappingTokens
+		//gets the set of tokens (the keys of overlappingtokens
+		// for t in tokens
+		//  if t overlaps with tobeadded,
+		//    add tobeadded to the value of t
+		//    add t to the value of tobeadded
+		if (!overlappingTokens.containsKey(tobeadded)) {
+			overlappingTokens.put(tobeadded, null);
+			for(Token t:overlappingTokens.keySet()) {
+				if (!(t==tobeadded)) {
+					if (t.overlaps(tobeadded)) {
+						addOverlapping(t,tobeadded,overlappingTokens);
+						addOverlapping(tobeadded,t,overlappingTokens);
+					}
+				}
+			}
+		}
+	}
+	private void addOverlapping(Token key, Token toadd, Map<Token, Set<Token>> overlappingTokens) {
+		Set<Token> things=overlappingTokens.get(key);
+		if (things==null) overlappingTokens.put(key, things=new HashSet<>());
+		things.add(toadd);
+	}
+	
 	public static List<Token> stemm(List<Token> tokens) {
 		List<Token> ret=new ArrayList<Token>();
 		if (tokens!=null && !tokens.isEmpty()) {
@@ -1010,27 +1077,36 @@ public class BuildTrainingData {
 		return ret;
 	}
 
-	public String prepareUtteranceForClassification(String text) throws Exception {
+	public List<List<Token>> prepareUtteranceForClassification(String text) throws Exception {
 		return prepareUtteranceForClassification(text,defaultTokenTypes);
 	}
-	public String prepareUtteranceForClassification(String text,LinkedHashMap<TokenTypes, Pattern> tokenTypes) throws Exception {
-		//System.out.println(text);
+	public List<List<Token>> prepareUtteranceForClassification(String text,LinkedHashMap<TokenTypes, Pattern> tokenTypes) throws Exception {
+		List<List<Token>> ret=null;
 		List<Token> tokens = applyBasicTransformationsToStringForClassification(text,tokenTypes);
-		tokens=generalize(tokens);
-		//System.out.println(untokenize(tokens));
-		return untokenize(tokens);
+		List<List<Token>> lTokens = generalize(tokens);
+		if (lTokens!=null) {
+			for(List<Token> lToken:lTokens) {
+				if (ret==null) ret=new ArrayList<>();
+				ret.add(lToken);
+			}
+		}
+		return ret;
 	}
 	public List<TrainingDataFormat> prepareTrainingDataForClassification(List<TrainingDataFormat> td) throws Exception {
 		List<TrainingDataFormat> ret=new ArrayList<TrainingDataFormat>();
 		for(TrainingDataFormat d:td) {
 			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
-			String nu=prepareUtteranceForClassification(d.getUtterance());
-			if (StringUtils.isEmptyString(nu)) {
-				logger.error("Empty utterance after filters to prepare it from training: ");
-				logger.error("start='"+d.getUtterance()+"'");
-				logger.error("end='"+nu+"'");
-			} else {
-				ret.add(new TrainingDataFormat(nu, d.getLabel()));
+			List<String> nus=prepareUtteranceForClassification(d.getUtterance());
+			if (nus!=null) {
+				for(String nu:nus) {
+					if (StringUtils.isEmptyString(nu)) {
+						logger.error("Empty utterance after filters to prepare it from training: ");
+						logger.error("start='"+d.getUtterance()+"'");
+						logger.error("end='"+nu+"'");
+					} else {
+						ret.add(new TrainingDataFormat(nu, d.getLabel()));
+					}
+				}
 			}
 		}
 		return ret;
@@ -1180,36 +1256,7 @@ public class BuildTrainingData {
 		return reader.getTrainingInstances(fileToRead);
 	}
 	
-	public ArrayList<Pair<String,Collection<String>>> readIORExportedLinks(String fileName) throws Exception {
-		BufferedReader inp=new BufferedReader(new FileReader(fileName));
-		ArrayList<Pair<String,Collection<String>>> ret=new ArrayList<Pair<String,Collection<String>>>();
-		String line=null;
-		String text="";
-		Collection<String> sas=null;
-		Pair<String, Collection<String>> lastItem=null;
-		boolean foundText=false;
-		while((line=inp.readLine())!=null) {
-			if (!StringUtils.isEmptyString(line)) {
-				if (!foundText) text+=line;
-				else sas.add(line);
-			} else {
-				foundText=!foundText;
-				if (!foundText) {
-					text=text.replaceFirst("^.*=>[\\s]*", "");
-					text=prepareUtteranceForClassification(text);
-					if ((lastItem!=null) && text.equals(lastItem.getFirst())) {
-						lastItem.getSecond().addAll(sas);
-					} else {
-						ret.add(lastItem=new Pair<String, Collection<String>>(text, sas));
-					}
-					text="";
-				} else {
-					sas=new HashSet<String>();
-				}
-			}
-		}
-		return ret;
-	}
+
 
 	public static Set<String> getAllSpeechActsInTrainingData(List<TrainingDataFormat> td) {
 		if (td==null || td.isEmpty()) return null;
@@ -1633,40 +1680,7 @@ public class BuildTrainingData {
 		BuildTrainingData.dumpTrainingDataToExcel(all, new File("annotation/output-expor-part-merged.xlsx"), "test");
 		System.exit(1);
 		
-		try {
-			
-			
-			//System.out.println(stemm("i'm cars read reads redded"));
-			BuildTrainingData btd = new BuildTrainingData(NLUConfig.WIN_EXE_CONFIG);
-			List<TrainingDataFormat> td2 = btd.buildTrainingData();
-			System.out.println(btd.prepareUtteranceForClassification("are you really smart the cars <num> lifted tomatoes running matters years months sometimes on the streets nothing quite"));
-			System.exit(1);
-			ArrayList<Pair<String, Collection<String>>> r = btd.readIORExportedLinks("exported-links.txt");
-			int tot=0,mul=0;
-			for(Pair<String, Collection<String>>d:r) {
-				if (d.getSecond().size()>1) mul++;
-				tot++;
-			}
-			System.out.println(tot+" "+mul);
-			System.out.println(btd.prepareUtteranceForClassification("<NUM> years"));
-			System.exit(1);
 
-			List<TrainingDataFormat> td=btd.getAllSimcoachData();
-			List<Pair<String, String>> sud=btd.getAllSystemUserPairs();
-			HashMap<String, Pair<String,Collection<String>>> iorData = btd.produceDataForIOR(td,sud);
-			btd.dumpIORDataInImportableTXT(iorData, "allSimcoachLines", "allSimcoachSpeechActs","allSimcoachLinks");
-			System.exit(1);
-			
-			List<TrainingDataFormat> a = btd.buildTrainingDataFromFormsExcel("../../simcoach-runtime/SimcoachApp/src/forms.xlsx", 0);
-			//btd.mergeUserUtterances("localhost:8080","sclab1");
-			//System.out.println(btd.tokenize("??"));
-			//ArrayList<Pair<String, TokenTypes>> tokens = btd.tokenize("forty-four");			
-			System.out.println(btd.applyBasicTransformationsToStringForClassification("fourty six"));
-			//System.out.println(EnglishWrittenNumbers2Digits.parseWrittenNumbers(tokens));
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	/**
 	 * find the portion of the training data that uses labels listed in the set given as second argument. 

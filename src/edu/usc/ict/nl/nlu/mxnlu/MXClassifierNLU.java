@@ -153,7 +153,7 @@ public class MXClassifierNLU extends NLU {
 		if (StringUtils.isEmptyString(features)) features=processedText;
 		return features;
 	}
-	public String[] classify(String text,Integer nBest) throws Exception {
+	public List<NLUOutput> classify(String text,Integer nBest) throws Exception {
 		NLUOutput hardLabel=getHardLinkMappingOf(text);
 		if (hardLabel!=null) return new String[]{hardLabel.getId()};
 		String features=doPreprocessingForClassify(text);
@@ -173,13 +173,13 @@ public class MXClassifierNLU extends NLU {
 			ret.add(new NLUOutput(text, emptyEvent, 1, null));
 			return ret;
 		}
-		String[] rawNLUOutput=classify(text,nBest);
+		List<NLUOutput> rawNLUOutput=classify(text,nBest);
 		//System.out.println(Arrays.toString(rawNLUOutput));
 		return pickNLUOutput(rawNLUOutput, nBest,text, possibleUserEvents);
 	}
 	private List<NLUOutput> pickNLUOutput(String[] rawNLUOutput,Integer nBest, String inputText,Set<String> possibleUserEvents) throws Exception {
 		ArrayList<String> sortedUserSpeechActs = new ArrayList<String>();
-		Map<String, Float> userSpeechActsWithProb = processNLUOutputs(rawNLUOutput,nBest,possibleUserEvents,sortedUserSpeechActs);		
+		NLUOutput userSpeechActsWithProb = processNLUOutputs(rawNLUOutput,nBest,possibleUserEvents,sortedUserSpeechActs);		
 		String classifierText = getClassifierInputUtteranceBeforeGeneralization(inputText);
 		List<Pair<String, Map<String, Object>>> speechActsWithPayload = associatePayloadToSpeechActs(sortedUserSpeechActs, classifierText);
 		logger.debug("Extracted payload for each input user speech act: "+speechActsWithPayload);
@@ -196,14 +196,14 @@ public class MXClassifierNLU extends NLU {
 	
 	public static final Pattern nluOutputLineFormat = Pattern.compile("^[\\s]*([\\d\\.]+[eE\\+\\-\\d]*)[\\s]+(.+)[\\s]*$");		
 
-	private Map<String,Float> processNLUOutputs(String[] nlu,Integer nBest, Set<String> possibleUserEvents,ArrayList<String> sortedOutputKeys) throws Exception {
+	private List<NLUOutput> processNLUOutputs(String[] nlu,Integer nBest, Set<String> possibleUserEvents,ArrayList<String> sortedOutputKeys) throws Exception {
 		Float acceptanceThreshold=this.acceptanceThreshold;
 		NLUConfig config=getConfiguration();
 		logger.debug("PROCESS NLU: input user speechActs: "+((nlu==null)?nlu:Arrays.asList(nlu)));
 		if (sortedOutputKeys!=null) sortedOutputKeys.clear();
 		if (nlu==null) return null;
 				
-		Map<String,Float> userEvents=new HashMap<String,Float>();
+		List<NLUOutput> userEvents=new ArrayList<NLUOutput>();
 		// if a particular nBest is given forget about the threshold and return the exact number of results.
 		if (nBest==null) nBest=getConfiguration().getnBest();
 		else acceptanceThreshold=null;
@@ -224,7 +224,7 @@ public class MXClassifierNLU extends NLU {
 				if ((acceptanceThreshold==null) || ((prb>=0) && (prb<=1) && (prb>=acceptanceThreshold))) {
 					if ((possibleUserEvents==null) || (possibleUserEvents.contains(sa))) {
 						if (userEvents.size()<=nBest) {
-							userEvents.put(sa,prb);
+							userEvents.add(new NLUOutput(null, sa, prb,null));
 							if (sortedOutputKeys!=null) sortedOutputKeys.add(sa);
 							logger.debug(" user speechAct: "+sa+" with probability "+prb);
 							if (possibleUserEvents!=null) {
@@ -245,7 +245,7 @@ public class MXClassifierNLU extends NLU {
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
 				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
-				userEvents.put(lowConfidenceEvent,1f);
+				userEvents.add(new NLUOutput(null, lowConfidenceEvent, 1f, null));
 				if (sortedOutputKeys!=null) sortedOutputKeys.add(lowConfidenceEvent);
 				logger.warn(" no user speech acts left. adding the low confidence event.");
 			}

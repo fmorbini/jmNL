@@ -1,7 +1,7 @@
 package edu.usc.ict.nl.nlu;
 
 
-public class Token {
+public class Token implements Comparable<Token> {
 	public enum TokenTypes {WORD,NUM,OTHER,O1};
 	String name,original;
 	TokenTypes type;
@@ -48,4 +48,29 @@ public class Token {
 	public String toString() {
 		return "["+getName()+"("+getOriginal()+"): "+getType()+"]";
 	}
+	@Override
+	public int compareTo(Token o) {
+		return o.start-start;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj!=null && obj instanceof Token) {
+			return (((Token)obj).start==start && ((Token)obj).end==end && 
+					((((Token)obj).name!=null && ((Token)obj).name.equals(name)) ||
+							((Token)obj).name==name) &&
+					((((Token)obj).original!=null && ((Token)obj).original.equals(original)) ||
+							((Token)obj).original==original) &&
+					((Token)obj).type==type);
+		}
+		return super.equals(obj);
+	}
+	
+	public boolean overlaps(Token t2) {
+		if (t2!=null) {
+			return ((getStart()<=t2.getEnd() && getStart()>=t2.getStart()) || (getEnd()<=t2.getEnd() && getEnd()>=t2.getStart()) || (getStart()<=t2.getStart() && getEnd()>=t2.getEnd()));
+		}
+		return false;
+	}
+
 }

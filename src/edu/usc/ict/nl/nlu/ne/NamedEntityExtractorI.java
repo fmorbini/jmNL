@@ -9,6 +9,7 @@ import edu.usc.ict.nl.nlu.Token;
 public interface NamedEntityExtractorI {
 	public List<NE> extractNamedEntitiesFromText(String text, String speechAct) throws Exception;
 	public void setConfiguration(NLUConfig configuration);
-	public boolean generalize(List<Token> tokens);
 	public List<SpecialVar> getSpecialVariables() throws Exception;
+	public boolean generalize(List<Token> tokens);
+	public List<Token> getModifiedTokens(List<Token> tokens);
 }

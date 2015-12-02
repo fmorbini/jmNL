@@ -64,17 +64,26 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 		return null;
 	}
+
+	private List<Integer> computeTokenStarts(List<Token> inputTokens) {
+		List<Integer> tokenStarts=null;
+		if (inputTokens!=null) {
+			new ArrayList<Integer>();
+			int i=0;
+			for(Token t:inputTokens) {
+				if (tokenStarts==null) tokenStarts=new ArrayList<>();
+				tokenStarts.add(i);
+				i+=1+t.getOriginal().length();
+			}
+			assert(tokenStarts.size()==inputTokens.size());
+		}
+		return tokenStarts;
+	}
 	
 	@Override
-	public boolean generalize(List<Token> inputTokens) {
-		boolean generalized=false;
-		List<Integer> tokenStarts=new ArrayList<Integer>();
-		int i=0;
-		for(Token t:inputTokens) {
-			tokenStarts.add(i);
-			i+=1+t.getOriginal().length();
-		}
-		assert(tokenStarts.size()==inputTokens.size());
+	public List<Token> getModifiedTokens(List<Token> inputTokens) {
+		List<Token> ret=null;
+		List<Integer> tokenStarts=computeTokenStarts(inputTokens);
 		String input=fromTokensToOriginalString(inputTokens);
 		try {
 			List<NE> nes = extractNamedEntitiesFromText(input, null);
@@ -88,33 +97,66 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 						int startToken = getTokenAtPosition(start,tokenStarts);
 						int endToken=getTokenAtPosition(end,tokenStarts);
 						for(int j=startToken;j<=endToken;j++) {
-							generalized=true;
 							Token newToken=null;
 							if (j==startToken) {
 								Token original=inputTokens.get(j);
 								if (original!=null) {
 									newToken=new Token("<"+ne.getType().toUpperCase()+">", original.getType(), ne.getMatchedString(), start, end);
+									if (ret==null) ret=new ArrayList<>();
+									ret.add(newToken);
 								} else {
 									logger.error("Trying to generalize null NE ("+ne+"). NE list: "+nes);
 								}
 							}
-							inputTokens.set(j, newToken);
 						}
 					}
-				}
-			}
-			if (generalized) {
-				Iterator<Token> it=inputTokens.iterator();
-				while(it.hasNext()) {
-					Token t=it.next();
-					if (t==null) it.remove();
 				}
 			}
 		} catch (Exception e) {
 			logger.error("error generalizing text", e);
 		}
+		return ret;
+	}
+	
+	@Override
+	public boolean generalize(List<Token> inputTokens) {
+		boolean generalized=false;
+		List<Token> mods = getModifiedTokens(inputTokens);
+		if (mods!=null && !mods.isEmpty()) {
+			applyGeneralizations(mods,inputTokens);
+			generalized=true;
+		}
 		return generalized;
 	}
+	private void applyGeneralizations(List<Token> mods, List<Token> inputTokens) {
+		if (mods!=null && inputTokens!=null) {
+			List<Integer> tokenStarts = computeTokenStarts(inputTokens);
+			for(Token m:mods) {
+				int start=m.getStart();
+				int end=m.getEnd();
+				int startToken = getTokenAtPosition(start,tokenStarts);
+				int endToken=getTokenAtPosition(end,tokenStarts);
+				for(int j=startToken;j<=endToken;j++) {
+					Token newToken=null;
+					if (j==startToken) {
+						Token original=inputTokens.get(j);
+						if (original!=null) {
+							newToken=m;
+						} else {
+							logger.error("Trying to apply generalization to null token. position: "+j);
+						}
+					}
+					inputTokens.set(j, newToken);
+				}
+			}
+			Iterator<Token> it=inputTokens.iterator();
+			while(it.hasNext()) {
+				Token t=it.next();
+				if (t==null) it.remove();
+			}
+		}
+	}
+	
 	private class Interval {
 		int start,end;
 		public Interval(int start,int end) {
