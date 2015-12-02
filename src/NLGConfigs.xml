@@ -12,6 +12,7 @@
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<bean id="echoNLG" class="edu.usc.ict.nl.config.NLGConfig">
+       	<property name="alwaysPreferForms" value="false"/>
 		<property name="nlgClass" value="edu.usc.ict.nl.nlg.echo.EchoNLG"/>
 		<property name="systemUtterances" value="system-utterances.xlsx"/>
 		<property name="nvbs" value="nvb.xlsx"/>

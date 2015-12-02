@@ -14,7 +14,6 @@
 	<import resource="classpath:NLGConfigs.xml"/>
 
 	<bean id="nlConfigMXNLU_FSMDM_EchoNLG" class="edu.usc.ict.nl.config.NLBusConfig">
-       	<property name="alwaysPreferForms" value="false"/>
        	<property name="runningMode" value="EXE"/>
        	<property name="isLoadBalancing" value="false"/>
 		<property name="contentRoot" value="resources/characters/"/>
@@ -39,9 +38,6 @@
 				<value>edu.usc.ict.nl.bus.protocols.VHPMLProtocol</value>-->
 			</list>
 		</property>
-		
-		<property name="caseSensitive" value="false"/>
-		
 	</bean>
 	<bean id="nlConfigMXNLU_RewardDM_EchoNLG" parent="nlConfigMXNLU_FSMDM_EchoNLG">
 		<property name="dmConfig" ref="RewardDM"/>

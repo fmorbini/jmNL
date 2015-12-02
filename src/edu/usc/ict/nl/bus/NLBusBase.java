@@ -667,7 +667,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		if (config==null) {
 			config=(NLBusConfig) getConfiguration().clone();
 			config.setNluConfig(getPersonalizedNLUConfigurationForCharacter(characterName));
-			config.setDMConfig(getPersonalizedDMConfigurationForCharacter(characterName));
+			config.setDmConfig(getPersonalizedDMConfigurationForCharacter(characterName));
 			config.setNlgConfig(getPersonalizedNLGConfigurationForCharacter(characterName));
 			config.setCharacter(characterName);
 			character2Config.put(characterName, config);

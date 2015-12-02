@@ -12,13 +12,11 @@
 	<import resource="classpath:NLConfigs.xml"/>
 	
 	<bean id="nlChatConfig_EchoNLG" parent="nlConfigHierNLU_RewardDM_EchoNLG">
-		<property name="defaultCharacter" value=""/>
+		<property name="character" value=""/>
 		<property name="displayNluOutputChat" value="true"/>
 		<property name="zoomFactorChat" value="1"/>
-		<property name="displayFormAnswerInNlg" value="false"/>
 		<property name="allowNluTraining" value="true"/>
 		<property name="minatListening" value="false"/>
-        <property name="systemEventsHaveDuration" value="false"/>
 		
 		<property name="nluConfig" ref="openNLU"/>
 		<property name="dmConfig" ref="RewardDM"/>
@@ -26,7 +24,7 @@
 	</bean>
 	
 	<bean id="directable-char" parent="nlChatConfig_EchoNLG">
-		<property name="defaultCharacter" value="Directable"/>
+		<property name="character" value="Directable"/>
 		<property name="nluConfig" ref="DC"/>
 		<property name="nlgConfig" ref="directable"/>
 	</bean>

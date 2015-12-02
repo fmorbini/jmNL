@@ -22,7 +22,7 @@ public abstract class NLConfig {
 		this.nluConfig = nluConfig;
 		if (this instanceof NLBusConfig) this.nluConfig.nlBusConfig=(NLBusConfig) this;
 	}
-	public void setDMConfig(DMConfig dmConfig) {
+	public void setDmConfig(DMConfig dmConfig) {
 		this.dmConfig = dmConfig;
 		if (this instanceof NLBusConfig) this.dmConfig.nlBusConfig=(NLBusConfig) this;
 	}
