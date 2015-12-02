@@ -128,7 +128,7 @@ public class PMLStateKeeper {
 					}
 					for (Long sessionId : nlModule.getSessions()) {
 						if (nlModule.getCharacterName4Session(sessionId)!=null) {
-							DM dm=nlModule.getPolicyDMForSession(sessionId,false);
+							DM dm=nlModule.getDM(sessionId,false);
 							if (dm!=null) {
 								DialogueKB informationState = dm.getInformationState();
 								if (informationState!=null) {

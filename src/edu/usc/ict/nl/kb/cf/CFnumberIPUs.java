@@ -6,8 +6,7 @@ import java.util.Deque;
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
-import edu.usc.ict.nl.config.NLBusConfig;
-import edu.usc.ict.nl.dm.reward.RewardDM;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
@@ -40,7 +39,7 @@ public class CFnumberIPUs implements CustomFunctionInterface {
 
 	@Override
 	public boolean test() throws Exception {
-		NLBusConfig config=NLBusConfig.WIN_EXE_CONFIG.cloneObject();
+		DMConfig config=DMConfig.WIN_EXE_CONFIG.cloneObject();
 		config.setLoginEventName("login");
 		TestRewardDM dm=new TestRewardDM(config);
 		DialogueKB is = dm.getInformationState();

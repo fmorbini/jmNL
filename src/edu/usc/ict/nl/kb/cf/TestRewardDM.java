@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.Event;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.DormantActions;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.SpeakingTracker;
@@ -25,7 +25,7 @@ public class TestRewardDM extends RewardDM {
 	DialogueOperatorEntranceTransition ec=null;
 	DialogueAction aa=null;
 	
-	public TestRewardDM(NLBusConfig config) throws Exception {
+	public TestRewardDM(DMConfig config) throws Exception {
 		super(config);
 		logger=Logger.getLogger(TestRewardDM.class.getName());
 		logger.setLevel(Level.OFF);

@@ -79,7 +79,7 @@ public class LFNLU2 extends NLU {
 	public static void main(String[] args) throws Exception {
 		NLUConfig config=NLU.getNLUConfig("DC");
 		NLBusConfig busconfig=(NLBusConfig) NLBusConfig.WIN_EXE_CONFIG.clone();
-		busconfig.setDefaultCharacter("Directable");
+		busconfig.setCharacter("Directable");
 		busconfig.setNluConfig(config);
 		LFNLU2 u=new LFNLU2(config);
 		ObjectKB kb = u.getObjectKB();

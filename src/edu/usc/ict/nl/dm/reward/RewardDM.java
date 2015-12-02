@@ -45,6 +45,7 @@ import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction.ActiveStates;
@@ -892,7 +893,7 @@ public class RewardDM extends DM {
 		// if change happens too soon while waiting for user input, cancel the change.
 		if (isChangeDrivenByNonUserEvent(ec, ev, currentAction) && currentAction.isWaitingForUser()) {
 			if (isTimerEvent(ev)) {
-				NLBusConfig config=getConfiguration();
+				DMConfig config=getConfiguration();
 				float interval=config.getTimerInterval();
 				float time=currentAction.getTimerEventsInCurrentState()*interval;
 				int th=config.getWaitForUserReplyTimeout();
@@ -1104,7 +1105,7 @@ public class RewardDM extends DM {
 			return speechAct;
 		}
 		else {
-			String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
+			String lowConfidenceEvent=getConfiguration().nluConfig.getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
 				logger.warn(" no NLU output and LOW confidence event disabled, returning no NLU results.");
 				return null;
@@ -1330,7 +1331,7 @@ public class RewardDM extends DM {
 	}
 
 	private static String loopEvent=null;
-	public RewardDM(NLBusConfig config) {
+	public RewardDM(DMConfig config) {
 		super(config);
 		String loopEvent=getConfiguration().getLoopEventName();
 		if (!StringUtils.isEmptyString(loopEvent)) this.loopEvent=loopEvent;
@@ -1339,7 +1340,7 @@ public class RewardDM extends DM {
 		MAX_SEARCH_LEVELS=config.getMaxSearchLevels();
 		MAX_ITERATIONS=10;
 	}
-	public RewardDM(long sessionID,RewardPolicy dp,NLBusConfig config,NLBusInterface listener) throws Exception {
+	public RewardDM(long sessionID,RewardPolicy dp,DMConfig config,NLBusInterface listener) throws Exception {
 		this(config);
 		this.setMessageBus(listener);
 		this.dormantActions=new DormantActions();

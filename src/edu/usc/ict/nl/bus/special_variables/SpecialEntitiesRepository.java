@@ -16,11 +16,11 @@ public class SpecialEntitiesRepository {
 	}
 	public void addSpecialVariable(SpecialVar sv) {
 		String name=sv.getName();
-		if (config==null || !config.getCaseSensitive()) name=name.toLowerCase();
+		if (config==null || !config.dmConfig.getCaseSensitive()) name=name.toLowerCase();
 		svs.put(name, sv);
 	}
 	public SpecialVar get(String name) {
-		if (config==null || !config.getCaseSensitive()) name=name.toLowerCase();
+		if (config==null || !config.dmConfig.getCaseSensitive()) name=name.toLowerCase();
 		return svs.get(name);
 	}
 	public Collection<SpecialVar> getVisibleVars() {

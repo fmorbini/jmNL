@@ -447,7 +447,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				StringBuffer sb=new StringBuffer();
 				if (nluNbestList!=null) {
 					List<String> originalNLUOutputLabels=(List)FunctionalLibrary.map(nluNbestList, NLUOutput.class.getMethod("getId"));
-					DM dm=nlModule.getPolicyDMForSession(sid);
+					DM dm=nlModule.getDM(sid);
 					NLGInterface nlg=nlModule.getNlg(sid);
 					Map<NLUOutput, List<List<String>>> dmPossibleReplies = dm.getPossibleSystemResponsesForThesePossibleInputs(nluNbestList);
 					Iterator<NLUOutput> itNew=nluNbestList.iterator();
@@ -557,7 +557,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			@Override
 			public void run() {
 				try {
-					DM dm=nlModule.getPolicyDMForSession(sid);
+					DM dm=nlModule.getDM(sid);
 					boolean pauseEventProcessing=dm.getPauseEventProcessing();
 					if (!pauseEventProcessing) dm.setPauseEventProcessing(true);
 					NLUInterface nlu = nlModule.getNlu(sid);
@@ -575,7 +575,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private static final Semaphore reloadLock=new Semaphore(1);
 	public void startDefaultCharacter() {
 		NLBusConfig config=nlModule.getConfiguration();
-		String character=config.getDefaultCharacter();
+		String character=config.getCharacter();
 		if (character!=null && characterActions!=null) {
 			HashSet<String> setOfCharacters=new HashSet<String>(characterActions.keySet());
 			while(!setOfCharacters.isEmpty()) {
@@ -608,7 +608,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 				line=0;
 				if (sid!=null) {
-					DM dm = nlModule.getPolicyDMForSession(sid,false);
+					DM dm = nlModule.getDM(sid,false);
 					if (dm!=null) {
 						dm.setPersonalSessionID(pid);
 						chatLogFileName=dm.getCurrentChatLogFile();
@@ -653,7 +653,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			}
 			nlModule.startup();
 
-			String character=config.getDefaultCharacter();
+			String character=config.getCharacter();
 			Map<String, String> availableCharacters = nlModule.getAvailableCharacterNames();
 			setMenuBar(availableCharacters,character,config);
 
@@ -747,7 +747,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					DM dm = nlModule.getPolicyDMForSession(sid, false);
+					DM dm = nlModule.getDM(sid, false);
 					dm.setPauseEventProcessing(true);
 					try {
 						nlModule.saveInformationStateForSession(sid,true);
@@ -769,7 +769,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = fc.getSelectedFile();
 					try {
-						DM dm = nlModule.getPolicyDMForSession(sid, false);
+						DM dm = nlModule.getDM(sid, false);
 						if (dm!=null) {
 							dm.setPauseEventProcessing(true);
 							try {
@@ -919,7 +919,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	public void sendForcedNLU(String nluSA,long sid) throws Exception {
 		// simulates the initial login event
 		NLUInterface nlu = nlModule.getNlu(sid);
-		DM dm=nlModule.getPolicyDMForSession(sid);
+		DM dm=nlModule.getDM(sid);
 		List<NLUOutput> userSpeechActs = nlu.getNLUOutputFake(new String[]{"1 "+nluSA}, null);
 		NLUOutput selectedUserSpeechAct=dm.selectNLUOutput(nluSA,sid, userSpeechActs);
 		nlModule.handleNLUEvent(sid, new NLUEvent(selectedUserSpeechAct, sid));
@@ -1171,7 +1171,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private DM getDM(Long sid) {
 		if (nlModule!=null) {
 			try {
-				DM dm=nlModule.getPolicyDMForSession(sid);
+				DM dm=nlModule.getDM(sid);
 				return dm;
 			} catch (Exception e) {}
 		}

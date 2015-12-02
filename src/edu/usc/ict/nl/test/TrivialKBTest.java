@@ -3,11 +3,8 @@ package edu.usc.ict.nl.test;
 import java.util.Collection;
 import java.util.HashMap;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 import edu.usc.ict.nl.bus.modules.DM;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.dm.reward.model.XMLConstants;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
@@ -18,6 +15,9 @@ import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.kb.cf.TestRewardDM;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.utils.FloatAndLongUtils;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 
 public class TrivialKBTest extends TestCase {
@@ -46,7 +46,7 @@ public class TrivialKBTest extends TestCase {
 	}
 	//test of case sensitivity setup
 	public void test14() throws Exception {
-		NLBusConfig config = new NLBusConfig();
+		DMConfig config = new DMConfig();
 		config.setCaseSensitive(true);
 		DM dm=new TestRewardDM(config);
 		TrivialDialogueKB mykb = new TrivialDialogueKB(dm);

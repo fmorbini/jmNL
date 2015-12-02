@@ -54,7 +54,7 @@ public abstract class NLG implements NLGInterface {
 		DialogueKBInterface context=ev.getLocalInformationState();
 		// if not there get the one associated with the DM
 		if (context==null) {
-			DM dm=getNLModule().getPolicyDMForSession(ev.getSessionID());
+			DM dm=getNLModule().getDM(ev.getSessionID());
 			context=dm.getInformationState();
 		}
 		return context;
@@ -73,7 +73,7 @@ public abstract class NLG implements NLGInterface {
 	@Override
 	public void interrupt(DMInterruptionRequest ev) throws Exception {
 		Long sessionID=ev.getSessionID();
-		DM dm=nlModule.getPolicyDMForSession(sessionID);
+		DM dm=nlModule.getDM(sessionID);
 		dm.handleEvent(new SystemUtteranceInterruptedEvent(ev.getPayload().getDMEventName(), sessionID,ev.getSourceEvent()));
 	}
 

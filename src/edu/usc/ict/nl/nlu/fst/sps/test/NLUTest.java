@@ -58,7 +58,7 @@ public class NLUTest extends FSTNLU {
 	public static void spsTest(int stage,boolean printErrors) throws Exception {
 		NLUConfig config=getNLUConfig("spsNLU");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 		Map<String, NLU> inlu = ((MultiNLU)nlu).getHNLU();
@@ -121,7 +121,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 	public static void spsStage2RunOn(String text) throws Exception {
 		NLUConfig config=getNLUConfig("spsFST");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 
@@ -130,7 +130,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 	public static void spsStage2RawRunOn(String text) throws Exception {
 		NLUConfig config=getNLUConfig("spsFST");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 
@@ -140,7 +140,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 	public static void spsRetrain() throws Exception {
 		NLUConfig config=getNLUConfig("spsNLU");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 		nlu.retrain();
@@ -148,7 +148,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 	public static void spsStage1Retrain() throws Exception {
 		NLUConfig config=getNLUConfig("spsStage1");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 		nlu.retrain();
@@ -195,7 +195,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 	public static NLU createSPSStage2NLU() throws Exception {
 		NLUConfig config=getNLUConfig("spsFST");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 		return nlu;
@@ -232,14 +232,14 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 		NLUConfig config=getNLUConfig("spsFST");
 		config.setNluDir("nlufst-workshop");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 
 		NLUConfig config2=getNLUConfig("spsFSTbackup");
 		config2.setNluDir("nlufstbackup-workshop");
 		NLBusConfig tmp2 = NLBusConfig.WIN_EXE_CONFIG;
-		tmp2.setDefaultCharacter("Base-All");
+		tmp2.setCharacter("Base-All");
 		tmp2.setNluConfig(config2);
 		NLU nlu2=init(config2);
 		
@@ -326,7 +326,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 		//NLUConfig config=getNLUConfig("FSTNLU");
 		//NLUConfig config=getNLUConfig("spsFST");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 		
@@ -359,7 +359,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 		NLUConfig config=getNLUConfig("FSTNLU");
 		//NLUConfig config=getNLUConfig("spsFST");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 		

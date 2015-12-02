@@ -14,14 +14,13 @@ import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceInterruptedEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNodeTransition;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
-import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 
 public class SpeakingTracker {
@@ -42,7 +41,7 @@ public class SpeakingTracker {
 	private Event interruptionSourceEvent=null;
 	
 	public SpeakingTracker(DM dm, Timer timer) throws Exception {
-		NLBusConfig config=dm.getConfiguration();
+		DMConfig config=dm.getConfiguration();
 		this.waitForSystemDone=config.getSystemEventsHaveDuration();
 		this.dm=dm;
 		this.tt=timer;

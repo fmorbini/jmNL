@@ -3,7 +3,7 @@ package edu.usc.ict.nl.kb.cf;
 import java.util.Collection;
 
 import edu.usc.ict.nl.bus.NLBusBase;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.DormantActions;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.SwapoutReason;
@@ -45,7 +45,7 @@ public class CFhasBeenInterrupted implements CustomFunctionInterface {
 	
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		DialogueAction aa = dm.getCurrentActiveAction();
 		TestDialogueOperator op = (TestDialogueOperator) aa.getOperator();
 		DialogueOperatorNode.doSwapOut(aa, new SwapoutReason(aa.getEntranceTransition()));

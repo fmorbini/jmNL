@@ -22,6 +22,7 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
 import edu.usc.ict.nl.bus.modules.DM;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.fsm.advicer.NoSendExecutorSCXMLAdvice;
 import edu.usc.ict.nl.dm.fsm.scxml.SCXMLListenerUnhandledEvents;
@@ -38,12 +39,12 @@ import edu.usc.ict.nl.util.StringUtils;
  */
 public class FSMdm extends SCXMLRunner {
 
-	public FSMdm(NLBusConfig config) {
+	public FSMdm(DMConfig config) {
 		super(config);
 	}
 	public FSMdm(Long sessionID, SCXML preparsedFSM,Context initialContext,
 			Evaluator ev, EventDispatcher ed, ErrorReporter er,
-			NLBusConfig config) throws Exception {
+			DMConfig config) throws Exception {
 		super(sessionID, preparsedFSM, initialContext, ev, ed, er,config);
 	}
 
@@ -118,7 +119,7 @@ public class FSMdm extends SCXMLRunner {
 	@Override
 	public DM createPolicyDM(Object preparsedDialoguePolicy, Long sid,
 			NLBusInterface listener) throws Exception {
-		NLBusConfig config=getConfiguration();
+		DMConfig config=getConfiguration();
 		Context initialContext = initializeContext();
 		FSMdm scxml = new FSMdm(sid,
 				(SCXML)preparsedDialoguePolicy,initialContext,
@@ -142,7 +143,7 @@ public class FSMdm extends SCXMLRunner {
 	public NLUOutput selectNLUOutput(String text,Long sessionId,
 			List<NLUOutput> userSpeechActs) throws Exception {
 		Map<String, Set<String>> mapping = getAdvicer().getAdviceForWizardGivenTheseUserEvents(userSpeechActs);
-		NLBusConfig config=getConfiguration();
+		DMConfig config=getConfiguration();
 		String unhandledEvent=config.getUnhandledEventName();
 		for(NLUOutput nluResult : userSpeechActs) {
 			if (StringUtils.isEmptyString(text)) text=nluResult.getText();

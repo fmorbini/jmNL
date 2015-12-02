@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
@@ -87,7 +87,7 @@ public class CFtoUnit implements CustomFunctionInterface {
 
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		DialogueKB is=dm.getInformationState();
 		is.store(DialogueOperatorEffect.parse("assign(a,currentTime)"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 		DialogueKBFormula f = DialogueKBFormula.parse(getName()+"(a,'milliseconds','years')");

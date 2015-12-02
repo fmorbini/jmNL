@@ -3,7 +3,7 @@ package edu.usc.ict.nl.kb.cf;
 import java.util.Collection;
 import java.util.List;
 
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
@@ -46,7 +46,7 @@ public class CFMin implements CustomFunctionInterface {
 
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		DialogueKB is=dm.getInformationState();
 		is.store(DialogueOperatorEffect.parse("assign(a,11)"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 		Number r=eval(DialogueKBFormula.parse(getName()+"(a,12)"),is,false,null);
