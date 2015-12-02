@@ -12,54 +12,27 @@
 	<import resource="classpath:NLConfigs.xml"/>
 	
 	<bean id="nlChatConfig_EchoNLG" parent="nlConfigHierNLU_RewardDM_EchoNLG">
-	<!-- <bean id="nlChatConfig_EchoNLG" parent="nlConfigHierNLU_FSMDM_EchoNLG">-->
-       	<!--<property name="runningMode" value="EVAL"/>-->
-		<property name="defaultCharacter" value="change_this"/>
+		<property name="defaultCharacter" value=""/>
 		<property name="displayNluOutputChat" value="true"/>
 		<property name="zoomFactorChat" value="1"/>
 		<property name="displayFormAnswerInNlg" value="false"/>
-		<!--<property name="feedbackInputForm" value="questionnaire.html"/>-->
 		<property name="allowNluTraining" value="true"/>
-		<property name="minatListening" value="true"/>
-		<property name="nluConfig" ref="openNLU"/>
-		
+		<property name="minatListening" value="false"/>
         <property name="systemEventsHaveDuration" value="false"/>
-
-		<!--
-       	<property name="vhSpeaker" value="captain"/>
-       	<property name="vhTopic" value="DEFAULT_SCOPE"/>
-       	<property name="vhServer" value="localhost"/>
-		-->
-		<!-- <property name="visualizerConfig" value="dmVisualizer.xml"/>
-		<property name="visualizerClass" value="edu.usc.ict.nl.dm.visualizer.prefuse.RewardDMVisualizerPrefuse"/>-->
+		
+		<property name="nluConfig" ref="openNLU"/>
+		<property name="dmConfig" ref="RewardDM"/>
+		<property name="nlgConfig" ref="echoNLG"/>
 	</bean>
 	
 	<bean id="directable-char" parent="nlChatConfig_EchoNLG">
-		<property name="isStrictNLG" value="false"/>
 		<property name="defaultCharacter" value="Directable"/>
 		<property name="nluConfig" ref="DC"/>
-		<property name="nlgClass" value="edu.usc.ict.nl.nlg.directablechar.DirectableChar"/>
+		<property name="nlgConfig" ref="directable"/>
 	</bean>
 	
-	<!-- 
-	<bean id="virtual-human-directory-demo" parent="nlChatConfig_EchoNLG">
-		<property name="defaultCharacter" value="Rachel"/>
-		<property name="isStrictNLG" value="false"/>
-		<property name="displayNluOutputChat" value="true"/>
-		<property name="zoomFactorChat" value="1"/>
-		<property name="displayFormAnswerInNlg" value="false"/>
-		<property name="allowNluTraining" value="true"/>
-		<property name="minatListening" value="true"/>
-       	<property name="vhSpeaker" value="user"/>
-       	<property name="vhTopic" value="DEFAULT_SCOPE"/>
-       	<property name="vhServer" value="localhost"/>
-		<property name="nluConfig" ref="VHDNLU"/>
-		<property name="nlgClass" value="edu.usc.ict.nl.nlg.vhd.VRexpressVHDNLG"/>
-	</bean>
-	-->
 	<bean id="nlModuleChat" class="edu.usc.ict.nl.bus.NLBus" scope="singleton">
 		<property name="configuration" ref="nlChatConfig_EchoNLG"/>
-		<!-- property name="configuration" ref="virtual-human-directory-demo"/>-->
 		<!-- property name="configuration" ref="directable-char"/>-->
     </bean> 
 	
