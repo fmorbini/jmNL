@@ -22,7 +22,7 @@ public class WikiThing extends Node implements Comparable<WikiThing> {
 	private long id=-1;
 	public enum TYPE {ITEM,PROPERTY,CONSTANT};
 	
-	public static final Pattern thingName=Pattern.compile("^(P|Q)([0-9]+)$");
+	public static final Pattern thingName=Pattern.compile("^([Pp]|[Qq])([0-9]+)$");
 	
 	public WikiThing(long id,TYPE type) {
 		this.id=id;
@@ -30,11 +30,15 @@ public class WikiThing extends Node implements Comparable<WikiThing> {
 		setName((isEntity()?"Q":"P")+id);
 	}
 	
+	public TYPE getType() {
+		return type;
+	}
+	
 	public WikiThing(String string) throws Exception {
 		Matcher m=thingName.matcher(string);
 		if (m.matches()) {
 			this.id=Long.parseLong(m.group(2));
-			String t=m.group(1);
+			String t=m.group(1).toUpperCase();
 			if (t.equals("P")) this.type=TYPE.PROPERTY;
 			else this.type=TYPE.ITEM;
 			setName((isEntity()?"Q":"P")+id);

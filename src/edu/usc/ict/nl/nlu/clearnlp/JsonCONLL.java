@@ -8,10 +8,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.clearnlp.dependency.DEPArc;
-import com.clearnlp.dependency.DEPNode;
-import com.clearnlp.dependency.DEPTree;
-
+import edu.emory.clir.clearnlp.dependency.DEPNode;
+import edu.emory.clir.clearnlp.dependency.DEPTree;
+import edu.emory.clir.clearnlp.util.arc.DEPArc;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 
 public class JsonCONLL {
@@ -44,15 +43,15 @@ public class JsonCONLL {
 		while(it.hasNext()) {
 			JSONObject row=new JSONObject();
 			DEPNode n=it.next();
-			DEPArc e=n.getHeadArc();
-			DEPNode p=e.getNode();
+			DEPNode p=n.getHead();
+			String label=n.getLabel();
 			if (p!=null) {
-				row.put("id", n.id);
-				row.put("form", n.form);
-				row.put("lemma", n.lemma);
-				row.put("pos", n.pos);
-				row.put("parent", p.id);
-				row.put("edge", e.getLabel());
+				row.put("id", n.getID());
+				row.put("form", n.getWordForm());
+				row.put("lemma", n.getLemma());
+				row.put("pos", n.getPOSTag());
+				row.put("parent", p.getID());
+				row.put("edge", label);
 				table.put(row);
 			}
 		}

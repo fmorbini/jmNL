@@ -2,54 +2,39 @@ package edu.usc.ict.nl.nlu.clearnlp;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.clearnlp.component.AbstractComponent;
-import com.clearnlp.dependency.DEPNode;
-import com.clearnlp.dependency.DEPTree;
-import com.clearnlp.nlp.NLPGetter;
-import com.clearnlp.nlp.NLPMode;
-import com.clearnlp.reader.AbstractReader;
-import com.clearnlp.segmentation.AbstractSegmenter;
-import com.clearnlp.tokenization.AbstractTokenizer;
-import com.clearnlp.util.UTInput;
-import com.clearnlp.util.UTOutput;
-
-import edu.usc.ict.nl.nlu.TrainingDataFormat;
-import edu.usc.ict.nl.nlu.fst.sps.test.NLUTest;
-import edu.usc.ict.nl.nlu.fst.train.Aligner;
-import edu.usc.ict.nl.util.StringUtils;
+import edu.emory.clir.clearnlp.component.AbstractComponent;
+import edu.emory.clir.clearnlp.component.mode.dep.DEPConfiguration;
+import edu.emory.clir.clearnlp.component.utils.GlobalLexica;
+import edu.emory.clir.clearnlp.component.utils.NLPUtils;
+import edu.emory.clir.clearnlp.dependency.DEPNode;
+import edu.emory.clir.clearnlp.dependency.DEPTree;
+import edu.emory.clir.clearnlp.tokenization.AbstractTokenizer;
+import edu.emory.clir.clearnlp.util.lang.TLanguage;
 import edu.usc.ict.nl.util.graph.Edge;
 import edu.usc.ict.nl.util.graph.Node;
 
 public class DepNLU
 {
-	final String language = AbstractReader.LANG_EN;
+	final TLanguage language = TLanguage.ENGLISH;
 	private AbstractComponent[] components;
 	private AbstractTokenizer tokenizer;
 	
 	public DepNLU() {
-		this("general-en");
-	}
-	
-	public DepNLU(String modelType) {
-		tokenizer  = NLPGetter.getTokenizer(language);
-		try {
-			AbstractComponent tagger = NLPGetter.getComponent(modelType, language, NLPMode.MODE_POS);
-			AbstractComponent parser = NLPGetter.getComponent(modelType, language, NLPMode.MODE_DEP);
-			components = new AbstractComponent[]{tagger, parser};
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		List<String> paths = new ArrayList<>();
+		paths.add("brown-rcv1.clean.tokenized-CoNLL03.txt-c1000-freq1.txt.xz");
+		GlobalLexica.initDistributionalSemanticsWords(paths);
+		tokenizer = NLPUtils.getTokenizer(language);
+		AbstractComponent tagger = NLPUtils.getPOSTagger   (language, "general-en-pos.xz");
+		AbstractComponent parser = NLPUtils.getDEPParser   (language, "general-en-dep.xz", new DEPConfiguration("root"));
+		components = new AbstractComponent[]{tagger, parser};
 	}
 	public List<DEPTree> parse(String text) throws Exception {
 		BufferedReader input=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(text.getBytes()),"UTF-8"));
@@ -61,7 +46,7 @@ public class DepNLU
 		List<DEPTree> ret=null;
 		String line;
 		while((line=input.readLine())!=null) {
-			DEPTree tree = NLPGetter.toDEPTree(tokenizer.getTokens(line));
+			DEPTree tree = new DEPTree(tokenizer.tokenize(line));
 			for (AbstractComponent component : components) {
 				component.process(tree);
 			}
@@ -78,11 +63,11 @@ public class DepNLU
 			for(int i=1;i<s;i++) {
 				DEPNode n = r.get(i);
 				DEPNode head=n.getHead();
-				String nPos=n.pos,hPos=(head!=null)?head.pos:null;
+				String nPos=n.getPOSTag(),hPos=(head!=null)?head.getPOSTag():null;
 				if (ret==null) ret=new StringBuffer();
 				if (ret.length()>0) ret.append(" ");
-				ret.append(n.form+separator+i+separator+n.pos);
-				if (head!=null) ret.append(separator+head.form+separator+hPos);
+				ret.append(n.getWordForm()+separator+i+separator+n.getPOSTag());
+				if (head!=null) ret.append(separator+head.getWordForm()+separator+hPos);
 			}
 		}
 		return (ret!=null)?ret.toString():null;

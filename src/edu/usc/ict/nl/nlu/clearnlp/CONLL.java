@@ -1,10 +1,8 @@
 package edu.usc.ict.nl.nlu.clearnlp;
 
 import java.io.BufferedReader;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,61 +11,71 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.JSONObject;
-
-import com.clearnlp.dependency.DEPArc;
-import com.clearnlp.dependency.DEPNode;
-import com.clearnlp.dependency.DEPTree;
-
+import edu.emory.clir.clearnlp.dependency.DEPNode;
+import edu.emory.clir.clearnlp.dependency.DEPTree;
+import edu.emory.clir.clearnlp.util.arc.DEPArc;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.graph.Edge;
 import edu.usc.ict.nl.util.graph.GraphElement;
 import edu.usc.ict.nl.util.graph.Node;
 
 public class CONLL extends Node {
-	private Map<Integer,Node> dictionary;
+	private Map<Integer,CONLL> dictionary;
+	private String lemma;
+	private String word;
+	private int position;
 	
-	public CONLL(BufferedReader conll) throws Exception {
+	public CONLL() {
 		super();
-		setID(0);
-		setName("root");
-		dictionary=new HashMap<Integer, Node>();
-		dictionary.put(getID(), this);
+	}
+
+	public CONLL(BufferedReader conll) throws Exception {
+		this();
+		setWord("root");
+		setPosition(0);
+		dictionary=new HashMap<Integer, CONLL>();
+		dictionary.put(0, this);
 		String line;
 		while((line=conll.readLine())!=null) {
 			String[] parts=line.split("[\\t]+",8);
 			if (parts.length>=7) {
-				Integer id=Integer.parseInt(parts[0]);
+				int id=Integer.parseInt(parts[0]);
 				String word=StringUtils.cleanupSpaces(parts[1]);
 				String lemma=StringUtils.cleanupSpaces(parts[2]);
 				Integer parent=Integer.parseInt(parts[5]);
 				String edge=StringUtils.cleanupSpaces(parts[6]);
-				updateTree(id,word+"("+lemma+")",parent,null,edge);
+				updateTree(id,word,lemma,parent,null,null,edge);
 			}
 		}
 	}
 	public CONLL(DEPTree tree) throws Exception {
-		super();
-		setID(0);
-		setName("root");
-		dictionary=new HashMap<Integer, Node>();
-		dictionary.put(getID(), this);
+		this();
+		setWord("root");
+		dictionary=new HashMap<Integer, CONLL>();
+		dictionary.put(0, this);
 		Iterator<DEPNode> it=tree.iterator();
 		while(it.hasNext()) {
 			DEPNode n=it.next();
-			DEPArc e=n.getHeadArc();
-			DEPNode p=e.getNode();
+			DEPNode p=n.getHead();
+			String label = n.getLabel();
 			if (p!=null) {
-				updateTree(n.id, n.form+"("+n.lemma+")", p.id, p.form+"("+p.lemma+")", e.getLabel());
+				updateTree(n.getID(), n.getWordForm(),n.getLemma(), p.getID(), p.getWordForm(),p.getLemma(), label);
 			}
 		}
 	}
+	
+	public void setPosition(int position) {
+		this.position = position;
+	}
+	public int getPosition() {
+		return position;
+	}
 
-	private void updateTree(Integer id, String nodeLabel,Integer parent, String parentLabel,String edge) throws Exception {
-		Node n=updateNode(id,nodeLabel);
-		Node p=updateNode(parent,parentLabel);
-		dictionary.put(id, n);
-		dictionary.put(parent, p);
+	private void updateTree(int position, String word,String lemma,Integer parentPosition, String parentWord,String parentLemma,String edge) throws Exception {
+		CONLL n=updateNode(position,word,lemma);
+		CONLL p=updateNode(parentPosition,parentWord,parentLemma);
+		//dictionary.put(position, n);
+		//dictionary.put(parent, p);
 		Edge e=new DepEdge();
 		e.setSource(p);
 		e.setTarget(n);
@@ -107,26 +115,36 @@ public class CONLL extends Node {
 	}
 
 
-	private Node updateNode(Integer id) {
-		return updateNode(id, null);
+	public void setWord(String word) {
+		this.word = word;
 	}
-	private Node updateNode(Integer id, String name) {
-		Node n=null;
+	public void setLemma(String lemma) {
+		this.lemma = lemma;
+	}
+	public String getWord() {
+		return word;
+	}
+	public String getLemma() {
+		return lemma;
+	}
+	
+	private CONLL updateNode(int position, String word,String lemma) {
+		CONLL n=null;
 		if (dictionary!=null) {
-			n=dictionary.get(id);
-			if (n!=null) {
-				if (name!=null) n.setName(name);
-			} else {
-				n=new Node();
-				if (name!=null) n.setName(name);
-				dictionary.put(id, n);
+			n=dictionary.get(position);
+			if (n==null) {
+				n=new CONLL();
+				n.setPosition(position);
+				dictionary.put(position, n);
 			}
+			if (word!=null) n.setWord(word);
+			if (lemma!=null) n.setLemma(lemma);
 		}
 		return n;
 	}
+	
 	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return super.toString();
+	public String getName() {
+		return getWord()+"("+getLemma()+")";
 	}
 }

@@ -11,11 +11,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.clearnlp.dependency.DEPTree;
-
+import edu.emory.clir.clearnlp.dependency.DEPTree;
 import edu.usc.ict.nl.nlu.clearnlp.JsonCONLL;
  
 @Path("/clearnlp/")

@@ -54,7 +54,7 @@ public class LuceneWikidataSearch {
 		if (index==null) index=FSDirectory.open(indexFile);
 		searcher = new IndexSearcher(DirectoryReader.open(index));
 		Constructor constructor = analyzerClass.getConstructor();
-		queryParser = new QueryParser("alias", (Analyzer) constructor.newInstance());
+		queryParser = new QueryParser(LuceneQueryConstants.SEARCH, (Analyzer) constructor.newInstance());
 	}
 
 	public void rebuildIndex() throws Exception {
@@ -83,14 +83,17 @@ public class LuceneWikidataSearch {
 
 	protected Document createDoc(String[] parts) {
 		Document doc = new Document();
-		doc.add(new StringField("id", parts[0].toLowerCase(), Store.YES));
+		doc.add(new StringField(LuceneQueryConstants.ID, parts[0].toLowerCase(), Store.YES));
 		for(int i=1;i<parts.length;i++) {
-			doc.add(new TextField("alias", parts[i].toLowerCase(), (i==1)?Store.YES:Store.NO));
+			if (i==1) doc.add(new TextField(LuceneQueryConstants.ALIAS, parts[i].toLowerCase(), Store.YES));
+			doc.add(new TextField(LuceneQueryConstants.SEARCH, LuceneQueryConstants.START+" "+parts[i].toLowerCase()+" "+LuceneQueryConstants.END, Store.NO));
 		}
 		return doc;
 	}
 
 	public List find(String query,int n) throws Exception {
+		if (query.contains("^")) query=query.replace("^", LuceneQueryConstants.START+" ");
+		if (query.contains("$")) query=query.replace("$", " "+LuceneQueryConstants.END);
 		Query q = queryParser.parse(query);
 		//System.out.println("query: "+q.getClass()+" "+q);
 		TopDocs result = searcher.search(q,n);
@@ -104,12 +107,12 @@ public class LuceneWikidataSearch {
 		return ret;
 	}
 
-	public String getAliasForId(String id) {
+	public String getLabelForId(String id) {
 		try {
-			List<Document> rs = find("id:"+id, 1);
+			List<Document> rs = find(LuceneQueryConstants.ID+":"+id.toLowerCase(), 1);
 			if (rs!=null && !rs.isEmpty()) {
 				Document result=rs.get(0);
-				return result.get("alias");
+				return result.get(LuceneQueryConstants.ALIAS);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -119,7 +122,7 @@ public class LuceneWikidataSearch {
 	
 	public static void main(String[] args) throws Exception {
 		LuceneWikidataSearch r = new LuceneWikidataSearch(new File("properties-strings.txt"));
-		System.out.println(r.getAliasForId("p35"));
+		System.out.println(r.getLabelForId("p35"));
 	}
 
 }

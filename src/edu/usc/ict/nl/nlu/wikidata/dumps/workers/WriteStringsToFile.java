@@ -18,11 +18,11 @@ public class WriteStringsToFile extends Thread {
 	private BufferedWriter dump;
 	private int timeout=10;
 
-	public WriteStringsToFile(String name,BlockingQueue<WikiThing> queue,BlockingQueue<WikiThing> ret,File dump,int timeout) throws IOException {
+	public WriteStringsToFile(String name,BlockingQueue<WikiThing> queue,BlockingQueue<WikiThing> ret,File dump,int timeout,boolean append) throws IOException {
 		super(name);
 		this.queue=queue;
 		this.ret=ret;
-		this.dump=new BufferedWriter(new FileWriter(dump));
+		this.dump=new BufferedWriter(new FileWriter(dump,append));
 		this.timeout=timeout;
 	}
 

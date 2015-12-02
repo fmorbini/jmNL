@@ -15,6 +15,6 @@ public class Client {
 	}
 	
 	public static void main(String[] args) throws JSONException {
-		System.out.println(parse("http://localhost:8080","i eat an apple."));
+		System.out.println(parse("http://localhost:8080","i eat an apple because i am angry."));
 	}
 }

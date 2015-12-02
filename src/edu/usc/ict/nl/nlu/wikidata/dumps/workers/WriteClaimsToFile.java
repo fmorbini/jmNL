@@ -19,19 +19,21 @@ public class WriteClaimsToFile extends Thread {
 	private LinkedBlockingQueue<WikiThing> queue=null;
 	private BlockingQueue<WikiThing> ret=null;
 	private BufferedWriter dump;
+	private int timeout=10;
 
-	public WriteClaimsToFile(String name,LinkedBlockingQueue<WikiThing> queue,LinkedBlockingQueue<WikiThing> ret,File dump) throws IOException {
+	public WriteClaimsToFile(String name,LinkedBlockingQueue<WikiThing> queue,LinkedBlockingQueue<WikiThing> ret,File dump,int timeout,boolean append) throws IOException {
 		super(name);
 		this.queue=queue;
 		this.ret=ret;
-		this.dump=new BufferedWriter(new FileWriter(dump));
+		this.dump=new BufferedWriter(new FileWriter(dump,append));
+		this.timeout=timeout;
 	}
 
 	@Override
 	public void run() {
 		while(true) {
 			try {
-				WikiThing p = queue.poll(10, TimeUnit.SECONDS);
+				WikiThing p = queue.poll(timeout, TimeUnit.SECONDS);
 				if (p!=null) {
 					if (ret!=null) ret.put(p);
 					List<WikiClaim> claims = p.getClaims();

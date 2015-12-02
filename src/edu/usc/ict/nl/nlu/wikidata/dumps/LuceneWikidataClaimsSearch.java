@@ -2,18 +2,21 @@ package edu.usc.ict.nl.nlu.wikidata.dumps;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
 import edu.usc.ict.nl.nlu.wikidata.WikiClaim;
-import edu.usc.ict.nl.util.StringUtils;
-
-import org.apache.lucene.document.StringField;
+import edu.usc.ict.nl.nlu.wikidata.WikiThing;
+import edu.usc.ict.nl.util.graph.Node;
 
 public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 
@@ -46,14 +49,92 @@ public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 		return ret;
 	}
 
+	public Set<String> getAllRelationsWithThisAsSubject(WikiThing arg) throws Exception {
+		Set<String> ret=null;
+		if (arg!=null) {
+			List<WikiClaim> rs = find("subject:"+arg.getName().toLowerCase(), Integer.MAX_VALUE);
+			if(rs!=null) {
+				for(WikiClaim cl:rs) {
+					if (ret==null) ret=new HashSet<String>();
+					ret.add(cl.getProperty());
+				}
+			}
+		}
+		return ret;
+	}
+	public Set<String> getAllRelationsWithThisAsObject(WikiThing arg) throws Exception {
+		Set<String> ret=null;
+		if (arg!=null) {
+			List<WikiClaim> rs = find("object:"+arg.getName().toLowerCase(), Integer.MAX_VALUE);
+			if(rs!=null) {
+				for(WikiClaim cl:rs) {
+					if (ret==null) ret=new HashSet<String>();
+					ret.add(cl.getProperty());
+				}
+			}
+		}
+		return ret;
+	}
+
+	public List<String> getObjectOfThisClaim(String subject,String property,int n) {
+		List<String> ret=null;
+		try {
+			List<WikiClaim> rs = find("pred:"+property.toLowerCase()+" AND subject:"+subject.toLowerCase(), n);
+			if (rs!=null && !rs.isEmpty()) {
+				WikiClaim result=rs.get(0);
+				if (ret==null) ret=new ArrayList<String>();
+				ret.add(result.getObject());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	public boolean areTheseRelated(String property,String item,int n) {
+		try {
+			List<WikiClaim> rs = find("pred:"+property.toLowerCase()+" AND (subject:"+item.toLowerCase()+" OR object:"+item.toLowerCase()+")", n);
+			if (rs!=null && !rs.isEmpty()) return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+		
+	public List<String> getOfWhatItIsAnInstance(String thing,int n) {
+		List<String> rs = getObjectOfThisClaim(thing, "p31",n);
+		if (rs!=null && !rs.isEmpty()) return rs;
+		return null;
+	}
+	public List<String> getOfWhatItIsASubclass(String thing,int n) {
+		List<String> rs = getObjectOfThisClaim(thing, "p279",n);
+		if (rs!=null && !rs.isEmpty()) return rs;
+		return null;
+	}
+
+	
 	public static void main(String[] args) throws Exception {
+		/*
+		LuceneWikidataClaimsSearch rc = new LuceneWikidataClaimsSearch(new File(WikidataJsonProcessing.CLAIMS));
+		LuceneWikidataSearch rp = new LuceneWikidataSearch(new File("properties-strings.txt"));
+		Set<String> properties = rc.getAllRelationsWithThisAsSubject(new WikiThing("q200572"));
+		for(String p:properties) {
+			System.out.println(p+" "+rp.getLabelForId(p));
+		}*/
+		//getIdsForString("actor",TYPE.ITEM);//q33999//q200572
+
+		
 		LuceneWikidataSearch ri = new LuceneWikidataSearch(new File("items-strings.txt"));
 		LuceneWikidataSearch rp = new LuceneWikidataSearch(new File("properties-strings.txt"));
 		LuceneWikidataClaimsSearch rc = new LuceneWikidataClaimsSearch(new File("items-claims.txt"));
-		List<WikiClaim> rs = rc.find("pred:P35 AND subject:q30", 10);
+		List<Document> rs2 = ri.find("search:\"^america$\"", 10);
+		for(Document d:rs2) {
+			System.out.println(d.get(LuceneQueryConstants.ID)+" "+d.get(LuceneQueryConstants.ALIAS));
+		}
+		List<WikiClaim> rs = rc.find("pred:P31 AND subject:q2842807", 10);
 		for(WikiClaim cl:rs) {
 			System.out.println(cl+": "+cl.toString(ri,rp));
 		}
+		
 	}
 
 }

@@ -374,15 +374,18 @@ public class Wikidata {
 	}
 	
 	public static void main(String[] args) throws Exception {
+		JSONObject r = getWikidataContentForSpecificEntityOnly(WikiLanguage.EN, "Q200572");
+		Map<String, List<WikiClaim>> cls = getClaims(r);
+		System.out.println(cls);
 		//Node root=buildPropertyTree("Q18216", "P279");
-		Node root=buildPropertyTree("Q11173", "P171");
-		root.toGDLGraph(root.getName()+".gdl");
+		//Node root=buildPropertyTree("Q11173", "P171");
+		//root.toGDLGraph(root.getName()+".gdl");
 		//System.out.println(prettyPrintWikidataContent(getWikidataContentForSpecificEntityOnly(WikiLanguage.get("en"), "Q18216"), WikiLanguage.get("en")));
 		//JSONObject content = getWikidataContentForSpecificEntityOnly("Q2");
 		//String lbs = getLabelsForWikidataId("Q2");
 		//System.out.println(lbs);
-		//List<WikiThing> ids = getIdsForString("fruit",WikiThing.TYPE.ITEM);
-		//System.out.println(ids);
+		List<WikiThing> ids = getIdsForString("main actor",WikiLanguage.EN,WikiThing.TYPE.PROPERTY);
+		System.out.println(ids);
 
 		//dumpInstancesForType("aspirin",WikiLanguage.get("en"),WikiLanguage.get("en"),"nes");
 	}

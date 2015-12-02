@@ -28,9 +28,9 @@ public class WikiClaim {
 	}
 
 	public String toString(LuceneWikidataSearch searchItems, LuceneWikidataSearch searchProperties) {
-		String as=searchItems.getAliasForId(subject);
-		String ao=searchItems.getAliasForId(object);
-		String ap=searchProperties.getAliasForId(property);
+		String as=searchItems.getLabelForId(subject);
+		String ao=searchItems.getLabelForId(object);
+		String ap=searchProperties.getLabelForId(property);
 		return "("+as.replaceAll("[\\s]+", "_")+" "+ap.replaceAll("[\\s]+", "_")+" "+ao.replaceAll("[\\s]+", "_")+")";
 	}
 }
