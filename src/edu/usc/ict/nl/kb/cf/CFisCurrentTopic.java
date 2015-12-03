@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import edu.usc.ict.nl.bus.NLBusBase;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorTopic;
@@ -57,7 +57,7 @@ public class CFisCurrentTopic implements CustomFunctionInterface {
 	
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		TestDialogueOperator op = (TestDialogueOperator) dm.getCurrentActiveAction().getOperator();
 		op.addTopicToOperator("a.b");
 		op.addTopicToOperator("c.d");

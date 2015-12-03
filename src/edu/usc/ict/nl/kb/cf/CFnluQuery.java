@@ -7,8 +7,7 @@ import java.util.Iterator;
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
-import edu.usc.ict.nl.config.NLBusConfig;
-import edu.usc.ict.nl.dm.reward.RewardDM;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
@@ -87,7 +86,7 @@ public class CFnluQuery implements CustomFunctionInterface {
 	
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		dm.updateUserEventsHistory(new NLUEvent(new NLUOutput("login", "login", 1, null), 0));
 		dm.updateUserEventsHistory(new NLUEvent(new NLUOutput("login", "login", 1, null), 0));
 		dm.updateUserEventsHistory(new SystemUtteranceDoneEvent("", null));

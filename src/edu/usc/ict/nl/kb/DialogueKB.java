@@ -20,7 +20,7 @@ import org.w3c.dom.NodeList;
 
 import edu.usc.ict.nl.bus.events.changes.VarChange;
 import edu.usc.ict.nl.bus.modules.DM;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.dm.reward.model.RewardPolicy;
 import edu.usc.ict.nl.dm.reward.model.XMLConstants;
@@ -45,7 +45,7 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 
 	@Override
 	public String normalizeNames(String name) {
-		NLBusConfig config = (dm!=null)?dm.getConfiguration():null;
+		DMConfig config = (dm!=null)?dm.getConfiguration():null;
 		if (config!=null && config.getCaseSensitive()) return name;
 		else return name.toLowerCase();
 	}

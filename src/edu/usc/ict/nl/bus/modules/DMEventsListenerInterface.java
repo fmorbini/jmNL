@@ -16,10 +16,10 @@ public interface DMEventsListenerInterface {
 	public boolean getHoldProcessingOfResponseEvents();
 	public LinkedBlockingQueue<Event> getUnprocessedResponseEvents(Long sid);
 	public void clearHeldEvents(Long sid);
-	// get the DM that generates the events this interface receives
-	public DM getPolicyDMForSession(Long sid) throws Exception;
-	public NLGInterface getNlg(Long sessionID) throws Exception;
 	public NLUInterface getNlu(Long sessionID) throws Exception;
+	// get the DM that generates the events this interface receives
+	public DM getDM(Long sessionID) throws Exception;
+	public NLGInterface getNlg(Long sessionID) throws Exception;
 	void handleDMChangeEvent(DMVarChangeEvent ev);
 	void handleDMChangesEvent(DMVarChangesEvent ev);
 	void handleDMStateChangeEvent(DMStateChangeEvent ev);

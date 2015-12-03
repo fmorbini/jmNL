@@ -49,7 +49,7 @@ public class VHmsgNL extends NLBus {
 		long sessionId=999l;
 
 		logger.info("replying to received message from "+msg.getSpeaker()+" directed to me (default)="+msg.getUtterance());
-		DM dm=getPolicyDMForSession(sessionId);
+		DM dm=getDM(sessionId);
 		NLUInterface nlu=getNlu(sessionId);
 		String text = msg.getUtterance();
 		if (isInExecuteMode()) {

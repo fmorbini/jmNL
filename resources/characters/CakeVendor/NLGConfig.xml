@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:camel="http://camel.apache.org/schema/spring"
+       xmlns:broker="http://activemq.apache.org/schema/core"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="echoNLG" class="edu.usc.ict.nl.config.NLGConfig">
+		<property name="nlgClass" value="edu.usc.ict.nl.nlg.echo.EchoNLG"/>
+		<property name="isStrictNLG" value="false"/>
+		<property name="isAsciiNLG" value="false"/>
+		<property name="isNormalizeBlanksNLG" value="false"/>
+		<property name="allowEmptyNLGOutput" value="true"/>
+		<property name="displayFormAnswerInNlg" value="false"/>
+		<property name="defaultDuration" value="30"/>
+		<property name="picker">
+			<ref bean="shuffle_and_least_recent"/>
+		</property>
+		
+	</bean>
+	<bean id="templateNLG" parent="echoNLG">
+		<property name="nlgClass" value="edu.usc.ict.nl.nlg.template.TemplatedNLG"/>
+	</bean>
+	<bean id="shuffle_and_least_recent" class="edu.usc.ict.nl.nlg.picker.ShuffleAndLeastRecent">
+	</bean>
+</beans>

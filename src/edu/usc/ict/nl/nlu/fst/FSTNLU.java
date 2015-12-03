@@ -230,7 +230,7 @@ public class FSTNLU extends NLU {
 	public static List<NLUOutput> runFSTNLUTest(String character,String text,int nBest) throws Exception {
 		NLUConfig config=getNLUConfig("FSTNLU");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter(character);
+		tmp.setCharacter(character);
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 

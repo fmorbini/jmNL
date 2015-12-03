@@ -15,7 +15,10 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -447,7 +450,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				StringBuffer sb=new StringBuffer();
 				if (nluNbestList!=null) {
 					List<String> originalNLUOutputLabels=(List)FunctionalLibrary.map(nluNbestList, NLUOutput.class.getMethod("getId"));
-					DM dm=nlModule.getPolicyDMForSession(sid);
+					DM dm=nlModule.getDM(sid);
 					NLGInterface nlg=nlModule.getNlg(sid);
 					Map<NLUOutput, List<List<String>>> dmPossibleReplies = dm.getPossibleSystemResponsesForThesePossibleInputs(nluNbestList);
 					Iterator<NLUOutput> itNew=nluNbestList.iterator();
@@ -557,7 +560,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			@Override
 			public void run() {
 				try {
-					DM dm=nlModule.getPolicyDMForSession(sid);
+					DM dm=nlModule.getDM(sid);
 					boolean pauseEventProcessing=dm.getPauseEventProcessing();
 					if (!pauseEventProcessing) dm.setPauseEventProcessing(true);
 					NLUInterface nlu = nlModule.getNlu(sid);
@@ -575,13 +578,22 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private static final Semaphore reloadLock=new Semaphore(1);
 	public void startDefaultCharacter() {
 		NLBusConfig config=nlModule.getConfiguration();
-		String character=config.getDefaultCharacter();
-		if (character!=null && characterActions!=null) {
-			HashSet<String> setOfCharacters=new HashSet<String>(characterActions.keySet());
-			while(!setOfCharacters.isEmpty()) {
-				setOfCharacters.remove(character);
+		final String character=config.getCharacter();
+		List<String> characters=new ArrayList<String>(characterActions.keySet());
+		Collections.sort(characters, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				if (o1.equals(character)) return -1;
+				else if (o2.equals(character)) return 1;
+				else return o1.compareTo(o2);
+			}
+		});
+		if (!characters.isEmpty()) {
+			Iterator<String> it=characters.iterator();
+			while(it.hasNext()) {
+				String cc=it.next();
 				try {
-					JRadioButton a=characterActions.get(character);
+					JRadioButton a=characterActions.get(cc);
 					if (a!=null) {
 						a.setSelected(true);
 						a.getAction().actionPerformed(null);
@@ -590,7 +602,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				if (!setOfCharacters.isEmpty()) character=setOfCharacters.iterator().next();
 			}
 		}
 	}
@@ -608,7 +619,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 				line=0;
 				if (sid!=null) {
-					DM dm = nlModule.getPolicyDMForSession(sid,false);
+					DM dm = nlModule.getDM(sid,false);
 					if (dm!=null) {
 						dm.setPersonalSessionID(pid);
 						chatLogFileName=dm.getCurrentChatLogFile();
@@ -653,8 +664,8 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			}
 			nlModule.startup();
 
-			String character=config.getDefaultCharacter();
-			Map<String, String> availableCharacters = nlModule.getAvailableCharacterNames();
+			String character=config.getCharacter();
+			Set<String> availableCharacters = nlModule.getAvailableCharacterNames();
 			setMenuBar(availableCharacters,character,config);
 
 			if (doRetraining) {
@@ -677,7 +688,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	}
 
 	private Map<String,JRadioButton> characterActions;
-	private void setMenuBar(Map<String, String> availableCharacters,String currentCharacter,NLBusConfig config) {
+	private void setMenuBar(Set<String> availableCharacters,String currentCharacter,NLBusConfig config) {
 		JMenu characterMenu = new JMenu("Characters");
 		menuBar.add(characterMenu);
 
@@ -710,7 +721,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 		if (availableCharacters!=null) {
 			ButtonGroup group = new ButtonGroup();
-			for(final String c:availableCharacters.keySet()) {
+			for(final String c:availableCharacters) {
 				if (characterActions==null) characterActions=new HashMap<String, JRadioButton>();
 				JRadioButton menuItem = new JRadioButton(new AbstractAction(c) {
 					@Override
@@ -747,7 +758,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					DM dm = nlModule.getPolicyDMForSession(sid, false);
+					DM dm = nlModule.getDM(sid, false);
 					dm.setPauseEventProcessing(true);
 					try {
 						nlModule.saveInformationStateForSession(sid,true);
@@ -769,7 +780,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = fc.getSelectedFile();
 					try {
-						DM dm = nlModule.getPolicyDMForSession(sid, false);
+						DM dm = nlModule.getDM(sid, false);
 						if (dm!=null) {
 							dm.setPauseEventProcessing(true);
 							try {
@@ -919,7 +930,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	public void sendForcedNLU(String nluSA,long sid) throws Exception {
 		// simulates the initial login event
 		NLUInterface nlu = nlModule.getNlu(sid);
-		DM dm=nlModule.getPolicyDMForSession(sid);
+		DM dm=nlModule.getDM(sid);
 		List<NLUOutput> userSpeechActs = nlu.getNLUOutputFake(new String[]{"1 "+nluSA}, null);
 		NLUOutput selectedUserSpeechAct=dm.selectNLUOutput(nluSA,sid, userSpeechActs);
 		nlModule.handleNLUEvent(sid, new NLUEvent(selectedUserSpeechAct, sid));
@@ -1171,7 +1182,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private DM getDM(Long sid) {
 		if (nlModule!=null) {
 			try {
-				DM dm=nlModule.getPolicyDMForSession(sid);
+				DM dm=nlModule.getDM(sid);
 				return dm;
 			} catch (Exception e) {}
 		}

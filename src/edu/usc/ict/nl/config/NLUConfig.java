@@ -132,7 +132,7 @@ public class NLUConfig extends NLConfig {
 		else return getNLUContentRoot()+userUtterancesFile;
 	}
 	public void setUserUtterances(String file) {userUtterancesFile = removeAbsolutePath(file);}
-	public String getSystemForms() {return (nlBusConfig!=null)?nlBusConfig.getSystemForms():null;}
+	public String getSystemForms() {return (nlgConfig!=null)?nlgConfig.getSystemForms():null;}
 	/** maximum number of labels */
 	public Integer getMaximumNumberOfLabels() {
 		return maximumNumberOfLabels;

@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,11 +35,10 @@ import org.w3c.dom.NodeList;
 
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
-import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.modules.NLUInterface;
-import edu.usc.ict.nl.bus.special_variables.SpecialVar;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.dm.reward.EventMatcher;
@@ -85,9 +83,9 @@ public class RewardPolicy {
 	private EventMatcher<List<DialogueOperatorEffect>> eventMatcher4isUpdates=null;
 	
 	// NL configuration
-	private NLBusConfig config;
-	private NLBusConfig getConfiguration() {return config;}
-	private void setConfiguration(NLBusConfig c) {this.config=c;}
+	private DMConfig config;
+	private DMConfig getConfiguration() {return config;}
+	private void setConfiguration(DMConfig c) {this.config=c;}
 
 	public static enum OpType {NORMAL,DAEMON,ALL};
 	public Collection<DialogueOperator> getOperators(OpType type){
@@ -125,7 +123,7 @@ public class RewardPolicy {
 
 	private DialogueOperatorTopic root;
 	
-	public RewardPolicy(NLBusConfig config) {
+	public RewardPolicy(DMConfig config) {
 		setConfiguration(config);
 	}
 	
@@ -315,7 +313,7 @@ public class RewardPolicy {
 		}
 	}
 	public void validate(Long sid, NLBusBase nlModule) throws Exception {
-		DM dm = nlModule.getPolicyDMForSession(sid);
+		DM dm = nlModule.getDM(sid);
 		DialogueKBInterface is=null;
 		if (dm!=null) is = dm.getInformationState();
 		Set<String> variables=is.getAllVariables();
@@ -342,7 +340,7 @@ public class RewardPolicy {
 				}
 			}
 		}
-		NLBusConfig c=getConfiguration();
+		DMConfig c=getConfiguration();
 		// check all variables used in formulas
 		HashMap<String,String> totalUnknownVars=new HashMap<String,String>();
 		if (nlModule!=null) {
@@ -1231,7 +1229,7 @@ public class RewardPolicy {
 		System.exit(0);
 		String fileName="C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\SCNLModule\\resources\\characters\\Ellie_DCAPS_AI\\policy.xml";
 		try {
-			RewardPolicy rp = new RewardPolicy(NLBusConfig.WIN_EXE_CONFIG);
+			RewardPolicy rp = new RewardPolicy(DMConfig.WIN_EXE_CONFIG);
 			RewardPolicy dp=rp.parseDialoguePolicyFile(fileName);
 			
 			dp.getISinitialization();

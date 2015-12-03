@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +38,7 @@ import org.apache.log4j.PropertyConfigurator;
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.NLBusInterface;
 import edu.usc.ict.nl.bus.modules.DM;
-import edu.usc.ict.nl.bus.special_variables.SpecialVar;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.fsm.advicer.SCXMLAdvice;
 import edu.usc.ict.nl.kb.DialogueKB;
@@ -87,10 +86,10 @@ public class SCXMLRunner extends DM {
 		return parseSCXML(SCXMLFileURL,getConfiguration().getScxmlCustomActions());
 	}
 	
-	public SCXMLRunner(NLBusConfig config) {
+	public SCXMLRunner(DMConfig config) {
 		super(config);
 	}
-	public SCXMLRunner(Long sessionID,SCXML preparsedFSM,Context initialContext,Evaluator ev,EventDispatcher ed,ErrorReporter er,NLBusConfig config) throws Exception {
+	public SCXMLRunner(Long sessionID,SCXML preparsedFSM,Context initialContext,Evaluator ev,EventDispatcher ed,ErrorReporter er,DMConfig config) throws Exception {
 		super(config);
 		this.scxml=preparsedFSM;
 		this.timer=config.getTimerInterval();

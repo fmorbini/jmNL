@@ -70,7 +70,7 @@ public class EchoNLG extends NLG {
 
 	@Override
 	public Float getDurationOfThisDMEvent(Long sessionID, NLGEvent ev) throws Exception {
-		if (getConfiguration().nlBusConfig.getSystemEventsHaveDuration()) {
+		if (getConfiguration().dmConfig.getSystemEventsHaveDuration()) {
 			String text=ev.getName();
 			if (text!=null) {
 				String[] words=text.split("[\\s]+");
@@ -96,7 +96,7 @@ public class EchoNLG extends NLG {
 	public NLGEvent doNLG(Long sessionID,DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception {
 		String evName=ev.getName();
 		DMEventsListenerInterface nl = getNLModule();
-		DM dm = (nl!=null)?nl.getPolicyDMForSession(sessionID):null;
+		DM dm = (nl!=null)?nl.getDM(sessionID):null;
 		DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
 
 		if (line==null) line=pickLineForSpeechAct(sessionID, evName, is, simulate); 

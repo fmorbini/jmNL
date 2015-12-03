@@ -1,15 +1,12 @@
 package edu.usc.ict.nl.kb.cf;
 
 import java.util.Collection;
-import java.util.List;
 
-import edu.usc.ict.nl.config.NLBusConfig;
-import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.EvalContext;
-import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 
 public class CFcurrentTime implements CustomFunctionInterface {
 
@@ -32,7 +29,7 @@ public class CFcurrentTime implements CustomFunctionInterface {
 
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		DialogueKB is=dm.getInformationState();
 		Long r=eval(DialogueKBFormula.parse(getName()),is,false,null);
 		long tt=System.currentTimeMillis();

@@ -107,7 +107,7 @@ public class SPSFSTNLU extends FSTNLU {
 	public static void main(String[] args) throws Exception {
 		NLUConfig config=getNLUConfig("spsNLU");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=init(config);
 	}

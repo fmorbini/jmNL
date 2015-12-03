@@ -10,33 +10,18 @@
         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
 	<import resource="classpath:NLUConfigs.xml"/>
+	<import resource="classpath:DMConfigs.xml"/>
 	<import resource="classpath:NLGConfigs.xml"/>
 
 	<bean id="nlConfigMXNLU_FSMDM_EchoNLG" class="edu.usc.ict.nl.config.NLBusConfig">
-       	<property name="alwaysPreferForms" value="false"/>
        	<property name="runningMode" value="EXE"/>
        	<property name="isLoadBalancing" value="false"/>
 		<property name="contentRoot" value="resources/characters/"/>
-		<property name="specialVariablesFileName" value="specialVariables.xml"/>
-		<property name="defaultCharacter" value="change_this"/>
-		<property name="systemUtterances" value="system-utterances.xlsx"/>
-		<property name="nvbs" value="nvb.xlsx"/>
-		<property name="systemResources" value="resources.xlsx"/>
-		<property name="systemForms" value="forms.xlsx"/>
-		<property name="timerInterval" value="3"/>
-		<property name="waitForUserReplyTimeout" value="10"/>
-		<property name="initialPolicyFileName" value="index.scxml"/>
-		<property name="staticURLs" value="true"/>
-		<property name="unhandledEventName" value="internal.un-handled-user-event"/>
-		<property name="loginEventName" value="login"/>
-		<property name="timerEvent" value="internal.timer"/>
-		<property name="dmClass" value="edu.usc.ict.nl.dm.fsm.FSMdm"/>
-		<property name="approximatedForwardSearch" value="false"/>
-		<property name="maxSearchLevels" value="10"/>
+		<property name="character" value="change_this"/>
 		<property name="chatLog" value="./logs/chat-log"/>
-		<property name="systemEventsHaveDuration" value="true"/>
 		
 		<property name="nluConfig" ref="MXNLU"/>
+		<property name="dmConfig" ref="FsmDM"/>
 		<property name="nlgConfig" ref="echoNLG"/>
 
 	<!-- 
@@ -44,14 +29,7 @@
        	<property name="vhServer" value="localhost"/>
        	<property name="vhComponentId" value="dm"/>
 		-->
-		<property name="valueTrackers"><null></null>
-		<!-- 
-		<list>
-			<value>edu.usc.ict.nl.dm.reward.trackers.SpeechOverlapTracker</value>
-			<value>edu.usc.ict.nl.dm.reward.trackers.SystemFinishedSpeakingTracker</value>
-			<value>edu.usc.ict.nl.dm.reward.trackers.UserFinishedSpeakingTracker</value>
-		</list>-->
-		</property>
+
 		<property name="protocols">
 			<list>
 				<!-- <value>edu.usc.ict.nl.bus.protocols.VHProtocol</value>
@@ -60,16 +38,9 @@
 				<value>edu.usc.ict.nl.bus.protocols.VHPMLProtocol</value>-->
 			</list>
 		</property>
-		
-		<property name="caseSensitive" value="false"/>
-		
 	</bean>
 	<bean id="nlConfigMXNLU_RewardDM_EchoNLG" parent="nlConfigMXNLU_FSMDM_EchoNLG">
-		<property name="initialPolicyFileName" value="policy.xml"/>
-		<property name="dmClass" value="edu.usc.ict.nl.dm.reward.RewardDM"/>
- 		<property name="unhandledEventName" value="default"/>
- 		<property name="forcedIgnoreEventName" value="ignored"/>
-		<property name="loopEventName" value="loop"/>
+		<property name="dmConfig" ref="RewardDM"/>
 	</bean>
 	
 	<bean id="nlConfigHierNLU_FSMDM_EchoNLG" parent="nlConfigMXNLU_FSMDM_EchoNLG">

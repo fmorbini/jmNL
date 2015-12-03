@@ -31,8 +31,7 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
-import edu.usc.ict.nl.bus.special_variables.SpecialEntitiesRepository;
-import edu.usc.ict.nl.bus.special_variables.SpecialVar;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
@@ -47,7 +46,7 @@ public abstract class DM implements DMInterface {
 	protected Logger logger = null;
 
 	private NLBusInterface messageBus;
-	private NLBusConfig configuration;
+	private DMConfig configuration;
 	private Long sessionID;
 	private String personalSessionID;
 	private ChatLog chatLog;
@@ -57,7 +56,7 @@ public abstract class DM implements DMInterface {
 	@Override
 	public Logger getLogger() {return this.logger;}
 
-	public DM(NLBusConfig c) {
+	public DM(DMConfig c) {
 		this.configuration=c;
 		URL log4Jresource=LogConfig.findLogConfig("src","log4j.properties", false);
 		if (log4Jresource != null)
@@ -75,16 +74,16 @@ public abstract class DM implements DMInterface {
 	public NLBusInterface getMessageBus() {return messageBus;}
 	public void setMessageBus(NLBusInterface messageBus) {this.messageBus = messageBus;}
 
-	public NLBusConfig getConfiguration() {return configuration;}
-	public void setConfiguration(NLBusConfig c) {this.configuration = c;}
+	public DMConfig getConfiguration() {return configuration;}
+	public void setConfiguration(DMConfig c) {this.configuration = c;}
 
 	@Override
 	public String getPersonalSessionID() {return personalSessionID;}
 	@Override
 	public void setPersonalSessionID(String pid) {
-		logger.info("Setting personal session id to: "+pid+ " for session id: "+getSessionID());
 		this.personalSessionID=pid;
 		setSessionID(getSessionID());
+		logger.info("Setting personal session id to: "+pid+ " for session id: "+getSessionID());
 	}
 	@Override
 	public Long getSessionID(){return sessionID;}
@@ -172,7 +171,7 @@ public abstract class DM implements DMInterface {
 				closeChatLog();
 				startTime=System.currentTimeMillis();
 				line=0;
-				String logFileName=getConfiguration().getChatLog();
+				String logFileName=getConfiguration().nlBusConfig.getChatLog();
 
 				String baseFileName=logFileName+"-"+getIDPortionLogFileName();
 				File f=new File(baseFileName+".xml");
@@ -328,7 +327,7 @@ public abstract class DM implements DMInterface {
 
 	@Override
 	public void logEventInChatLog(Event ev) {
-		if (!configuration.getLoggingEventsInChatLog())
+		if (!configuration.nlBusConfig.getLoggingEventsInChatLog())
 			return;
 		try {
 			if (chatLog==null) chatLog=new ChatLog();
