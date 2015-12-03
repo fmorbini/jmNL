@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -23,7 +24,9 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.springframework.context.support.AbstractXmlApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
@@ -70,7 +73,10 @@ public abstract class NLBusBase implements NLBusInterface {
 
 	protected NLBusConfig configuration;
 	public NLBusConfig getConfiguration() {return configuration;}
-	public void setConfiguration(NLBusConfig c) {this.configuration=c;}
+	public void setConfiguration(NLBusConfig c) {
+		c.fixLinkings();
+		this.configuration=c;
+	}
 
 	protected static ClassPathXmlApplicationContext context;
 
@@ -116,9 +122,10 @@ public abstract class NLBusBase implements NLBusInterface {
 	protected Map<String,NLGInterface> character2NLG=null;
 	protected Map<String,DM> character2DM=null;
 	protected Map<Long,DM> session2PolicyDM=null;
+	protected Map<String,Object> character2parsedPolicy=null;
 	protected Map<String,NLBusConfig> character2Config=null;
 	// key: character name, value: unparsed POLICY associated with it
-	protected Map<String,String> character2unparsedPolicy = null;
+	//protected Map<String,String> character2unparsedPolicy = null;
 	// stores timestamps for various objects in each session. Used for randomly selecting and rpeferring earlier used things.
 	private static Map<Long,Map<Integer,Long>> session2ContentTimestamps = null;
 
@@ -365,7 +372,6 @@ public abstract class NLBusBase implements NLBusInterface {
 	//##############################################################################
 	
 	
-	public String getCharacterContentRoot(String contentRoot,String characterName) {return new File(contentRoot,characterName).getAbsolutePath();}
 	/*public String getPausedSessionsRoot(String contentRoot,String characterName) {return getCharacterContentRoot(contentRoot,characterName)+File.separator+"pausedSessions"+File.separator;}
 	public String getDMContentRoot(String contentRoot,String characterName) {return getCharacterContentRoot(contentRoot,characterName)+File.separator+"dm"+File.separator;}
 	public String getNLUContentRoot(String contentRoot,String characterName) {
@@ -381,8 +387,9 @@ public abstract class NLBusBase implements NLBusInterface {
 		return null;
 	}*/
 
-	public Map<String, String> findAvailablePolicies(String contentRoot) throws Exception {
-		logger.info("DIALOGUE POLICIES DIR: " + contentRoot.toString());
+	public Set<String> findAvailableCharacters(String contentRoot) throws Exception {
+		Set<String> ret=null;
+		logger.info("DIALOGUE POLICIES DIR: " + contentRoot.toString()+". finding possible character names...");
 		URL policiesDirURL;
 		policiesDirURL = ClassLoader.getSystemResource(contentRoot);
 		if (policiesDirURL == null)
@@ -399,20 +406,21 @@ public abstract class NLBusBase implements NLBusInterface {
 		if (characterRoot.isDirectory()) {
 			for (File file:characterRoot.listFiles()) {
 				String characterName=file.getName();
-				String name=getCharacterContentRoot(contentRoot, characterName);
-				File fileForName=new File(name);
-				logger.info("Adding POLICY network for characher '"+characterName+"'");
-				character2unparsedPolicy.put(characterName, name);
+				String name=contentRoot+File.separator+characterName;
+				logger.info(" Adding possible characher name: '"+characterName+"'");
+				if (ret==null) ret=new HashSet<>();
+				ret.add(characterName);
 			}
 		} else throw new Exception("Error: POLICY root must be a directory.");
-		return character2unparsedPolicy;
+		return ret;
 	}
 
 	@Override
 	public void refreshPolicyForCharacter(String characterName) throws Exception {
-		startDMForCharacter(characterName, false);
+		DM dm=getDMForCharacter(characterName);
+		parsePolicyForCharacter(dm);
 	}
-	public Map<String,String> getAvailableCharacterNames() {return character2unparsedPolicy;}
+	public Set<String> getAvailableCharacterNames() {return character2DM.keySet();}
 
 	//##############################################################################
 	//    Method to deal with storing received DM events 
@@ -489,7 +497,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		if (characters!=null) {
 			for(String c:characters) {
 				try {
-					startDMForCharacter(c,true);
+					startDMForCharacter(c);
 				} catch (Exception e) {
 					logger.error("error while starting DM",e);
 				}
@@ -503,53 +511,50 @@ public abstract class NLBusBase implements NLBusInterface {
 		else if (createIfNotThereAlready) {
 			String characterName = getCharacterName4Session(sid);
 			dm=getDMForCharacter(characterName);
-			logger.info("Using DM for session "+sid+" for character "+characterName+" with dm class: "+dm.getClass().getName());
-			session2PolicyDM.put(sid, dm);
-			return dm;
-		} else return null;
+			Object policy=character2parsedPolicy.get(characterName);
+			if (policy!=null) {
+				dm=dm.createPolicyDM(policy, sid, this);
+				logger.info("Using DM for session "+sid+" for character "+characterName+" with dm class: "+dm.getClass().getName());
+				session2PolicyDM.put(sid, dm);
+				return dm;
+			} else {
+				logger.error("NULL policy for character: "+characterName+". Cannot start a session DM.");
+			}
+		}
+		return null;
 	}
 	@Override
 	public synchronized DM getDM(Long sid) throws Exception {
 		return getDM(sid,true);
 	}
 	private synchronized DM getDMForCharacter(String characterName) throws Exception {
-		DM dm=null;
-		int count=0;
-		while (dm==null) {
-			dm = character2DM.get(characterName);
-			if (dm==null) {
-				startDMForCharacter(characterName,true);
-			}
-			else break;
-			if (count>5) {
-				logger.error("attempted "+count+" times to start nlg and failed.");
-				break;
-			}
-		}
-		character2DM.put(characterName,null);
-		startDMForCharacter(characterName,false); // build a new one for the character. don't wait.
+		DM dm=character2DM.get(characterName);
+		if (dm==null) startDMForCharacter(characterName);
 		return dm;
 	}
-	private void startDMForCharacter(final String characterName,boolean wait) throws Exception {
-		//System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
-		Thread t=new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (!StringUtils.isEmptyString(characterName)) {
-						logger.info("starting new DM for character: "+characterName);
-						DMConfig dmConfig = getDMConfigurationForCharacter(characterName);
-						DM dm=(DM) createSubcomponent(dmConfig,dmConfig.getDmClass());
-						character2DM.put(characterName, dm);
-						logger.info("DONE starting new DM for character: "+characterName);
-					}
-				} catch (Exception e) {
-					logger.error("error starting dm for character: "+characterName,e);
-				}
+	private void startDMForCharacter(final String characterName) throws Exception {
+		try {
+			if (!StringUtils.isEmptyString(characterName)) {
+				logger.info("starting new template DM for character: "+characterName);
+				DMConfig dmConfig = getDMConfigurationForCharacter(characterName);
+				DM dm=(DM) createSubcomponent(dmConfig,dmConfig.getDmClass());
+				parsePolicyForCharacter(dm);
+				character2DM.put(characterName, dm);
+				logger.info("DONE starting template DM for character: "+characterName);
 			}
-		});
-		t.start();
-		if (wait) t.join();
+		} catch (Exception e) {
+			logger.error("error starting template dm for character: "+characterName,e);
+		}
+	}
+	private void parsePolicyForCharacter(DM dm) throws Exception {
+		if (dm!=null) {
+			DMConfig dmConfig = dm.getConfiguration();
+			String characterName=dmConfig.nlBusConfig.getCharacter();
+			String policyLocation=dmConfig.getDMContentRoot()+File.separator+dmConfig.getInitialPolicyFileName();
+			Object policy = dm.parseDialoguePolicy(policyLocation);
+			logger.info("DONE parsing DM policy for character: "+characterName);
+			character2parsedPolicy.put(characterName, policy);
+		}
 	}
 	public void killDM(Long sid) throws Exception {
 		DM dm=session2PolicyDM.get(sid);
@@ -663,71 +668,53 @@ public abstract class NLBusBase implements NLBusInterface {
 		return null;
 	}
 	protected NLBusConfig getConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
-		NLBusConfig config=character2Config.get(characterName);
-		if (config==null) {
-			config=(NLBusConfig) getConfiguration().clone();
-			config.setNluConfig(getPersonalizedNLUConfigurationForCharacter(characterName));
-			config.setDmConfig(getPersonalizedDMConfigurationForCharacter(characterName));
-			config.setNlgConfig(getPersonalizedNLGConfigurationForCharacter(characterName));
-			config.setCharacter(characterName);
-			character2Config.put(characterName, config);
-		}
-		return config;
-	}
-	public NLUConfig getPersonalizedNLUConfigurationForCharacter(String characterName) {
-		String contentRoot=getConfiguration().getContentRoot();
-		String chContentRoot=getCharacterContentRoot(contentRoot, characterName);
-		File nlBusConfig=new File(chContentRoot,"NLUConfig.xml");
-		if (nlBusConfig.exists()) {
-			context = new ClassPathXmlApplicationContext(new String[] {nlBusConfig.getAbsolutePath()});
-			logger.info("creating NL configuration from file: "+nlBusConfig);
-			String[] beans = context.getBeanDefinitionNames();
-			if (beans!=null && beans.length==1) {
-				logger.info("startign bean: "+beans[0]);
-				NLUConfig nlModule = (NLUConfig) context.getBean(beans[0]);
-				return nlModule;
-			} else {
-				logger.error("multiple or no beans. Not starting anything: "+Arrays.toString(beans));
+		if (!StringUtils.isEmptyString(characterName)) {
+			logger.info("getting configuration for character: "+characterName);
+			NLBusConfig config=character2Config.get(characterName);
+			if (config==null) {
+				config=(NLBusConfig) getConfiguration().clone();
+				NLBusConfig pc=getPersonalizedNLConfigurationForCharacter(characterName);
+				if (pc!=null) {
+					if (pc.nluConfig!=null) config.setNluConfig(pc.nluConfig);
+					if (pc.nlgConfig!=null) config.setNlgConfig(pc.nlgConfig);
+					if (pc.dmConfig!=null) config.setDmConfig(pc.dmConfig);
+				}
+				config.setCharacter(characterName);
+				character2Config.put(characterName, config);
 			}
-		} else {
-			logger.info("no character specific configuration, using default");
+			return config;
 		}
 		return null;
 	}
-	public DMConfig getPersonalizedDMConfigurationForCharacter(String characterName) {
-		String contentRoot=getConfiguration().getContentRoot();
-		String chContentRoot=getCharacterContentRoot(contentRoot, characterName);
-		File nlBusConfig=new File(chContentRoot,"DMConfig.xml");
-		if (nlBusConfig.exists()) {
-			context = new ClassPathXmlApplicationContext(new String[] {nlBusConfig.getAbsolutePath()});
-			logger.info("creating NL configuration from file: "+nlBusConfig);
-			String[] beans = context.getBeanDefinitionNames();
-			if (beans!=null && beans.length==1) {
-				logger.info("startign bean: "+beans[0]);
-				DMConfig nlModule = (DMConfig) context.getBean(beans[0]);
-				return nlModule;
-			} else {
-				logger.error("multiple or no beans. Not starting anything: "+Arrays.toString(beans));
-			}
-		} else {
-			logger.info("no character specific configuration, using default");
+	public NLBusConfig getPersonalizedNLConfigurationForCharacter(String characterName) {
+		File contentRoot=new File(getConfiguration().getContentRoot());
+		String characterDirectoryName=contentRoot.getName();
+		String classpathPersonalizedConfigName=characterDirectoryName+File.separator+characterName+File.separator+"NLConfig.xml";
+		File personalizedConfigFile=new File(contentRoot.getParentFile(),classpathPersonalizedConfigName);
+		AbstractXmlApplicationContext context=null;
+		if (personalizedConfigFile.exists()) {
+			try {
+				context = new FileSystemXmlApplicationContext(personalizedConfigFile.getAbsolutePath());
+			} catch (Exception e) {logger.error(e);}
 		}
-		return null;
-	}
-	public NLGConfig getPersonalizedNLGConfigurationForCharacter(String characterName) {
-		String contentRoot=getConfiguration().getContentRoot();
-		String chContentRoot=getCharacterContentRoot(contentRoot, characterName);
-		File nlBusConfig=new File(chContentRoot,"NLGConfig.xml");
-		if (nlBusConfig.exists()) {
-			context = new ClassPathXmlApplicationContext(new String[] {nlBusConfig.getAbsolutePath()});
-			logger.info("creating NL configuration from file: "+nlBusConfig);
+		if (context==null) {
+			try {
+				context = new ClassPathXmlApplicationContext(new String[] {classpathPersonalizedConfigName});
+			} catch (Exception e) {logger.error(e);}
+		}
+		if (context!=null) {
+			logger.info("creating NL configuration from file: "+classpathPersonalizedConfigName);
 			String[] beans = context.getBeanDefinitionNames();
-			if (beans!=null && beans.length==1) {
-				logger.info("startign bean: "+beans[0]);
-				NLGConfig nlModule = (NLGConfig) context.getBean(beans[0]);
-				return nlModule;
+			if (beans!=null && beans.length>0) {
+				for (String b:beans) {
+					if (b.equals(characterName)) {
+						logger.info("startign bean: "+b);
+						NLBusConfig nlModule = (NLBusConfig) context.getBean(b);
+						return nlModule;
+					}
+				}
 			} else {
-				logger.error("multiple or no beans. Not starting anything: "+Arrays.toString(beans));
+				logger.error("no bean named "+characterName+" found. Not starting anything: "+Arrays.toString(beans));
 			}
 		} else {
 			logger.info("no character specific configuration, using default");
@@ -829,7 +816,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		}
 
 		try {
-			NLUConfig config=getNLUConfigurationForCharacter("");
+			NLUConfig config=getNLUConfigurationForCharacter(characterName);
 			List<NamedEntityExtractorI> nes = config.getNluNamedEntityExtractors();
 			if(nes!=null) {
 				for(NamedEntityExtractorI ne:nes) {
@@ -895,11 +882,11 @@ public abstract class NLBusBase implements NLBusInterface {
 		character2specialVars=new HashMap<String,SpecialEntitiesRepository>();
 		session2User=new ConcurrentHashMap<Long, String>();
 		session2Character = new HashMap<Long, ReferenceToVirtualCharacter>();
-		character2unparsedPolicy = new HashMap<String, String>();
 		session2NLU=new HashMap<Long, NLUInterface>();
 		session2NLG=new HashMap<Long, NLGInterface>();
 		character2NLG=new HashMap<>();
 		character2DM=new HashMap<>();
+		character2parsedPolicy=new HashMap<>();
 		session2PolicyDM=new HashMap<Long, DM>();
 		character2Config=new HashMap<String, NLBusConfig>();
 		session2Ignore=new HashMap<Long,Boolean>();

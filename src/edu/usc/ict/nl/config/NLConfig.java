@@ -76,19 +76,45 @@ public abstract class NLConfig {
 
 	public boolean checkLinking() {
 		if (this instanceof NLBusConfig) {
-			if (nluConfig.nlBusConfig!=nlBusConfig) return false;
-			if (dmConfig.nlBusConfig!=nlBusConfig) return false;
-			if (nlgConfig.nlBusConfig!=nlBusConfig) return false;
+			if (nluConfig.nlBusConfig!=nlBusConfig) {
+				System.err.println("nlu config with bus ("+nluConfig.nlBusConfig+") different then this: "+nlBusConfig);
+				return false;
+			}
+			if (dmConfig.nlBusConfig!=nlBusConfig) {
+				System.err.println("dm config with bus ("+dmConfig.nlBusConfig+") different then this: "+nlBusConfig);
+				return false;
+			}
+			if (nlgConfig.nlBusConfig!=nlBusConfig) {
+				System.err.println("nlg config with bus ("+nlgConfig.nlBusConfig+") different then this: "+nlBusConfig);
+				return false;
+			}
 		} else if (this instanceof NLUConfig) {
-			if (nlBusConfig.nluConfig!=nluConfig) return false;
+			if (nlBusConfig.nluConfig!=nluConfig) {
+				System.err.println("nl bus config with nlu ("+nlBusConfig.nluConfig+") different then this: "+nluConfig);
+				return false;
+			}
 		} else if (this instanceof NLGConfig) {
-			if (nlBusConfig.nlgConfig!=nlgConfig) return false;
+			if (nlBusConfig.nlgConfig!=nlgConfig) {
+				System.err.println("nl bus config with nlg ("+nlBusConfig.nlgConfig+") different then this: "+nlgConfig);
+				return false;
+			}
 		} else if (this instanceof DMConfig) {
-			if (nlBusConfig.dmConfig!=dmConfig) return false;
+			if (nlBusConfig.dmConfig!=dmConfig) {
+				System.err.println("nl bus config with dm ("+nlBusConfig.dmConfig+") different then this: "+dmConfig);
+				return false;
+			}
 		} else {
 			return false;
 		}
 		return true;
+	}
+	
+	public void fixLinkings() {
+		if (this instanceof NLBusConfig) {
+			this.nluConfig.nlBusConfig=(NLBusConfig) this;
+			this.dmConfig.nlBusConfig=(NLBusConfig) this;
+			this.nlgConfig.nlBusConfig=(NLBusConfig) this;
+		}
 	}
 
 	protected boolean isGetter(String name) { return name.startsWith("get"); }

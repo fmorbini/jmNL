@@ -81,9 +81,9 @@ public abstract class DM implements DMInterface {
 	public String getPersonalSessionID() {return personalSessionID;}
 	@Override
 	public void setPersonalSessionID(String pid) {
-		logger.info("Setting personal session id to: "+pid+ " for session id: "+getSessionID());
 		this.personalSessionID=pid;
 		setSessionID(getSessionID());
+		logger.info("Setting personal session id to: "+pid+ " for session id: "+getSessionID());
 	}
 	@Override
 	public Long getSessionID(){return sessionID;}

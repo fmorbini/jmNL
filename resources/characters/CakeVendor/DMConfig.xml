@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:camel="http://camel.apache.org/schema/spring"
+       xmlns:broker="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<bean id="FsmDM" class="edu.usc.ict.nl.config.DMConfig">
+		<property name="dmClass" value="edu.usc.ict.nl.dm.fsm.FSMdm"/>
+		<property name="specialVariablesFileName" value="specialVariables.xml"/>
+		<property name="timerInterval" value="3"/>
+		<property name="waitForUserReplyTimeout" value="10"/>
+		<property name="initialPolicyFileName" value="index.scxml"/>
+		<property name="staticURLs" value="true"/>
+		<property name="unhandledEventName" value="internal.un-handled-user-event"/>
+		<property name="loginEventName" value="login"/>
+		<property name="timerEvent" value="internal.timer"/>
+		<property name="systemEventsHaveDuration" value="true"/>
+		
+		<property name="valueTrackers"><null></null>
+		<!-- 
+		<list>
+			<value>edu.usc.ict.nl.dm.reward.trackers.SpeechOverlapTracker</value>
+			<value>edu.usc.ict.nl.dm.reward.trackers.SystemFinishedSpeakingTracker</value>
+			<value>edu.usc.ict.nl.dm.reward.trackers.UserFinishedSpeakingTracker</value>
+		</list>-->
+		</property>
+		
+		<property name="caseSensitive" value="false"/>
+		
+	</bean>
+	
+	<bean id="RewardDM" parent="FsmDM">
+		<property name="dmClass" value="edu.usc.ict.nl.dm.reward.RewardDM"/>
+		<property name="initialPolicyFileName" value="policy.xml"/>
+		<property name="approximatedForwardSearch" value="false"/>
+ 		<property name="unhandledEventName" value="default"/>
+ 		<property name="forcedIgnoreEventName" value="ignored"/>
+		<property name="loopEventName" value="loop"/>
+		<property name="maxSearchLevels" value="10"/>
+	</bean>
+	
+</beans>
