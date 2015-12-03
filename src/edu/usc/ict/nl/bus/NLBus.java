@@ -1,12 +1,9 @@
 package edu.usc.ict.nl.bus;
 
-import java.io.ByteArrayInputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import javax.xml.bind.JAXBContext;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -17,30 +14,19 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.bus.events.changes.DMStateChangeEvent;
 import edu.usc.ict.nl.bus.events.changes.DMVarChangeEvent;
 import edu.usc.ict.nl.bus.events.changes.DMVarChangesEvent;
-import edu.usc.ict.nl.bus.events.changes.DMStateChangeEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.bus.protocols.Protocol;
-import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
-import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.nlu.NLUOutput;
-import edu.usc.ict.nl.pml.PMLStateKeeper;
-import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
-import edu.usc.ict.nl.vhmsg.VHBridge;
-import edu.usc.ict.nl.vhmsg.VHBridge.VRPerception;
-import edu.usc.ict.nl.vhmsg.VHBridgewithMinat;
-import edu.usc.ict.nl.vhmsg.VHBridgewithMinat.Minat;
-import edu.usc.ict.nl.vhmsg.VHBridgewithMinat.Minat.Decision;
-import edu.usc.ict.perception.pml.Pml;
-import edu.usc.ict.vhmsg.MessageListener;
 
 /**
  * This class contains all methods required to process events and communicate between the three main NL sub-modules: NLU, DM and NLG.
@@ -73,7 +59,7 @@ public class NLBus extends NLBusBase {
 	@Override
 	synchronized public void setSpeakingStateVarForSessionAs(Long sessionId,Boolean state) throws Exception {
 		if (getCharacterName4Session(sessionId)!=null) {
-			DM dm=getPolicyDMForSession(sessionId,false);
+			DM dm=getDM(sessionId,false);
 			if (dm!=null) {
 				DialogueKBInterface informationState = dm.getInformationState();
 				if (informationState!=null) {
@@ -145,7 +131,7 @@ public class NLBus extends NLBusBase {
 	@Override
 	public void handleDMSpeakEvent(DMSpeakEvent ev) throws Exception {
 		Long sessionID=ev.getSessionID();
-		DM dm=getPolicyDMForSession(sessionID);
+		DM dm=getDM(sessionID);
 		dm.handleEvent(ev);
 		
 		if (holdResponses) {
@@ -224,7 +210,7 @@ public class NLBus extends NLBusBase {
 	@Override
 	public NLUOutput getNLUOutput(Long sessionId,String userUtterance) throws Exception {
 		NLUInterface nlu=getNlu(sessionId);
-		DM dm=getPolicyDMForSession(sessionId,false);
+		DM dm=getDM(sessionId,false);
 		List<NLUOutput> userSpeechActs = nlu.getNLUOutput(userUtterance, null,null);
 		NLUOutput selectedUserSpeechAct=null;
 		if (userSpeechActs!=null) {
@@ -240,7 +226,7 @@ public class NLBus extends NLBusBase {
 					l.handleNLUEvent(sessionId,event);
 				}
 			}
-			DM dm=getPolicyDMForSession(sessionId,false);
+			DM dm=getDM(sessionId,false);
 			dm.handleEvent(event);
 		} else {
 			throw new Exception("unhanlded");
@@ -249,7 +235,7 @@ public class NLBus extends NLBusBase {
 	@Override
 	public void handleNLGEvent(Long sessionId,NLGEvent event) throws Exception {
 		if (isInExecuteMode() && event!=null) {
-			DM dm=getPolicyDMForSession(sessionId,false);
+			DM dm=getDM(sessionId,false);
 			if (dm!=null) dm.handleEvent(event);
 			if (hasListeners()) {
 				for(ExternalListenerInterface l:getListeners()) {
@@ -262,7 +248,7 @@ public class NLBus extends NLBusBase {
 	}
 	@Override
 	public void handleLoginEvent(Long sessionId, String userID) throws Exception {
-		DM dm=getPolicyDMForSession(sessionId,true);
+		DM dm=getDM(sessionId,true);
 		if (dm!=null) {
 			NLUInterface nlu=getNlu(sessionId);
 			NLUOutput loginNluOutput = getNLUforLoginEvent(sessionId, dm, nlu);
@@ -296,13 +282,9 @@ public class NLBus extends NLBusBase {
 			break;*/
 		}
 
-
-		setDM((DM)createSubcomponent(config,config.getDmClass()));
-		
-		character2unparsedPolicy=findAvailablePolicies(config.getContentRoot());
-		character2parsedPolicy=parseAvailablePolicies(character2unparsedPolicy);
-		character2NLG=startNLGs(character2unparsedPolicy.keySet());
-		validateAvailablePolicies(character2parsedPolicy);
+		Set<String> chs=findAvailableCharacters(config.getContentRoot());
+		character2DM=startDMs(chs);
+		character2NLG=startNLGs(chs);
 
 		List<String> ps=config.getProtocols();
 		if (ps!=null) {
@@ -335,16 +317,24 @@ public class NLBus extends NLBusBase {
 			}
 		}
 		logger.info("Stopping DM modules.");
-		DM dm=getDM();
-		if (dm != null) try { dm.kill(); } catch (Exception e) {}
 		if (session2PolicyDM!=null) {
-			for (DM dmi:session2PolicyDM.values()) {
-				try { dmi.kill(); } catch (Exception e) {}
+			for (DM dm:session2PolicyDM.values()) {
+				try { dm.kill(); } catch (Exception e) {}
+			}
+		}
+		if (character2DM!=null) {
+			for (DM dm:character2DM.values()) {
+				try { dm.kill(); } catch (Exception e) {}
 			}
 		}
 		logger.info("Stopping NLG modules.");
 		if (session2NLG!=null) {
 			for (NLGInterface nlg:session2NLG.values()) {
+				try { nlg.kill(); } catch (Exception e) {}
+			}
+		}
+		if (character2NLG!=null) {
+			for (NLGInterface nlg:character2NLG.values()) {
 				try { nlg.kill(); } catch (Exception e) {}
 			}
 		}

@@ -125,7 +125,7 @@ public class TDGeneralizerAndLexiconBuilder {
 		NLUConfig config=NLU.getNLUConfig("FSTNLU");
 		//NLUConfig config=getNLUConfig("spsFST");
 		NLBusConfig tmp = NLBusConfig.WIN_EXE_CONFIG;
-		tmp.setDefaultCharacter("Base-All");
+		tmp.setCharacter("Base-All");
 		tmp.setNluConfig(config);
 		NLU nlu=NLU.init(config);
 		nlu.retrain(NLUTest.ros1,NLUTest.ros2,NLUTest.ros3,NLUTest.ros5,NLUTest.ros6,NLUTest.ros7,NLUTest.ros9);

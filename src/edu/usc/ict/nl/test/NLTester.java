@@ -64,7 +64,7 @@ public class NLTester {
 		nlModule.setHoldProcessingOfResponseEvents(true);
 		
 		NLUInterface nlu = nlModule.getNlu(sid);
-		DM dm=nlModule.getPolicyDMForSession(sid);
+		DM dm=nlModule.getDM(sid);
 		Timer timer=new Timer("BatchTimer");
 
 		// initialize nlu
@@ -137,12 +137,12 @@ public class NLTester {
 		return success;
 	}
 	public Pair<NLUOutput, List<NLGEvent>> sendLoginAndGetReplies(long sid) throws Exception {
-		return sendForcedNLU(getConfiguration().getLoginEventName(), sid);
+		return sendForcedNLU(getConfiguration().dmConfig.getLoginEventName(), sid);
 	}
 	public Pair<NLUOutput, List<NLGEvent>> sendForcedNLU(String nluSA,long sid) throws Exception {
 		// simulates the initial login event
 		NLUInterface nlu = nlModule.getNlu(sid);
-		DM dm=nlModule.getPolicyDMForSession(sid);
+		DM dm=nlModule.getDM(sid);
 		List<NLUOutput> userSpeechActs = nlu.getNLUOutputFake(new String[]{"1 "+nluSA}, null);
 		NLUOutput selectedUserSpeechAct=dm.selectNLUOutput(nluSA,sid, userSpeechActs);
 		dm.handleEvent(new NLUEvent(selectedUserSpeechAct, sid));

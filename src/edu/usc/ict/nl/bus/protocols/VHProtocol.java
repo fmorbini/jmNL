@@ -48,7 +48,7 @@ public class VHProtocol extends Protocol {
 			if (!StringUtils.isEmptyString(vhOther)) {
 				if (StringUtils.isEmptyString(vhMyself)) throw new Exception("Invalid configuration as it sets property vhOtherSpeak but not vhSpeaker.");
 				inTwoVHCharactersMode=true;
-				usingJustVRSpeak=!config.getSystemEventsHaveDuration();
+				usingJustVRSpeak=!config.dmConfig.getSystemEventsHaveDuration();
 			}
 			VHBridge vhBridge=new VHBridge(config.getVhServer(), config.getVhTopic());
 			setVHBridge(vhBridge);
@@ -301,7 +301,7 @@ public class VHProtocol extends Protocol {
 	private void handleDMSpeakEvent(VRGenerate msg) throws Exception {
 		for(Long sessionID : bus.getSessions()) {
 			if (bus.getCharacterName4Session(sessionID)!=null) {
-				DM dm=bus.getPolicyDMForSession(sessionID,false);
+				DM dm=bus.getDM(sessionID,false);
 				if (dm!=null) {
 					DMSpeakEvent event=new DMSpeakEvent(null, msg.getRequest(), sessionID, null, dm.getInformationState());
 					bus.handleDMResponseEvent(event);
@@ -313,7 +313,7 @@ public class VHProtocol extends Protocol {
 	private void handleVRSpokeEvent(VRSpoke msg) throws Exception {
 		for(Long sessionID : bus.getSessions()) {
 			NLGInterface nlg = bus.getNlg(sessionID,false);
-			DM dm=bus.getPolicyDMForSession(sessionID, false);
+			DM dm=bus.getDM(sessionID, false);
 			if (dm!=null && !dm.isSessionDone() && nlg!=null && (nlg instanceof VRSpeakSpokeTrackerInterface)) {
 				String sa=((VRSpeakSpokeTrackerInterface)nlg).getSpeechActIDFromVRMessageID(msg.getID());
 				((VRSpeakSpokeTrackerInterface)nlg).receivedVrSpoke(sa);
@@ -328,7 +328,7 @@ public class VHProtocol extends Protocol {
 		File f=new File(msg.getFileName());
 		float length=Audio.getWavLength(f);
 		for(Long sessionID : bus.getSessions()) {
-			DM dm=bus.getPolicyDMForSession(sessionID, false);
+			DM dm=bus.getDM(sessionID, false);
 			if (dm!=null && !dm.isSessionDone()) {
 				dm.handleEvent(new SystemUtteranceLengthEvent(f.getName(), sessionID, length));
 			}

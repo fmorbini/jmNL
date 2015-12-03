@@ -1,7 +1,7 @@
 package edu.usc.ict.nl.bus.events;
 
 import edu.usc.ict.nl.bus.modules.DM;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.util.StringUtils;
 
@@ -36,7 +36,7 @@ public abstract class Event {
 		return false;
 	}
 	public boolean isLoginEvent(DM dm) {
-		NLBusConfig config=dm.getConfiguration();
+		DMConfig config=dm.getConfiguration();
 		String name=getName();
 		return (this instanceof NLUEvent) && !StringUtils.isEmptyString(name) && name.equalsIgnoreCase(config.getLoginEventName());
 	}

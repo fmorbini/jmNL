@@ -73,21 +73,21 @@ public class EchoNLGData {
 	
 	private void loadSystemResources() throws Exception {
 		NLGConfig config=getConfiguration();
-		setResources(getResourcesFromXLSX(config.nlBusConfig.getSystemResources(), 0));
+		setResources(getResourcesFromXLSX(config.getSystemResources(), 0));
 	}
 
 	private void loadSystemForms() throws Exception {
 		NLGConfig config=getConfiguration();
-		if (config.getDisplayFormAnswerInNlg()) setFormsResponses(getFormResponsesFromXLSX(config.nlBusConfig.getSystemForms()));
+		if (config.getDisplayFormAnswerInNlg()) setFormsResponses(getFormResponsesFromXLSX(config.getSystemForms()));
 	}
 
 	private void loadSystemUtterances() throws Exception {
 		NLGConfig config=getConfiguration();
-		setValidSpeechActs(extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getSystemUtterances(), 0, 4, 5,6,-1,true));
-		if (!StringUtils.isEmptyString(config.nlBusConfig.getNvbs())) {
-			File nvbFile=new File(config.nlBusConfig.getNvbs());
+		setValidSpeechActs(extractMappingBetweenTheseTwoColumnsWithProperties(config.getSystemUtterances(), 0, 4, 5,6,-1,true));
+		if (!StringUtils.isEmptyString(config.getNvbs())) {
+			File nvbFile=new File(config.getNvbs());
 			if (nvbFile.exists()) {
-				Map<String, List<SpeechActWithProperties>> nvb = extractMappingBetweenTheseTwoColumnsWithProperties(config.nlBusConfig.getNvbs(), 0, 4, 5,6,-1,true);
+				Map<String, List<SpeechActWithProperties>> nvb = extractMappingBetweenTheseTwoColumnsWithProperties(config.getNvbs(), 0, 4, 5,6,-1,true);
 				getValidSpeechActs().putAll(nvb);
 			}
 		}

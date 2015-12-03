@@ -38,7 +38,7 @@ public class Feedback {
 	public Feedback(NLBusConfig config) throws Exception {
 		String feedbackInput=config.getFeedbackInputform();
 		if (!StringUtils.isEmptyString(feedbackInput)) {
-			File feedbackFile=new File(config.getDMContentRoot()+File.separator+feedbackInput);
+			File feedbackFile=new File(config.getContentRoot()+File.separator+feedbackInput);
 			if (feedbackFile.exists()) {
 				String chatLog=config.getChatLog();
 				if (StringUtils.isEmptyString(chatLog)) throw new Exception("Configured feedback form but no chat log saved. Set the chat log property.");

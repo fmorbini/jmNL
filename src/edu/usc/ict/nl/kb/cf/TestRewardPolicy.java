@@ -3,7 +3,7 @@ package edu.usc.ict.nl.kb.cf;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperator;
 import edu.usc.ict.nl.dm.reward.model.RewardPolicy;
 
@@ -11,7 +11,7 @@ public class TestRewardPolicy extends RewardPolicy {
 
 	private Map<String,DialogueOperator> ops=null;
 	
-	public TestRewardPolicy(NLBusConfig config) {
+	public TestRewardPolicy(DMConfig config) {
 		super(config);
 		ops=new HashMap<String, DialogueOperator>();
 	}

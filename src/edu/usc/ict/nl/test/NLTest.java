@@ -12,7 +12,7 @@ public class NLTest extends TestCase {
 	
 	public boolean runDialogID(String id, boolean fakeNLU,NLTester nlModule) throws Exception {
 		String prb=nlModule.getConfiguration().getTargetDialoguesRoot()+"annotated-target-dialogue-simcoach-"+id+".txt";
-		return nlModule.batchDM(nlModule.getConfiguration().getDefaultCharacter(),prb, fakeNLU);
+		return nlModule.batchDM(nlModule.getConfiguration().getCharacter(),prb, fakeNLU);
 	}
 	private static NLTester nlModule=null;
 	private static NLTester initNL() {
@@ -23,7 +23,7 @@ public class NLTest extends TestCase {
 	public void testTargetDialogs() throws Exception {
 		List<File> files = getAllTargetDialogues();
 		if (files!=null) {
-			String character = nlModule.getConfiguration().getDefaultCharacter();
+			String character = nlModule.getConfiguration().getCharacter();
 			for(File test:files) {
 				assertTrue(nlModule.batchDM(character,test.getAbsolutePath(), false));
 			}

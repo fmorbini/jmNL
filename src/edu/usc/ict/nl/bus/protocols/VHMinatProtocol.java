@@ -65,7 +65,7 @@ public class VHMinatProtocol extends Protocol {
 		if (msg!=null) {
 			for (Long sessionId : bus.getSessions()) {
 				if (bus.getCharacterName4Session(sessionId)!=null) {
-					DM dm=bus.getPolicyDMForSession(sessionId,false);
+					DM dm=bus.getDM(sessionId,false);
 					if (dm!=null) {
 						DialogueKB informationState = dm.getInformationState();
 						if (informationState!=null) {

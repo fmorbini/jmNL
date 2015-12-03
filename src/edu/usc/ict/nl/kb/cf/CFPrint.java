@@ -6,7 +6,7 @@ import java.util.Collection;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
@@ -51,7 +51,7 @@ public class CFPrint implements CustomFunctionInterface {
 
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		DialogueKB is=dm.getInformationState();
 		is.store(DialogueOperatorEffect.parse("assign(a,print(a))"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 		return true;

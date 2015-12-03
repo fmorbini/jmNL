@@ -3,7 +3,7 @@ package edu.usc.ict.nl.kb.cf;
 import java.util.Collection;
 
 import edu.usc.ict.nl.bus.NLBusBase;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.SpeakingTracker;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction;
@@ -37,7 +37,7 @@ public class CFisInterruptible implements CustomFunctionInterface {
 	
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		TestDialogueOperator op = (TestDialogueOperator) dm.getCurrentActiveAction().getOperator();
 		DialogueOperatorNodeTransition tr=new DialogueOperatorNodeTransition();
 		tr.setEvent("test", null);

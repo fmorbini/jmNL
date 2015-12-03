@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import edu.usc.ict.nl.bus.NLBusBase;
-import edu.usc.ict.nl.config.NLBusConfig;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperator;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorTopic;
@@ -63,7 +63,7 @@ public class CFisLastNonNullTopic implements CustomFunctionInterface {
 	
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(NLBusConfig.WIN_EXE_CONFIG);
+		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		DialogueKB is=dm.getInformationState();
 		is.setValueOfVariable(NLBusBase.lastNonNullOperatorVariableName, "'optest'", ACCESSTYPE.AUTO_OVERWRITEAUTO);
 		TestDialogueOperator op = (TestDialogueOperator) dm.getPolicy().getOperatorNamed("optest", null);
