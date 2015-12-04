@@ -32,8 +32,7 @@ public class EnglishWrittenNumbers2Digits {
 	}
 
 	public static List<Token> parseWrittenNumbers(NLUConfig nluConfig,List<Token> tokens) throws Exception {
-		File grammar=new File(nluConfig.getNLUContentRoot(),"written-numbers-grammar.txt");
-		if (nluConfig.nlBusConfig!=null && !grammar.exists()) grammar=new File(nluConfig.nlBusConfig.getContentRoot(),"common/nlu/written-numbers-grammar.txt");
+		File grammar=new File(new File(nluConfig.nlBusConfig.getContentRoot()).getParent(),"preprocessing/written-numbers-grammar.txt");
 		if (!grammar.exists()) return tokens;
 		else {
 			ChartParser parser=ChartParser.getParserForGrammar(grammar);

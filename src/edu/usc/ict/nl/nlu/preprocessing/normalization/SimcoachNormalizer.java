@@ -8,7 +8,7 @@ import edu.usc.ict.nl.nlu.Token.TokenTypes;
 public class SimcoachNormalizer extends Normalizer {
 	
 	public List<Token> normalize(List<Token> input) {
-		for(int i=0;i<input.size();i++) {
+		for(int i=0;i<input.size();) {
 			int size=1;
 			Token t=input.get(i);
 			TokenTypes type=t.getType();

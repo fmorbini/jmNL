@@ -1,7 +1,6 @@
 package edu.usc.ict.nl.nlu.ne.searchers;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -10,6 +9,7 @@ import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.parser.ChartParser;
 import edu.usc.ict.nl.parser.ChartParser.Item;
 import edu.usc.ict.nl.parser.semantics.ParserSemanticRulesTimeAndNumbers;
@@ -21,19 +21,13 @@ public class TimePeriodSearcher {
 	private int end;
 	private int start;
 	private ChartParser parser;
-	private NLUConfig config=null;
 
 	public TimePeriodSearcher(NLUConfig config,String input) {
-		this.config=config;
 		try {
+			TokenizerI tokenizer=config.getNluTokenizer();
 			this.text=input;
-			this.tokens=BuildTrainingData.tokenize(input);
-			File grammar=null;
-			if (config==null) grammar=new File("resources/characters/common/nlu/time-period-grammar.txt");
-			else {
-				grammar=new File(config.getNLUContentRoot(),"time-period-grammar.txt");
-				if (config.nlBusConfig!=null && !grammar.exists()) grammar=new File(config.nlBusConfig.getContentRoot(),"common/nlu/time-period-grammar.txt");
-			}
+			this.tokens=tokenizer.tokenize1(input);
+			File grammar=new File(new File(config.nlBusConfig.getContentRoot()).getParent(),"preprocessing/time-period-grammar.txt");
 			if (grammar.exists()) {
 				parser = ChartParser.getParserForGrammar(grammar);
 			}

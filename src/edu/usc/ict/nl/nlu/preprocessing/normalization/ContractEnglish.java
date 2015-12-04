@@ -25,7 +25,7 @@ public class ContractEnglish extends Normalizer {
 		if (tokens!=null && !tokens.isEmpty()) {
 			Token pp=tokens.get(0);
 			String pWord=pp.getName();
-			for(int i=1;i<tokens.size();i++) {
+			for(int i=1;i<tokens.size();) {
 				int size=1;
 				Token cp=tokens.get(i);
 				String word=cp.getName();
@@ -45,6 +45,7 @@ public class ContractEnglish extends Normalizer {
 				}
 				pp=cp;
 				pWord=word;
+				i+=size;
 			}
 		}
 		return tokens;

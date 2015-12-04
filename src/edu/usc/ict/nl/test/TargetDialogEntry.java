@@ -24,6 +24,8 @@ import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.chart.PartialClassification;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
 import edu.usc.ict.nl.util.FileUtils;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.Triple;
@@ -115,6 +117,7 @@ public class TargetDialogEntry {
 	}
 
 	public static TargetDialogEntry parseTDE(String text,String lowConfidenceEventName) throws Exception {
+		TokenizerI tokenizer=new Tokenizer();
 		TargetDialogEntry tde=new TargetDialogEntry();
 		String[] lines=text.split("\\n");
 		boolean firstLine=true;
@@ -161,9 +164,9 @@ public class TargetDialogEntry {
 					sas.add(chartNlu);
 				}
 				if (isChartNlu) {
-					List<Token> tokens = BuildTrainingData.tokenize(tde.getText());
+					List<Token> tokens = tokenizer.tokenize1(tde.getText());
 					List<Token> subTokens = tokens.subList(start, end);
-					String subText=BuildTrainingData.untokenize(subTokens);
+					String subText=tokenizer.untokenize(subTokens);
 					chartNlu.addPortion(start, end, new NLUOutput(subText, speechActText, p, null));
 				} else {
 					if (chartNlu!=null) throw new Exception("mix between normal and chart nlu.");

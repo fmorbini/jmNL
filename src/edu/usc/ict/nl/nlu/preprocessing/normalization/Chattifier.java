@@ -22,7 +22,7 @@ public class Chattifier extends Normalizer {
 	@Override
 	public List<Token> normalize(List<Token> tokens) {
 		if (tokens!=null && !tokens.isEmpty()) {
-			for(int i=0;i<tokens.size();i++) {
+			for(int i=0;i<tokens.size();) {
 				int size=1;
 				Token cp=tokens.get(i);
 				String word=cp.getName();

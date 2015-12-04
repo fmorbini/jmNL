@@ -8,20 +8,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
 
 public class Generalize implements PreprocesserI {
 
-	@Override
-	public void run(List<List<Token>> input) {
-		// TODO Auto-generated method stub
+	private NLUConfig config;
+	
+	public Generalize(NLUConfig config) {
+		this.config=config;
 	}
 	
-	public List<NamedEntityExtractorI> getNamedEntityExtractors() {
-		return getConfiguration().getNluNamedEntityExtractors();
+	public NLUConfig getConfiguration() {
+		return config;
 	}
+	
+	@Override
+	public void run(List<List<Token>> input) {
+		if (input!=null) {
+			int position=0;
+			while(position<input.size()) {
+				int size=1;
+				List<Token> tokens=input.get(position);
+				List<List<Token>> tmp = generalize(tokens);
+				if (tmp!=null && !tmp.isEmpty()) {
+					size=tmp.size();
+					input.remove(position);
+					for(int i=0;i<tmp.size();i++) {
+						input.add(position+1,tmp.get(i));
+					}
+				}
+				position+=size;
+			}
+		}
+	}
+	
 	/**
 	 * original list of tokens (one token for each word)
 	 * 
@@ -34,7 +57,7 @@ public class Generalize implements PreprocesserI {
 	 *
 	 */
 	public List<List<Token>> generalize(List<Token> tokens) {
-		List<NamedEntityExtractorI> nes = getNamedEntityExtractors();
+		List<NamedEntityExtractorI> nes = getConfiguration().getNluNamedEntityExtractors();
 		
 		Map<Token,Set<Token>> overlappingTokens=null; // for a given token, returns the set of other tokens that overlap with it.
 		for(NamedEntityExtractorI ne:nes) {

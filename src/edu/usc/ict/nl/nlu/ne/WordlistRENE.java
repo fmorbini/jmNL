@@ -11,8 +11,10 @@ import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
+import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher.TopicMatcherRE;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 
 public class WordlistRENE extends BasicNE {
 
@@ -37,7 +39,6 @@ public class WordlistRENE extends BasicNE {
 		super.setConfiguration(configuration);
 		try {
 			File model=new File(configuration.getNLUContentRoot(),modelName);
-			if (!model.exists() && configuration.nlBusConfig!=null) model=new File(configuration.nlBusConfig.getContentRoot(),"common/nlu/"+modelName);
 			if (model.exists())
 				loadModel(model);
 			else throw new IOException("File not found: " + model.getAbsolutePath());
@@ -74,9 +75,10 @@ public class WordlistRENE extends BasicNE {
 		config.setForcedNLUContentRoot("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\");
 		NLBusConfig busconfig=(NLBusConfig) NLBusConfig.WIN_EXE_CONFIG.clone();
 		busconfig.setNluConfig(config);
-		NLU component=(NLU) NLBusBase.createSubcomponent(config, config.getNluClass()); 
-		List<String> out=component.getBTD().prepareUtteranceForClassification("i want to eat a pig and an apple but also a lot of chickens");
-		System.out.println(out);
+		NLU component=(NLU) NLBusBase.createSubcomponent(config, config.getNluClass());
+		Preprocess preprocess = component.getPreprocess();
+		List<List<Token>> out = preprocess.prepareUtteranceForClassification("i want to eat a pig and an apple but also a lot of chickens");
+		System.out.println(preprocess.getStrings(out));
 		/*
 		WordlistRENE t = new WordlistRENE("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\test");
 		List<NE> r = t.extractNamedEntitiesFromText("i want to eat a pig and an apple but also a lot of chickens", null);
