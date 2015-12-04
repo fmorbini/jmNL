@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu;
+package edu.usc.ict.nl.nlu.io;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -41,10 +41,16 @@ import edu.usc.ict.nl.bus.NLBus;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.nlu.ChartNLUOutput;
+import edu.usc.ict.nl.nlu.DynamicFoldsData;
+import edu.usc.ict.nl.nlu.FoldsData;
+import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.fst.sps.SAMapper;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
-import edu.usc.ict.nl.nlu.preprocessing.spellchecker.SpellCheckProcess;
+import edu.usc.ict.nl.nlu.preprocessing.spellchecker.Hunspell;
 import edu.usc.ict.nl.nlu.preprocessing.stemmer.StemmerI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.MXNLUTrainingFile;
 import edu.usc.ict.nl.nlu.trainingFileReaders.NLUTrainingFileI;
@@ -61,9 +67,6 @@ import edu.usc.ict.nl.utils.ExcelUtils;
 import edu.usc.ict.nl.utils.LogConfig;
 
 public class BuildTrainingData {
-	
-
-	
 	private static final Logger logger = Logger.getLogger(BuildTrainingData.class.getName());
 	static {
 		URL log4Jresource=LogConfig.findLogConfig("src","log4j.properties", false);
@@ -71,13 +74,11 @@ public class BuildTrainingData {
 			PropertyConfigurator.configure( log4Jresource );
 	}
 
-	private static SpellCheckProcess sc=null;
-	private static StemmerI stemmer=null;
-
 	private NLUConfig config;
 	private NLUTrainingFileI reader=null;
 	private NLUConfig getConfiguration() {return config;}
 	private void setConfiguration(NLUConfig c) {this.config=c;}
+	private Set<String> hardLinks=null;
 
 	/**
 	 * @return list of pairs: <utterance, speech act label>
@@ -167,12 +168,7 @@ public class BuildTrainingData {
 	public BuildTrainingData(NLUConfig config) throws Exception {
 		setConfiguration(config);
 		reader=config.getTrainingDataReader();
-		if ((sc==null) && config.getDoSpellChecking()) sc=new SpellCheckProcess(config);
-		String stemmerClass=config.getStemmerClass();
-		if (stemmerClass!=null) stemmer=(StemmerI) NLBus.createSubcomponent(config, stemmerClass);
 	}
-
-	
 
 	public List<TrainingDataFormat> getAllSimcoachData() throws InvalidFormatException, FileNotFoundException, IOException {
 		List<TrainingDataFormat> td = buildTrainingData();
@@ -363,8 +359,11 @@ public class BuildTrainingData {
 		return ret;
 	}
 
-	private Set<String> hardLinks=null;
-	// the mapping returned is from input text to label
+	/**
+	 * the mapping returned is from input text to label (sppech act)
+	 * @return
+	 * @throws Exception
+	 */
 	public Map<String,String> buildHardLinksMap() throws Exception {
 		Set<String> links = getHardLinks();
 		Map<String,String> ret=null;
@@ -381,6 +380,12 @@ public class BuildTrainingData {
 		}
 		return ret;
 	}
+	/**
+	 * returns the set of labels (speech acts) that are not to be used for training the nlu,
+	 *  but instead they are going to be hard links (i.e. straight map from text to speech act). 
+	 * @return
+	 * @throws IOException
+	 */
 	public Set<String> getHardLinks() throws IOException {
 		if (hardLinks!=null) return hardLinks;
 		else {
@@ -405,6 +410,11 @@ public class BuildTrainingData {
 		}
 	}
 	
+	/**
+	 * removes the labels defined as hard links from the nlu training data.
+	 * @param td
+	 * @return
+	 */
 	public List<TrainingDataFormat> cleanTrainingData(List<TrainingDataFormat> td) {
 		Set<String> links=null;
 		try {
@@ -423,87 +433,6 @@ public class BuildTrainingData {
 		}
 	}
 
-	private static final HashMap<Pattern,String> highLevelTacQSpeechActs=new HashMap<Pattern, String>();
-	static {
-		highLevelTacQSpeechActs.put(Pattern.compile("^whq\\..*$"), "whq");
-		highLevelTacQSpeechActs.put(Pattern.compile("^ynq\\..*$"), "ynq");
-		highLevelTacQSpeechActs.put(Pattern.compile("^settopic\\..*$"), "settopic");
-		highLevelTacQSpeechActs.put(Pattern.compile("^offeragentplayername.*$"), "offeragent");
-		highLevelTacQSpeechActs.put(Pattern.compile("^preclosingvalence.*$"), "preclosingvalence");
-		highLevelTacQSpeechActs.put(Pattern.compile("^closingvalence.*$"), "closingvalence");
-	}
-	
-	public enum SAStatType {NOSA,FREQ,ALL};
-	public void printStatistics(List<TrainingDataFormat> td,boolean compressSpeechActs,SAStatType sa) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
-		List<Pair<String, Integer>> otherStats = getStatistics(td, compressSpeechActs);
-		int totUsages=0;
-		for(Pair<String, Integer>saAndNum:otherStats) totUsages+=saAndNum.getSecond();
-		System.out.println(otherStats.size()+" "+totUsages);
-		for(Pair<String, Integer>saAndNum:otherStats) {
-			if (sa==SAStatType.FREQ) {
-				System.out.println((float)saAndNum.getSecond()/(float)totUsages);
-			} else if (sa==SAStatType.ALL) {
-				System.out.println(saAndNum.getFirst()+" "+saAndNum.getSecond()+" "+((float)saAndNum.getSecond()/(float)totUsages));
-			}
-		}
-		// compute unique texts
-		// unique labels
-		// total frequency in training data and number of training data with backup labels
-		Set<String> uniqueLabels=new HashSet<String>(FunctionalLibrary.map(td, TrainingDataFormat.class.getMethod("getLabel")));
-		Map<String,String> uniqueUtterances=new HashMap<String,String>();
-		for(TrainingDataFormat t:td) {
-			String u=t.getUtterance();
-			String l=t.getLabel();
-			if (uniqueUtterances.containsKey(u) && !uniqueUtterances.get(u).equals(l))
-				System.out.println("ERROR: multiple labels for utterance: "+u);
-			uniqueUtterances.put(u, l);
-		}
-		Collection backupLabels=FunctionalLibrary.removeIfNot(td, TrainingDataFormat.class.getMethod("hasBackupLabels"));
-		Set uniqueBackupLabels=new HashSet(backupLabels);
-		System.out.println("Unique utterances: "+uniqueUtterances.size());
-		System.out.println("Unique labels: "+uniqueLabels.size());
-		System.out.println("Backup labels: "+backupLabels.size()+"/"+td.size()+" unique: "+uniqueBackupLabels.size());
-	}
-	public List<Pair<String,Integer>> getStatistics(List<TrainingDataFormat> td,boolean compressSpeechActs) {
-		HashMap<String,Integer> stats=new HashMap<String, Integer>();
-		HashMap<String,HashSet<String>> numcompression=new HashMap<String, HashSet<String>>();
-		List<Pair<String,Integer>> ret=new ArrayList<Pair<String,Integer>>();
-		for(TrainingDataFormat p:td) {
-			String sa=p.getLabel();
-			if (compressSpeechActs) {
-				for(Entry<Pattern,String> pAndN:highLevelTacQSpeechActs.entrySet()) {
-					Matcher m=pAndN.getKey().matcher(sa);
-					if (m.matches()) {
-						HashSet<String> v=numcompression.get(pAndN.getValue());
-						if (v==null) numcompression.put(pAndN.getValue(), v=new HashSet<String>());
-						v.add(sa);
-						sa=pAndN.getValue();
-						break;
-					}
-				}
-			}
-			if (stats.containsKey(sa))
-				stats.put(sa, stats.get(sa)+1);
-			else
-				stats.put(sa,1);
-		}
-		if (compressSpeechActs) {
-			for(String sa:numcompression.keySet()) {
-				System.out.println(sa+" "+numcompression.get(sa).size());
-			}
-		}
-		for(String sa:stats.keySet()) {
-			ret.add(new Pair<String, Integer>(sa, stats.get(sa)));
-		}
-		Collections.sort(ret, new Comparator<Pair<String,Integer>>() {
-
-			@Override
-			public int compare(Pair<String, Integer> arg0,Pair<String, Integer> arg1) {
-				return arg1.getSecond()-arg0.getSecond();
-			}
-		});
-		return ret;
-	}
 	public static boolean areTrainingDataEqual(List<TrainingDataFormat> td1,List<TrainingDataFormat> td2) {
 		boolean td1Null=td1==null,td2Null=td2==null;
 		if (td1Null && td2Null) return true;
@@ -561,400 +490,10 @@ public class BuildTrainingData {
 		
 		System.out.println(" frequency of only in 1: "+((float)countOnly1/(float)sas1.size())+" only in 2: "+((float)countOnly2/(float)sas2.size()));
 	}
-/*
-	public static final LinkedHashMap<TokenTypes, Pattern> defaultTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(){
-		private static final long serialVersionUID = 1L;
-		{
-			put(TokenTypes.NUM, Pattern.compile("([0-9]*\\.[\\d]+)|([\\d]+)|(<"+TokenTypes.NUM.toString()+">)|(<"+TokenTypes.NUM.toString().toLowerCase()+">)"));
-			put(TokenTypes.WORD, Pattern.compile("[\\d]*[a-zA-Z]+[\\d]*[a-zA-Z]*"));
-			put(TokenTypes.OTHER,Pattern.compile("[^\\w\\s]+"));
-		}
-	};
-	*/
-	public static List<Token> tokenize(String u) throws Exception {
-		return tokenize(u, defaultTokenTypes);
-	}
 
-	public static List<Token> removeStopWords(List<Token> input) {
-		List<Token> ret=null;
-		if (input!=null) {
-			for(Token t:input) {
-				String w=t.getName().toLowerCase();
-				if (!stopWords.contains(w)) {
-					if (ret==null) ret=new ArrayList<Token>();
-					ret.add(t);
-				}
-			}
-		}
-		return ret;
-	}
 	
-	public static List<Token> tokenize(String u,LinkedHashMap<TokenTypes,Pattern> types) throws Exception {
-		ArrayList<Token> ret= new ArrayList<Token>();
-		u=StringUtils.cleanupSpaces(u);
-		LinkedHashMap<TokenTypes,Matcher> matchers=new LinkedHashMap<TokenTypes,Matcher>();
-		for(Entry<TokenTypes, Pattern> tp:types.entrySet())	matchers.put(tp.getKey(),tp.getValue().matcher(u));
-		int currentPos=0,length=u.length();		
-		while(currentPos<length) {
-			int start=length,end=0;
-			TokenTypes type=null;
-			for(Entry<TokenTypes, Matcher> mt:matchers.entrySet()) {
-				Matcher m=mt.getValue();
-				if (m.find(currentPos)) {
-					if (m.start()<start) {
-						start=m.start();
-						end=m.end();
-						type=mt.getKey();
-					}
-				}
-			}
-			if ((start<length) && (type!=null)) {
-				Matcher m=matchers.get(type);
-				String token=u.substring(m.start(),m.end());
-				if ((token=token.replaceAll("[\\s]","")).length()>0) {
-					ret.add(new Token(token, type,token,start,end));
-				}
-				currentPos=m.end();
-			} else {
-				System.out.println("Error while tokenizing");
-				break;
-			}
-		}
-		return ret;
-	}
-	/*
-	public static String untokenize(List<Token> tokens) {
-		String utterance="";
-		boolean first=true;
-		for (Token m:tokens) {
-			if (first) first=false;
-			else utterance+=" ";
-			utterance+=m.getName();
-		}
-		return utterance;
-	}
-	*/
-	public List<NamedEntityExtractorI> getNamedEntityExtractors() {
-		return getConfiguration().getNluNamedEntityExtractors();
-	}
-	/**
-	 * original list of tokens (one token for each word)
-	 * 
-	 * for each NE the list of tokens introduced
-	 * 
-	 * for each token get the list of tokens overlapping with it
-	 * 
-	 * for each token get list of tokens not overlapping with it (maybe only those that come after it)
-	 * @return 
-	 *
-	 */
-	public List<List<Token>> generalize(List<Token> tokens) {
-		List<NamedEntityExtractorI> nes = getNamedEntityExtractors();
-		
-		Map<Token,Set<Token>> overlappingTokens=null; // for a given token, returns the set of other tokens that overlap with it.
-		for(NamedEntityExtractorI ne:nes) {
-			List<Token> modified=ne.getModifiedTokens(tokens);
-			if (modified!=null) {
-				if (overlappingTokens==null || overlappingTokens.isEmpty()) {
-					if (overlappingTokens==null) overlappingTokens=new HashMap<>();
-					for(Token m:modified) overlappingTokens.put(m,null);
-				} else {
-					for(Token m:modified) {
-						updateOverlappingTokens(m,overlappingTokens);
-					}
-				}
-			}
-		}
-		
-		List<Token> sortedModifiedTokens=new ArrayList<>(overlappingTokens.keySet());
-		Collections.sort(sortedModifiedTokens);
-		List<List<Token>> sols=new ArrayList<>();
-		getNESoptions(sortedModifiedTokens.get(0),sortedModifiedTokens,null,sols,overlappingTokens);
-		return sols;
-		
-	}
-	/** input: t initial token (first generalized token (by start position)) 
-	 *         S=current solution (null initially)
-	 *         SOLS=list of solutions
-	 *         
-	 *  ots=overlapping tokens(t) + t
-	 *  boolean usedCurrentSolution=false;
-	 *  for each ot in ots
-	 *    if (usedCurrentSolution || S==null)
-	 *     if S==null S=new list
-	 *     else S=new list(S)
-	 *     SOLS.add(S)
-	 *     userCurrentSolution=true
-	 *    S.add(ot)
-	 *    nextTs=getNonOverlappingAhead(t)
-	 *    recursiveCall(nextTs,S,SOLS)
-	 * @param overlappingTokens 
-	 * 
-	 */
-	private void getNESoptions(Token current, List<Token> sortedTokens,List<Token> sol, List<List<Token>> sols, Map<Token, Set<Token>> overlappingTokens) {
-		Set<Token> ots = overlappingTokens.get(current);
-		boolean usedCurrentSolution=false;
-		for(Token ot:ots) {
-			if (usedCurrentSolution || sol==null) {
-				if (sol==null) sol=new ArrayList<>();
-				else sol=new ArrayList<>(sol);
-				sols.add(sol);
-			}
-			usedCurrentSolution=true;
-			sol.add(ot);
-			Token nextToken=getNonOverlappingAhead(ot,sortedTokens);
-			getNESoptions(nextToken,sortedTokens,sol,sols,overlappingTokens);
-		}
-	}
-	
-	private Token getNonOverlappingAhead(Token current, List<Token> sortedTokens) {
-		for(Token next:sortedTokens) {
-			if (next.getStart()>=current.getEnd()) return next;
-		}
-		return null;
-	}
-	
-	/*
-	public List<List<Token>> generalize(List<Token> tokens) {
-		return List<List<Token>> options = computePossibleNESoptions(tokens);
-		
-		List<Token> ret=new ArrayList<Token>(tokens);
-		
-		
-		
-		boolean generalized=false;
-		if (nes!=null) {
-			for(NamedEntityExtractorI ne:nes) {
-				boolean changed=ne.generalize(ret);
-				if (changed) {
-					
-				}
-				
-				generalized|=ne.generalize(ret);
-			}
-		}
-		TokenTypes type;
-		if (!generalized && getConfiguration().getGeneralizeNumbers()) {
-			for(int i=0;i<ret.size();i++) {
-				Token t=ret.get(i);
-				type=t.getType();
-				if ((type==TokenTypes.NUM)) {
-					ret.set(i,new Token("<"+TokenTypes.NUM.toString()+">", TokenTypes.NUM,t.getOriginal()));
-				}
-			}
-		}
-		return ret;
-	}*/
 
-	private void updateOverlappingTokens(Token tobeadded, Map<Token, Set<Token>> overlappingTokens) {
-		updateOverlappingTokens(tobeadded, overlappingTokens,new HashSet<Token>());
-	}
-	/**
-	 * properly updates the overlappingTokens parameter given the new token tobeadded.
-	 * @param existing
-	 * @param tobeadded
-	 * @param overlappingTokens
-	 * @param visited
-	 */
-	private void updateOverlappingTokens(Token tobeadded, Map<Token, Set<Token>> overlappingTokens,Set<Token> visited) {
-		//if overlappingtokens already contains tobeadded, terminate doing nothing
-		//adds to be added as a key of overlappingTokens
-		//gets the set of tokens (the keys of overlappingtokens
-		// for t in tokens
-		//  if t overlaps with tobeadded,
-		//    add tobeadded to the value of t
-		//    add t to the value of tobeadded
-		if (!overlappingTokens.containsKey(tobeadded)) {
-			overlappingTokens.put(tobeadded, null);
-			for(Token t:overlappingTokens.keySet()) {
-				if (!(t==tobeadded)) {
-					if (t.overlaps(tobeadded)) {
-						addOverlapping(t,tobeadded,overlappingTokens);
-						addOverlapping(tobeadded,t,overlappingTokens);
-					}
-				}
-			}
-		}
-	}
-	private void addOverlapping(Token key, Token toadd, Map<Token, Set<Token>> overlappingTokens) {
-		Set<Token> things=overlappingTokens.get(key);
-		if (things==null) overlappingTokens.put(key, things=new HashSet<>());
-		things.add(toadd);
-	}
-	
-	public static List<Token> stemm(List<Token> tokens) {
-		List<Token> ret=new ArrayList<Token>();
-		if (tokens!=null && !tokens.isEmpty()) {
-			Iterator<Token> it = tokens.iterator();
-			while(it.hasNext()) {
-				Token cp=it.next();
-				String word=cp.getName();
-				//String fixedStemm=EnglishUtils.getFixedWordStemm(word);
-				//if (fixedStemm!=null) cp.setFirst(fixedStemm);
-				//else {
-					word=stemmer.stemm(word);
-					cp.setName(word);
-				//}
-				ret.add(cp);
-			}
-		}
-		return ret;
-	}
-	
-	public static String getStringOfTokensSpan(List<Token> tokens,int start, int end) {
-		StringBuffer ret=null;
-		if (tokens!=null) {
-			int i=0;
-			for(Token t:tokens) {
-				if (i>=start && i<end) {
-					if (ret==null) ret=new StringBuffer();
-					ret.append(((ret.length()==0)?"":" ")+t.getName());
-				}
-				i++;
-			}
-		}
-		return (ret!=null)?ret.toString():null;
-	}
-	
-	public List<Token> applyBasicTransformationsToStringForClassification(String text) throws Exception {
-		return applyBasicTransformationsToStringForClassification(text,defaultTokenTypes);
-	}
-	public List<Token> applyBasicTransformationsToStringForClassification(String text,LinkedHashMap<TokenTypes, Pattern> tokenTypes) throws Exception {
-		return applyBasicTransformationsToStringForClassification(text, tokenTypes, true,getConfiguration());
-	}
-	public static List<Token> applyBasicTransformationsToStringForClassification(String text,LinkedHashMap<TokenTypes, Pattern> tokenTypes,boolean chattify,NLUConfig config) throws Exception {
-		text=text.toLowerCase();
-		List<Token> tokens=tokenize(text,tokenTypes);		
-		if (sc!=null) tokens=doSpellCheck(tokens);
-		tokens=uk2us(tokens);
-		tokens=filterPunctuation(tokens);
-		tokens=normalizeTokens(tokens);
-		if (chattify) tokens=chattify(tokens,tokenTypes,chattify,config);
-		tokens=contractEnglish(tokens,tokenTypes,chattify,config);
-		if (stemmer!=null) tokens=stemm(tokens);
-		try {
-			tokens=EnglishWrittenNumbers2Digits.parseWrittenNumbers(config,tokens);
-		} catch (Exception e) {
-			logger.warn("Error converting written numbers to value.",e);
-		}
-		return tokens;
-	}
-	private static List<Token> doSpellCheck(List<Token> tokens) {
-		List<Token> ret=new ArrayList<Token>();
-		if (tokens!=null && !tokens.isEmpty()) {
-			Iterator<Token> it = tokens.iterator();
-			while(it.hasNext()) {
-				Token cp=it.next();
-				String word=cp.getName();
-				TokenTypes type=cp.getType();
-				if (type==TokenTypes.WORD) {
-					try {
-						word=sc.sendWordGetFirstChoice(word);
-						List<Token> tmpTokens = tokenize(word);
-						ret.addAll(tmpTokens);
-					} catch (Exception e) {
-						logger.warn("Error during spell check.",e);
-						ret.add(cp);
-					}
-				} else ret.add(cp);
-			}
-		}
-		return ret;
-	}
-	private static List<Token> uk2us(List<Token> tokens) {
-		List<Token> ret=new ArrayList<Token>();
-		if (tokens!=null && !tokens.isEmpty()) {
-			Iterator<Token> it = tokens.iterator();
-			while(it.hasNext()) {
-				Token cp=it.next();
-				String word=cp.getName();
-				if (EnglishUtils.getUSspellingFor(word)!=null) cp.setName(EnglishUtils.getUSspellingFor(word));
-				ret.add(cp);
-			}
-		}
-		return ret;
-	}
-	private static List<Token> chattify(List<Token> tokens, LinkedHashMap<TokenTypes, Pattern> tokenTypes, boolean chattify, NLUConfig config) throws Exception {
-		List<Token> ret=new ArrayList<Token>();
-		if (tokens!=null && !tokens.isEmpty()) {
-			Iterator<Token> it = tokens.iterator();
-			while(it.hasNext()) {
-				Token cp=it.next();
-				String word=cp.getName();
-				if (word.equals("you")) {
-					cp.setName("u");
-				} else if (word.equals("are")) {
-					cp.setName("r");
-				} else if (word.equals("great")) {
-					cp.setName("gr8");
-				} else if (word.equals("your")) {
-					cp.setName("ur");
-				} else if (word.equals("im")) {
-					List<Token> tmpTs = applyBasicTransformationsToStringForClassification("i'm",tokenTypes,chattify,config);
-					ret.addAll(tmpTs);
-					continue;
-				} else if (word.equals("dont")) {
-					List<Token> tmpTs = applyBasicTransformationsToStringForClassification("don't",tokenTypes,chattify,config);
-					ret.addAll(tmpTs);
-					continue;
-				} else if (word.equals("ive")) {
-					List<Token> tmpTs = applyBasicTransformationsToStringForClassification("i've",tokenTypes,chattify,config);
-					ret.addAll(tmpTs);
-					continue;
-				}
-				
-				ret.add(cp);
-			}
-		}
-		return ret;
-	}
-	private static List<Token> contractEnglish(List<Token> tokens, LinkedHashMap<TokenTypes, Pattern> tokenTypes, boolean chattify, NLUConfig config) throws Exception {
-		List<Token> ret=new ArrayList<Token>();
-		if (tokens!=null && !tokens.isEmpty()) {
-			Iterator<Token> it = tokens.iterator();
-			Token pp=it.next();
-			Token cp=pp;
-			while(it.hasNext()) {
-				cp=it.next();
-				
-				String pWord=pp.getName();
-				
-				String word=cp.getName();
-				
-				String c=EnglishUtils.getContractionFor(pWord,word);
-				if (c!=null) {
-					List<Token> tmpTs = applyBasicTransformationsToStringForClassification(c,tokenTypes,chattify,config);
-					ret.addAll(tmpTs);
-					if (it.hasNext()) cp=it.next();
-					else cp=null;
-				} else {
-					ret.add(pp);
-				}
-				
-				pp=cp;
-			}
-			if (cp!=null) ret.add(cp);
-		}
-		return ret;
-	}
-	private static List<Token> normalizeTokens(List<Token> tokens) {
-		List<Token> ret=new ArrayList<Token>();
-		for(Token t:tokens) {
-			TokenTypes type=t.getType();
-			String word=t.getName();
-			if (type==TokenTypes.WORD) {
-				if (word.equals("once")) {
-					ret.add(new Token("1", TokenTypes.NUM,word));
-					t.setName("time"); 
-				} else if (word.equals("twice")) {
-					ret.add(new Token("2", TokenTypes.NUM,word));
-					t.setName("times"); 
-				}
-			}
-			ret.add(t);
-		}
-		return ret;
-	}
+
 
 	public List<List<Token>> prepareUtteranceForClassification(String text) throws Exception {
 		return prepareUtteranceForClassification(text,defaultTokenTypes);
@@ -991,20 +530,7 @@ public class BuildTrainingData {
 		return ret;
 	}
 
-	private static final Pattern puntToKeep=Pattern.compile("^([\\?]+)|([\\%]+)|(')$");
-	private static List<Token> filterPunctuation(List<Token> tokens) {
-		List<Token> ret=new ArrayList<Token>();
-		for (Token t:tokens) {
-			if (t.getType().equals(TokenTypes.OTHER)) {
-				Matcher m=puntToKeep.matcher(t.getName());
-				if (m.matches()) {
-					t.setName(t.getName().substring(0, 1));
-					ret.add(t);
-				}
-			} else ret.add(t);
-		}
-		return ret;
-	}
+
 
 	public ArrayList<String> getSessionsFromString(String sessionsString) throws Exception {
 		ArrayList<String> ret=new ArrayList<String>();

@@ -7,8 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
 import edu.usc.ict.nl.parser.ChartParser;
 import edu.usc.ict.nl.parser.ChartParser.Item;

@@ -14,11 +14,11 @@ import cc.mallet.types.InstanceList;
 import cc.mallet.types.Label;
 import cc.mallet.types.LabelAlphabet;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.DynamicFoldsData;
 import edu.usc.ict.nl.nlu.Model;
 import edu.usc.ict.nl.nlu.NLUProcess;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.jmxnlu.JMXClassifierNLU;
 import edu.usc.ict.nl.util.PerformanceResult;
 

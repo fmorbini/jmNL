@@ -10,6 +10,8 @@ import java.util.Map;
 
 import edu.usc.ict.nl.nlu.multi.merger.Merger;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
+import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.NLUTrainingFileI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.SimcoachUserXLSXFile;
 import edu.usc.ict.nl.util.StringUtils;
@@ -42,6 +44,8 @@ public class NLUConfig extends NLConfig {
 	private Float acceptanceThreshold,regularization;
 	private String lowConfidenceEvent,emptyTextEventName;
 	private List<NamedEntityExtractorI> nes;
+	private TokenizerI tokenizer;
+	private List<PreprocesserI> prs;
 	
 	// fst specific
 	private String fstInputSymbols=null,fstOutputSymbols=null;
@@ -49,9 +53,6 @@ public class NLUConfig extends NLConfig {
 	// sps fst specific
 	private boolean spsMapperUsesNluOutput=false;
 	private String spsMapperModelFile=null;
-	
-	// Stemmer
-	private String stemmerClass;
 
 	
 	public NLUConfig() {
@@ -149,6 +150,12 @@ public class NLUConfig extends NLConfig {
 	/** NLU named entities */
 	public List<NamedEntityExtractorI> getNluNamedEntityExtractors() {return nes;}
 	public void setNluNamedEntityExtractors(List<NamedEntityExtractorI> nes) {this.nes=nes;}
+	/** NLU preprocessing */
+	public List<PreprocesserI> getNluPreprocessers() {return prs;}
+	public void setNluPreprocessers(List<PreprocesserI> prs) {this.prs=prs;}
+	/** NLU tokenizer */
+	public TokenizerI getNluTokenizer() {return tokenizer;}
+	public void setNluTokenizer(TokenizerI t) {this.tokenizer=t;}
 	/** NLU nbest */
 	public int getnBest() {return nBest;}
 	public void setnBest(int nBest) {this.nBest = nBest;}
@@ -204,9 +211,6 @@ public class NLUConfig extends NLConfig {
 	public boolean getNluVhGenerating() {return nluVhGenerating;}
 	public void setNluVhGenerating(boolean s) {this.nluVhGenerating=s;}
 	
-	public String getStemmerClass() {return this.stemmerClass;}
-	public void setStemmerClass(String sc) {this.stemmerClass=sc;}
-
 	public String getFstInputSymbols() {return getNLUContentRoot()+fstInputSymbols;}
 	public void setFstInputSymbols(String fstInputSymbols) {this.fstInputSymbols = removeAbsolutePath(fstInputSymbols);}
 	public String getFstOutputSymbols() {return getNLUContentRoot()+fstOutputSymbols;}
@@ -234,7 +238,6 @@ public class NLUConfig extends NLConfig {
 		WIN_EXE_CONFIG.setNluTrainingFile("classifier-training.txt");
 		WIN_EXE_CONFIG.setChartNluMaxLength(30);
 		WIN_EXE_CONFIG.setDoSpellchecking(false);
-		WIN_EXE_CONFIG.setStemmerClass("edu.usc.ict.nl.stemmer.KStemmer");
 		WIN_EXE_CONFIG.setNluFeaturesBuilderClass("edu.usc.ict.nl.nlu.features.FeaturesBuilderForMXClassifier");
 		WIN_EXE_CONFIG.setNluHardLinks("hardlinks.txt");
 		WIN_EXE_CONFIG.setUserUtterances("user-utterances.xlsx");

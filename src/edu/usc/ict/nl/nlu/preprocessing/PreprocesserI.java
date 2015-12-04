@@ -1,5 +1,9 @@
 package edu.usc.ict.nl.nlu.preprocessing;
 
-public interface PreprocesserI {
+import java.util.List;
 
+import edu.usc.ict.nl.nlu.Token;
+
+public interface PreprocesserI {
+	public void run(List<List<Token>> input);
 }

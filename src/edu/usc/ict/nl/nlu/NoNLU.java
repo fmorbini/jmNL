@@ -7,6 +7,7 @@ import java.util.Set;
 
 import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
 

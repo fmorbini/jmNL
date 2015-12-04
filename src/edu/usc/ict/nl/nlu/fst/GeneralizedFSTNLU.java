@@ -15,7 +15,6 @@ import java.util.Set;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
@@ -24,6 +23,7 @@ import edu.usc.ict.nl.nlu.fst.train.Alignment;
 import edu.usc.ict.nl.nlu.fst.train.AlignmentSummary;
 import edu.usc.ict.nl.nlu.fst.train.generalizer.GeneralizedAnnotation;
 import edu.usc.ict.nl.nlu.fst.train.generalizer.TDGeneralizerAndLexiconBuilder;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.Triple;

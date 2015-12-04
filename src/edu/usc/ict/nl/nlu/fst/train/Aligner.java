@@ -18,10 +18,10 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.FSTNLUOutput;
 import edu.usc.ict.nl.nlu.fst.TraverseFST;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.trainingFileReaders.SimcoachUserXLSXFile;
 import edu.usc.ict.nl.util.FileUtils;
 import edu.usc.ict.nl.util.FunctionalLibrary;

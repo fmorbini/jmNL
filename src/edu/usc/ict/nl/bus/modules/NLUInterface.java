@@ -6,14 +6,17 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ConfusionEntry;
 import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
 
 public interface NLUInterface {
+	
+	public List<List<Token>> preprocess(String text);
 	public List<NLUOutput> getNLUOutput(String text,Set<String> possibleNLUOutputIDs,Integer nBest) throws Exception;
 	public List<NLUOutput> getNLUOutputFake(String[] NLUOutputIDs,String text) throws Exception;
 	public Map<String, Object> getPayload(String sa,String text) throws Exception;

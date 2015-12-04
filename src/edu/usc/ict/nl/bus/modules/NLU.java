@@ -24,15 +24,17 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ConfusionEntry;
 import edu.usc.ict.nl.nlu.FoldsData;
 import edu.usc.ict.nl.nlu.Model;
 import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
 import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
+import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
 import edu.usc.ict.nl.util.StringUtils;
@@ -446,4 +448,11 @@ public abstract class NLU implements NLUInterface {
 		return payload;
 	}
 
+	@Override
+	public List<List<Token>> preprocess(String text) {
+		NLUConfig config = getConfiguration();
+		List<PreprocesserI> prs = config.getNluPreprocessers();
+		
+		return null;
+	}
 }

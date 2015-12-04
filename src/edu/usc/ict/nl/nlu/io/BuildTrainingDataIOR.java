@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu;
+package edu.usc.ict.nl.nlu.io;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 

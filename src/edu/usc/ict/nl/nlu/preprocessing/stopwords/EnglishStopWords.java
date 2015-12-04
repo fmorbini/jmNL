@@ -1,10 +1,13 @@
-package edu.usc.ict.nl.nlu.preprocessing;
+package edu.usc.ict.nl.nlu.preprocessing.stopwords;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class StopWords {
-	private static final Set<String> stopWords=new HashSet<String>();
+import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.util.StringUtils;
+
+public class EnglishStopWords extends Remover {
+	public static final Set<String> stopWords=new HashSet<String>();
 	static {
 		stopWords.add("a");
 		stopWords.add("able");
@@ -125,5 +128,13 @@ public class StopWords {
 		stopWords.add("yet");
 		stopWords.add("you");
 		stopWords.add("your");
+	}
+	
+	@Override
+	public boolean remove(Token t) {
+		if (t!=null && t.isType(Token.TokenTypes.WORD)) {
+			return EnglishStopWords.stopWords.contains(t.getName());
+		}
+		return false;
 	}
 }

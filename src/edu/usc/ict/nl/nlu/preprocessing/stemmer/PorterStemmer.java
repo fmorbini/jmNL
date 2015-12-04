@@ -3,11 +3,9 @@ package edu.usc.ict.nl.nlu.preprocessing.stemmer;
 import org.tartarus.snowball.SnowballStemmer;
 import org.tartarus.snowball.ext.englishStemmer;
 
-import edu.usc.ict.nl.config.NLConfig;
-
-public class PorterStemmer implements StemmerI {
+public class PorterStemmer extends Stemmer {
 	SnowballStemmer stemmer;
-	public PorterStemmer(NLConfig config) {
+	public PorterStemmer() {
         stemmer = (SnowballStemmer) new englishStemmer();
 	}
 	@Override

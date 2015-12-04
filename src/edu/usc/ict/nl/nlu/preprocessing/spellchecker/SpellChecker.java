@@ -1,0 +1,52 @@
+package edu.usc.ict.nl.nlu.preprocessing.spellchecker;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.Token.TokenTypes;
+import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.util.StringUtils;
+
+public abstract class SpellChecker implements SpellCheckerI {
+	
+	private NLUConfig config=null;
+
+	public SpellChecker(NLUConfig config) {
+		this.config=config;
+	}
+	
+	@Override
+	public void run(List<List<Token>> input) {
+		if (input!=null) {
+			for(List<Token> pi:input) {
+				int position=0;
+				while(position<pi.size()) {
+					int size=1;
+					Token t=pi.get(position);
+					if (t!=null && t.isType(Token.TokenTypes.WORD)) {
+						String corrected=correct(t.getName());
+						if (!StringUtils.isEmptyString(corrected)) {
+							TokenizerI tokenizer = config.getNluTokenizer();
+							List<List<Token>> tokens=tokenizer.tokenize(corrected);
+							if (tokens!=null && tokens.size()==1) {
+								List<Token> firstOption=tokens.get(0);
+								if (firstOption!=null && !firstOption.isEmpty()) {
+									size=firstOption.size();
+									pi.set(position,firstOption.get(0));
+									for(int i=1;i<size;i++) {
+										pi.add(position+i, firstOption.get(i));
+									}
+								}
+							}
+						}
+					}
+					position+=size;
+				}
+			}
+		}
+	}
+}

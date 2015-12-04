@@ -1,8 +1,9 @@
 package edu.usc.ict.nl.nlu;
 
+import edu.usc.ict.nl.nlu.Token.TokenTypes;
 
 public class Token implements Comparable<Token> {
-	public enum TokenTypes {WORD,NUM,OTHER,O1};
+	public enum TokenTypes {WORD,NUM,OTHER};
 	String name,original;
 	TokenTypes type;
 	private int start,end;
@@ -26,6 +27,9 @@ public class Token implements Comparable<Token> {
 	}
 	public TokenTypes getType() {
 		return type;
+	}
+	public boolean isType(TokenTypes type) {
+		return getType()==type;
 	}
 	public void setType(TokenTypes type) {
 		this.type = type;
