@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.utils;
+package edu.usc.ict.nl.nlu.preprocessing.spellchecker;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

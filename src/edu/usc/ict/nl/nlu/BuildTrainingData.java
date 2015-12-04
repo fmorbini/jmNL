@@ -44,10 +44,11 @@ import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.fst.sps.SAMapper;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
+import edu.usc.ict.nl.nlu.preprocessing.spellchecker.SpellCheckProcess;
+import edu.usc.ict.nl.nlu.preprocessing.stemmer.StemmerI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.MXNLUTrainingFile;
 import edu.usc.ict.nl.nlu.trainingFileReaders.NLUTrainingFileI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.SimcoachUserXLSXFile;
-import edu.usc.ict.nl.stemmer.Stemmer;
 import edu.usc.ict.nl.test.TargetDialogEntry;
 import edu.usc.ict.nl.util.EnglishUtils;
 import edu.usc.ict.nl.util.FileUtils;
@@ -58,132 +59,10 @@ import edu.usc.ict.nl.util.Triple;
 import edu.usc.ict.nl.utils.EnglishWrittenNumbers2Digits;
 import edu.usc.ict.nl.utils.ExcelUtils;
 import edu.usc.ict.nl.utils.LogConfig;
-import edu.usc.ict.nl.utils.SpellCheckProcess;
 
 public class BuildTrainingData {
 	
-	private static final Set<String> stopWords=new HashSet<String>();
-	static {
-		stopWords.add("a");
-		stopWords.add("able");
-		stopWords.add("about");
-		stopWords.add("across");
-		stopWords.add("after");
-		stopWords.add("all");
-		stopWords.add("almost");
-		stopWords.add("also");
-		stopWords.add("am");
-		stopWords.add("among");
-		stopWords.add("an");
-		stopWords.add("and");
-		stopWords.add("any");
-		stopWords.add("are");
-		stopWords.add("as");
-		stopWords.add("at");
-		stopWords.add("be");
-		stopWords.add("because");
-		stopWords.add("been");
-		stopWords.add("but");
-		stopWords.add("by");
-		stopWords.add("can");
-		stopWords.add("cannot");
-		stopWords.add("could");
-		stopWords.add("dear");
-		stopWords.add("did");
-		stopWords.add("do");
-		stopWords.add("does");
-		stopWords.add("either");
-		stopWords.add("else");
-		stopWords.add("ever");
-		stopWords.add("every");
-		stopWords.add("for");
-		stopWords.add("from");
-		stopWords.add("get");
-		stopWords.add("got");
-		stopWords.add("had");
-		stopWords.add("has");
-		stopWords.add("have");
-		stopWords.add("he");
-		stopWords.add("her");
-		stopWords.add("hers");
-		stopWords.add("him");
-		stopWords.add("his");
-		stopWords.add("how");
-		stopWords.add("however");
-		stopWords.add("i");
-		stopWords.add("if");
-		stopWords.add("in");
-		stopWords.add("into");
-		stopWords.add("is");
-		stopWords.add("it");
-		stopWords.add("its");
-		stopWords.add("just");
-		stopWords.add("least");
-		stopWords.add("let");
-		stopWords.add("like");
-		stopWords.add("likely");
-		stopWords.add("may");
-		stopWords.add("me");
-		stopWords.add("might");
-		stopWords.add("most");
-		stopWords.add("must");
-		stopWords.add("my");
-		stopWords.add("neither");
-		stopWords.add("no");
-		stopWords.add("nor");
-		stopWords.add("not");
-		stopWords.add("of");
-		stopWords.add("off");
-		stopWords.add("often");
-		stopWords.add("on");
-		stopWords.add("only");
-		stopWords.add("or");
-		stopWords.add("other");
-		stopWords.add("our");
-		stopWords.add("own");
-		stopWords.add("rather");
-		stopWords.add("said");
-		stopWords.add("say");
-		stopWords.add("says");
-		stopWords.add("she");
-		stopWords.add("should");
-		stopWords.add("since");
-		stopWords.add("so");
-		stopWords.add("some");
-		stopWords.add("than");
-		stopWords.add("that");
-		stopWords.add("the");
-		stopWords.add("their");
-		stopWords.add("them");
-		stopWords.add("then");
-		stopWords.add("there");
-		stopWords.add("these");
-		stopWords.add("they");
-		stopWords.add("this");
-		stopWords.add("tis");
-		stopWords.add("to");
-		stopWords.add("too");
-		stopWords.add("twas");
-		stopWords.add("us");
-		stopWords.add("wants");
-		stopWords.add("was");
-		stopWords.add("we");
-		stopWords.add("were");
-		stopWords.add("what");
-		stopWords.add("when");
-		stopWords.add("where");
-		stopWords.add("which");
-		stopWords.add("while");
-		stopWords.add("who");
-		stopWords.add("whom");
-		stopWords.add("why");
-		stopWords.add("will");
-		stopWords.add("with");
-		stopWords.add("would");
-		stopWords.add("yet");
-		stopWords.add("you");
-		stopWords.add("your");
-	}
+
 	
 	private static final Logger logger = Logger.getLogger(BuildTrainingData.class.getName());
 	static {
@@ -193,7 +72,7 @@ public class BuildTrainingData {
 	}
 
 	private static SpellCheckProcess sc=null;
-	private static Stemmer stemmer=null;
+	private static StemmerI stemmer=null;
 
 	private NLUConfig config;
 	private NLUTrainingFileI reader=null;
@@ -290,7 +169,7 @@ public class BuildTrainingData {
 		reader=config.getTrainingDataReader();
 		if ((sc==null) && config.getDoSpellChecking()) sc=new SpellCheckProcess(config);
 		String stemmerClass=config.getStemmerClass();
-		if (stemmerClass!=null) stemmer=(Stemmer) NLBus.createSubcomponent(config, stemmerClass);
+		if (stemmerClass!=null) stemmer=(StemmerI) NLBus.createSubcomponent(config, stemmerClass);
 	}
 
 	
