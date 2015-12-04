@@ -29,6 +29,10 @@ public class Tokenizer implements TokenizerI {
 		ret.add(tokenize(text, defaultTokenTypes));
 		return ret;
 	}
+	@Override
+	public List<Token> tokenize1(String text) {
+		return tokenize(text, defaultTokenTypes);
+	}
 
 	
 	public static List<Token> tokenize(String u,LinkedHashMap<TokenTypes,Pattern> types) {

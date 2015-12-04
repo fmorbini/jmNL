@@ -31,15 +31,12 @@ public abstract class SpellChecker implements SpellCheckerI {
 						String corrected=correct(t.getName());
 						if (!StringUtils.isEmptyString(corrected)) {
 							TokenizerI tokenizer = config.getNluTokenizer();
-							List<List<Token>> tokens=tokenizer.tokenize(corrected);
-							if (tokens!=null && tokens.size()==1) {
-								List<Token> firstOption=tokens.get(0);
-								if (firstOption!=null && !firstOption.isEmpty()) {
-									size=firstOption.size();
-									pi.set(position,firstOption.get(0));
-									for(int i=1;i<size;i++) {
-										pi.add(position+i, firstOption.get(i));
-									}
+							List<Token> firstOption=tokenizer.tokenize1(corrected);
+							if (firstOption!=null && !firstOption.isEmpty()) {
+								size=firstOption.size();
+								pi.set(position,firstOption.get(0));
+								for(int i=1;i<size;i++) {
+									pi.add(position+i, firstOption.get(i));
 								}
 							}
 						}

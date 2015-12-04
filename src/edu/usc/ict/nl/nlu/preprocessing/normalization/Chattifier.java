@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 
 public class Chattifier extends Normalizer {
 
@@ -21,9 +22,9 @@ public class Chattifier extends Normalizer {
 	@Override
 	public List<Token> normalize(List<Token> tokens) {
 		if (tokens!=null && !tokens.isEmpty()) {
-			Iterator<Token> it = tokens.iterator();
-			while(it.hasNext()) {
-				Token cp=it.next();
+			for(int i=0;i<tokens.size();i++) {
+				int size=1;
+				Token cp=tokens.get(i);
 				String word=cp.getName();
 				if (word.equals("you")) {
 					cp.setName("u");
@@ -34,23 +35,31 @@ public class Chattifier extends Normalizer {
 				} else if (word.equals("your")) {
 					cp.setName("ur");
 				} else if (word.equals("im")) {
-					List<Token> tmpTs = applyBasicTransformationsToStringForClassification("i'm",tokenTypes,chattify,config);
-					ret.addAll(tmpTs);
-					continue;
+					TokenizerI tokenizer = config.getNluTokenizer();
+					List<Token> tmp = tokenizer.tokenize1("i'm");
+					if (tmp!=null && !tmp.isEmpty()) {
+						size=tmp.size();
+						for(int j=0;j<size;j++) tokens.add(i+j, tmp.get(j));
+					}
 				} else if (word.equals("dont")) {
-					List<Token> tmpTs = applyBasicTransformationsToStringForClassification("don't",tokenTypes,chattify,config);
-					ret.addAll(tmpTs);
-					continue;
+					TokenizerI tokenizer = config.getNluTokenizer();
+					List<Token> tmp = tokenizer.tokenize1("don't");
+					if (tmp!=null && !tmp.isEmpty()) {
+						size=tmp.size();
+						for(int j=0;j<size;j++) tokens.add(i+j, tmp.get(j));
+					}
 				} else if (word.equals("ive")) {
-					List<Token> tmpTs = applyBasicTransformationsToStringForClassification("i've",tokenTypes,chattify,config);
-					ret.addAll(tmpTs);
-					continue;
+					TokenizerI tokenizer = config.getNluTokenizer();
+					List<Token> tmp = tokenizer.tokenize1("i've");
+					if (tmp!=null && !tmp.isEmpty()) {
+						size=tmp.size();
+						for(int j=0;j<size;j++) tokens.add(i+j, tmp.get(j));
+					}
 				}
-
-				ret.add(cp);
+				i+=size;
 			}
 		}
-		return ret;
+		return tokens;
 	}
 
 }

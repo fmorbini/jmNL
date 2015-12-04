@@ -13,13 +13,15 @@ public class Punctuation extends Normalizer {
 	private static final Pattern puntToKeep=Pattern.compile("^([\\?]+)|([\\%]+)|(')$");
 	
 	@Override
-	public Token normalize(Token t) {
-		if (t!=null && t.getType().equals(TokenTypes.OTHER)) {
-			Matcher m=puntToKeep.matcher(t.getName());
-			if (m.matches()) {
-				t.setName(t.getName().substring(0, 1));
+	public List<Token> normalize(List<Token> input) {
+		for(Token t:input) {
+			if (t!=null && t.getType().equals(TokenTypes.OTHER)) {
+				Matcher m=puntToKeep.matcher(t.getName());
+				if (m.matches()) {
+					t.setName(t.getName().substring(0, 1));
+				}
 			}
 		}
-		return t;
+		return input;
 	}
 }

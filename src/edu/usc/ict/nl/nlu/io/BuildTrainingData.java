@@ -74,24 +74,31 @@ public class BuildTrainingData {
 			PropertyConfigurator.configure( log4Jresource );
 	}
 
-	private NLUConfig config;
-	private NLUTrainingFileI reader=null;
-	private NLUConfig getConfiguration() {return config;}
-	private void setConfiguration(NLUConfig c) {this.config=c;}
+	NLUConfig config=null;
 	private Set<String> hardLinks=null;
 
+	public BuildTrainingData(NLUConfig config) throws Exception {
+		setConfiguration(config);
+	}
+	
+	public void setConfiguration(NLUConfig config) {
+		this.config = config;
+	}
+	public NLUConfig getConfiguration() {
+		return config;
+	}
+	
 	/**
 	 * @return list of pairs: <utterance, speech act label>
 	 * @throws InvalidFormatException
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public List<TrainingDataFormat> buildTrainingData() {
-		NLUConfig config=getConfiguration();
+	public List<TrainingDataFormat> buildTrainingData(NLUConfig config) {
 		File userFile=new File(config.getUserUtterances());
 		List<TrainingDataFormat> td = null;
 		try {
-			td=buildConfiguredTrainingDataFromExcel(userFile.getAbsolutePath());
+			td=readData(userFile.getAbsolutePath());
 		} catch (Exception e) {
         	logger.error("Error processing file: "+userFile.getAbsolutePath()+" "+e.getMessage());
 			td=new ArrayList<TrainingDataFormat>();
@@ -100,7 +107,7 @@ public class BuildTrainingData {
         File userSessionFile=new File(config.getNLUContentRoot()+File.separator+"user-utterances-from-user-data-collection.xlsx");
         if (userSessionFile.exists())
 	        try {
-	        	addToTrainingData(td,buildConfiguredTrainingDataFromExcel(userSessionFile.getAbsolutePath()));
+	        	addToTrainingData(td,readData(userSessionFile.getAbsolutePath()));
 	        } catch (Exception e) {
 	        	logger.warn("Error processing file: "+userSessionFile.getAbsolutePath()+" "+e.getMessage());
 	        }
@@ -143,7 +150,7 @@ public class BuildTrainingData {
 			for (Pair<String,String> d:td) {
 				String line=d.getFirst();
 				line=line.toLowerCase();
-				List<Token> tokens = tokenize(line);
+				List<Token> tokens = getConfiguration().getNluTokenizer().tokenize1(line);
 				List<String> words=getAllWords(tokens);
 				if (words!=null) {
 					ret.addAll(words);
@@ -165,13 +172,10 @@ public class BuildTrainingData {
 		}
 	}
 
-	public BuildTrainingData(NLUConfig config) throws Exception {
-		setConfiguration(config);
-		reader=config.getTrainingDataReader();
-	}
+
 
 	public List<TrainingDataFormat> getAllSimcoachData() throws InvalidFormatException, FileNotFoundException, IOException {
-		List<TrainingDataFormat> td = buildTrainingData();
+		List<TrainingDataFormat> td = buildTrainingData(getConfiguration());
 		for (File f:FileUtils.getAllFiles(new File("resources/data/"), ".*\\.xlsx$")) {
 			String filename=f.getAbsolutePath();
 			System.out.println("considering file: "+filename+" for addition.");
@@ -223,11 +227,12 @@ public class BuildTrainingData {
 	}
 	
 	// user-utterances excel file
-	public static List<TrainingDataFormat> buildStandardTrainingDataFromExcel(String file,int skip) throws Exception {
+	public static List<TrainingDataFormat> readExcelData(String file,int skip) throws Exception {
 		SimcoachUserXLSXFile reader = new SimcoachUserXLSXFile(skip);
 		return reader.getTrainingInstances(new File(file));
 	}
-	public List<TrainingDataFormat> buildConfiguredTrainingDataFromExcel(String file) throws Exception {
+	public List<TrainingDataFormat> readData(String file) throws Exception {
+		NLUTrainingFileI reader = getConfiguration().getTrainingDataReader();
 		return reader.getTrainingInstances(new File(file));
 	}
 
@@ -369,7 +374,7 @@ public class BuildTrainingData {
 		Map<String,String> ret=null;
 		if (links!=null && !links.isEmpty()) {
 			NLUConfig config=getConfiguration();
-	        List<TrainingDataFormat> td = buildConfiguredTrainingDataFromExcel(config.getUserUtterances());
+	        List<TrainingDataFormat> td = readData(config.getUserUtterances());
 	        for(TrainingDataFormat d:td) {
 	        	String label=d.getLabel();
 	        	if (links.contains(label)) {
@@ -495,21 +500,6 @@ public class BuildTrainingData {
 
 
 
-	public List<List<Token>> prepareUtteranceForClassification(String text) throws Exception {
-		return prepareUtteranceForClassification(text,defaultTokenTypes);
-	}
-	public List<List<Token>> prepareUtteranceForClassification(String text,LinkedHashMap<TokenTypes, Pattern> tokenTypes) throws Exception {
-		List<List<Token>> ret=null;
-		List<Token> tokens = applyBasicTransformationsToStringForClassification(text,tokenTypes);
-		List<List<Token>> lTokens = generalize(tokens);
-		if (lTokens!=null) {
-			for(List<Token> lToken:lTokens) {
-				if (ret==null) ret=new ArrayList<>();
-				ret.add(lToken);
-			}
-		}
-		return ret;
-	}
 	public List<TrainingDataFormat> prepareTrainingDataForClassification(List<TrainingDataFormat> td) throws Exception {
 		List<TrainingDataFormat> ret=new ArrayList<TrainingDataFormat>();
 		for(TrainingDataFormat d:td) {
@@ -529,8 +519,6 @@ public class BuildTrainingData {
 		}
 		return ret;
 	}
-
-
 
 	public ArrayList<String> getSessionsFromString(String sessionsString) throws Exception {
 		ArrayList<String> ret=new ArrayList<String>();

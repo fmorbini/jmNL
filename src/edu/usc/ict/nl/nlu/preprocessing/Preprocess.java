@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.nlu.preprocessing;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -47,6 +48,19 @@ public class Preprocess {
 			logger.warn("Error converting written numbers to value.",e);
 		}
 		return tokens;
+	}
+
+	public List<List<Token>> prepareUtteranceForClassification(String text) throws Exception {
+		List<List<Token>> ret=null;
+		List<Token> tokens = applyBasicTransformationsToStringForClassification(text,tokenTypes);
+		List<List<Token>> lTokens = generalize(tokens);
+		if (lTokens!=null) {
+			for(List<Token> lToken:lTokens) {
+				if (ret==null) ret=new ArrayList<>();
+				ret.add(lToken);
+			}
+		}
+		return ret;
 	}
 
 }

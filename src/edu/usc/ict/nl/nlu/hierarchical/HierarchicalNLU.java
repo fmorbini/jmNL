@@ -645,9 +645,9 @@ public class HierarchicalNLU extends NLU {
 		//System.exit(1);
 		//List<TrainingDataFormat> test=BuildTrainingData.buildTrainingDataFromNLUFormatFile(new File("\\\\netapp2\\simcoach\\support\\harvests\\Bill_Ford_PB\\annotations\\none-annotation\\merged.txt"), false);
 		//List<TrainingDataFormat> td = BuildTrainingData.buildTrainingDataFromExcel("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\nlu\\user-utterances.xlsx", 0);
-		List<TrainingDataFormat> td = BuildTrainingData.buildStandardTrainingDataFromExcel("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\nlu\\user-utterances-kenji-only.xlsx", 0);
-		List<TrainingDataFormat> atd = BuildTrainingData.buildStandardTrainingDataFromExcel("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\nlu\\user-utterances-only-added.xlsx", 0);
-		List<TrainingDataFormat> ctd = BuildTrainingData.buildStandardTrainingDataFromExcel("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\nlu\\user-utterances-DDA.xlsx", 0);
+		List<TrainingDataFormat> td = BuildTrainingData.readExcelData("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\nlu\\user-utterances-kenji-only.xlsx", 0);
+		List<TrainingDataFormat> atd = BuildTrainingData.readExcelData("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\nlu\\user-utterances-only-added.xlsx", 0);
+		List<TrainingDataFormat> ctd = BuildTrainingData.readExcelData("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\nlu\\user-utterances-DDA.xlsx", 0);
 		
 		
 		//List<TrainingDataFormat> td=nlu.getBTD().buildTrainingData();

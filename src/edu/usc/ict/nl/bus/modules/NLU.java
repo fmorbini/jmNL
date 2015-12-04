@@ -141,7 +141,7 @@ public abstract class NLU implements NLUInterface {
 		if (files!=null && files.length>0) {
 			List<TrainingDataFormat> all=new ArrayList<TrainingDataFormat>();
 			for(File file:files) {
-				List<TrainingDataFormat> td = btd.buildConfiguredTrainingDataFromExcel(file.getAbsolutePath());
+				List<TrainingDataFormat> td = btd.readData(file.getAbsolutePath());
 				if (td!=null) all.addAll(td);
 			}
 			File trainingFile=new File(c.getNluTrainingFile());

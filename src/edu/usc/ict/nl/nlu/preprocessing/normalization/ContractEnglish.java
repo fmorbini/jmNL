@@ -9,43 +9,44 @@ import java.util.regex.Pattern;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.EnglishUtils;
 
 public class ContractEnglish extends Normalizer {
 
-	@Override
-	public String normalize(String word) {
-		// TODO Auto-generated method stub
-		return null;
+	private NLUConfig config;
+
+	public ContractEnglish(NLUConfig config) {
+		this.config=config;
 	}
 
-	private static List<Token> contractEnglish(List<Token> tokens, LinkedHashMap<TokenTypes, Pattern> tokenTypes, boolean chattify, NLUConfig config) throws Exception {
-		List<Token> ret=new ArrayList<Token>();
+	@Override
+	public List<Token> normalize(List<Token> tokens) {
 		if (tokens!=null && !tokens.isEmpty()) {
-			Iterator<Token> it = tokens.iterator();
-			Token pp=it.next();
-			Token cp=pp;
-			while(it.hasNext()) {
-				cp=it.next();
-				
-				String pWord=pp.getName();
-				
+			Token pp=tokens.get(0);
+			String pWord=pp.getName();
+			for(int i=1;i<tokens.size();i++) {
+				int size=1;
+				Token cp=tokens.get(i);
 				String word=cp.getName();
-				
 				String c=EnglishUtils.getContractionFor(pWord,word);
 				if (c!=null) {
-					List<Token> tmpTs = applyBasicTransformationsToStringForClassification(c,tokenTypes,chattify,config);
-					ret.addAll(tmpTs);
-					if (it.hasNext()) cp=it.next();
-					else cp=null;
-				} else {
-					ret.add(pp);
+					TokenizerI tokenizer=config.getNluTokenizer();
+					List<Token> tmpTs = tokenizer.tokenize1(c);
+					if (tmpTs!=null && !tmpTs.isEmpty()) {
+						size=tmpTs.size();
+						tokens.remove(i-1);
+						tokens.remove(i-1);
+						for(int j=0;i<size;j++) {
+							tokens.add(i-1+j, tmpTs.get(j));
+						}
+						size-=1;
+					}
 				}
-				
 				pp=cp;
+				pWord=word;
 			}
-			if (cp!=null) ret.add(cp);
 		}
-		return ret;
+		return tokens;
 	}
 }
