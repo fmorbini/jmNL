@@ -34,6 +34,7 @@ import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
 import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
@@ -44,6 +45,7 @@ public abstract class NLU implements NLUInterface {
 
 	private NLUConfig configuration;
 	private BuildTrainingData btd;
+	private Preprocess preprocess;
 	private Map<String, String> hardLinkMap;
 	private Method featuresBuilder,featuresAtPosBuilder;
 	private static NLU _instance;
@@ -59,10 +61,18 @@ public abstract class NLU implements NLUInterface {
 		_instance = this;
 		this.configuration=c;
 		setBTD(new BuildTrainingData(c));
+		setPreprocess(new Preprocess(c));
 		hardLinkMap=getBTD().buildHardLinksMap();
 		featuresBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildfeaturesFromUtterance", String.class);
 		featuresAtPosBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildFeatureForWordAtPosition", String[].class,int.class);
 		configureNamedEntityExtractors();
+	}
+	
+	public Preprocess getPreprocess() {
+		return preprocess;
+	}
+	public void setPreprocess(Preprocess preprocess) {
+		this.preprocess = preprocess;
 	}
 	
 	protected void configureNamedEntityExtractors() {

@@ -5,12 +5,26 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.sun.corba.se.impl.ior.GenericTaggedComponent;
+
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.utils.EnglishWrittenNumbers2Digits;
 
 public class Preprocess {
+	
+	
+	private NLUConfig config;
+
+	public Preprocess(NLUConfig c) {
+		this.config=c;
+	}
+	
+	public NLUConfig getConfiguration() {
+		return config;
+	}
+
 	public static String getStringOfTokensSpan(List<Token> tokens,int start, int end) {
 		StringBuffer ret=null;
 		if (tokens!=null) {
@@ -27,25 +41,14 @@ public class Preprocess {
 	}
 	
 	public List<Token> applyBasicTransformationsToStringForClassification(String text) throws Exception {
-		return applyBasicTransformationsToStringForClassification(text,defaultTokenTypes);
-	}
-	public List<Token> applyBasicTransformationsToStringForClassification(String text,LinkedHashMap<TokenTypes, Pattern> tokenTypes) throws Exception {
-		return applyBasicTransformationsToStringForClassification(text, tokenTypes, true,getConfiguration());
-	}
-	public static List<Token> applyBasicTransformationsToStringForClassification(String text,LinkedHashMap<TokenTypes, Pattern> tokenTypes,boolean chattify,NLUConfig config) throws Exception {
-		text=text.toLowerCase();
-		List<Token> tokens=tokenize(text,tokenTypes);		
-		if (sc!=null) tokens=doSpellCheck(tokens);
-		tokens=uk2us(tokens);
-		tokens=filterPunctuation(tokens);
-		tokens=normalizeTokens(tokens);
-		if (chattify) tokens=chattify(tokens,tokenTypes,chattify,config);
-		tokens=contractEnglish(tokens,tokenTypes,chattify,config);
-		if (stemmer!=null) tokens=stemm(tokens);
-		try {
-			tokens=EnglishWrittenNumbers2Digits.parseWrittenNumbers(config,tokens);
-		} catch (Exception e) {
-			logger.warn("Error converting written numbers to value.",e);
+		NLUConfig config=getConfiguration();
+		TokenizerI tokenizer = config.getNluTokenizer();
+		List<PreprocesserI> prs = config.getNluPreprocessers();
+		List<List<Token>> tokens = tokenizer.tokenize(text);
+		if (prs!=null) {
+			for(PreprocesserI pr:prs) {
+				pr.run(tokens);
+			}
 		}
 		return tokens;
 	}

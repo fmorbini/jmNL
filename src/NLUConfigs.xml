@@ -304,4 +304,21 @@
 	</bean>
 	<bean id="SPSStep1and3UserXLSXFile" class="edu.usc.ict.nl.nlu.trainingFileReaders.SPSFSTXlsxTrainingFile">
 	</bean>
+	
+	<!-- 
+		text=text.toLowerCase();
+		List<Token> tokens=tokenize(text,tokenTypes);		
+		if (sc!=null) tokens=doSpellCheck(tokens);
+		tokens=uk2us(tokens);
+		tokens=filterPunctuation(tokens);
+		tokens=normalizeTokens(tokens);
+		if (chattify) tokens=chattify(tokens,tokenTypes,chattify,config);
+		tokens=contractEnglish(tokens,tokenTypes,chattify,config);
+		if (stemmer!=null) tokens=stemm(tokens);
+		try {
+			tokens=EnglishWrittenNumbers2Digits.parseWrittenNumbers(config,tokens);
+		} catch (Exception e) {
+			logger.warn("Error converting written numbers to value.",e);
+		}
+	 -->
 </beans>

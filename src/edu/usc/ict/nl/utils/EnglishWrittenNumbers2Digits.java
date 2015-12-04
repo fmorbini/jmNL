@@ -9,6 +9,9 @@ import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
 import edu.usc.ict.nl.parser.ChartParser;
 import edu.usc.ict.nl.parser.ChartParser.Item;
 import edu.usc.ict.nl.util.LevenshteinDistance;
@@ -17,17 +20,6 @@ import edu.usc.ict.nl.util.Pair;
 public class EnglishWrittenNumbers2Digits {
 	
 	
-	public static void main(String[] args) throws Exception {
-		// one hundred twenty five
-		// fifty two
-		// thirteen
-		// for every word in input string, find the nearest
-		String s="one hundred twenty five";
-		s=s.toLowerCase();
-		List<Token> tokens = BuildTrainingData.tokenize(s);
-		tokens=parseWrittenNumbers(NLUConfig.WIN_EXE_CONFIG,tokens);
-		System.out.println(tokens);
-	}
 
 	public static Pair<String,Integer> findBestMatch(String m,Collection<String> c) {
 		int minD=Integer.MAX_VALUE;
@@ -61,10 +53,23 @@ public class EnglishWrittenNumbers2Digits {
 			for (int i=lastInsertedToken;i<it.getStart();i++) {
 				out.add(tokens.get(i));
 			}
-			out.add(new Token(it.getSemantics().toString(), TokenTypes.NUM,BuildTrainingData.getStringOfTokensSpan(tokens, it.getStart(), it.getEnd()+1)));
+			out.add(new Token(it.getSemantics().toString(), TokenTypes.NUM,Preprocess.getStringOfTokensSpan(tokens, it.getStart(), it.getEnd()+1)));
 			lastInsertedToken=it.getEnd();
 		}
 		for (int i=lastInsertedToken;i<tokens.size();i++) out.add(tokens.get(i));
 		return out;
+	}
+
+	public static void main(String[] args) throws Exception {
+		// one hundred twenty five
+		// fifty two
+		// thirteen
+		// for every word in input string, find the nearest
+		TokenizerI tokenizer=new Tokenizer();
+		String s="one hundred twenty five";
+		s=s.toLowerCase();
+		List<Token> tokens = tokenizer.tokenize1(s);
+		tokens=parseWrittenNumbers(NLUConfig.WIN_EXE_CONFIG,tokens);
+		System.out.println(tokens);
 	}
 }
