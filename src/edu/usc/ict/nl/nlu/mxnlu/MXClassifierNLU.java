@@ -27,7 +27,10 @@ import edu.usc.ict.nl.nlu.NLUProcess;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
+import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.searchers.TimePeriodSearcher;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
+import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
 import edu.usc.ict.nl.parser.semantics.ParserSemanticRulesTimeAndNumbers;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
@@ -141,17 +144,39 @@ public class MXClassifierNLU extends NLU {
 		this.nluP=nluP;
 	}
 	
-	public String getClassifierInputUtteranceBeforeGeneralization(String text) throws Exception {
-		if (StringUtils.isEmptyString(text)) return null;
-		List<Token> tokens = getBTD().applyBasicTransformationsToStringForClassification(text);
-		return BuildTrainingData.untokenize(tokens);
-	}
-	public String doPreprocessingForClassify(String text) throws Exception {
-		String processedText=(getConfiguration().getApplyTransformationsToInputText())?getBTD().prepareUtteranceForClassification(text):text;
+	public List<NLUOutput> classify(String text,Integer nBest) throws Exception {
+		
+		List<NLUOutput> ret=null;
+		
 		if (logger.isDebugEnabled()) logger.info("input text: '"+text+"'");
-		String features=FunctionalLibrary.printCollection(getFeaturesFromUtterance(processedText),"",""," ");
-		if (StringUtils.isEmptyString(features)) features=processedText;
-		return features;
+
+		Preprocess pr=getPreprocess();
+		List<List<Token>> options = pr.prepareUtteranceForClassification(text);
+
+		if (options!=null && !options.isEmpty()) {
+			for(List<Token> option:options) {
+				String t=pr.getString(option);
+				if (logger.isDebugEnabled()) logger.info(" considering preprocessed option: '"+t+"'");
+				
+				NLUOutput hardLabel=getHardLinkMappingOf(text);
+				if (hardLabel!=null) {
+					List<NE> nes = pr.getAssociatedNamedEntities(option);
+					nes=BasicNE.filterNESwithSpeechAct(nes,hardLabel.getId());
+					Map<String, Object> payload = BasicNE.createPayload(nes);
+					hardLabel.setPayload(payload);
+					if (ret==null) ret=new ArrayList<>();
+					ret.add(hardLabel);
+					return ret;
+				}
+				
+				String features=FunctionalLibrary.printCollection(getFeaturesFromUtterance(t),"",""," ");
+				if (StringUtils.isEmptyString(features)) features=t;
+				
+				String[] result = (nBest!=null)?getNLUProcess().classify(features,nBest):getNLUProcess().classify(features);
+
+			}
+		}
+		
 	}
 	public List<NLUOutput> classify(String text,Integer nBest) throws Exception {
 		NLUOutput hardLabel=getHardLinkMappingOf(text);
@@ -173,11 +198,12 @@ public class MXClassifierNLU extends NLU {
 			ret.add(new NLUOutput(text, emptyEvent, 1, null));
 			return ret;
 		}
+		
 		List<NLUOutput> rawNLUOutput=classify(text,nBest);
 		//System.out.println(Arrays.toString(rawNLUOutput));
 		return pickNLUOutput(rawNLUOutput, nBest,text, possibleUserEvents);
 	}
-	private List<NLUOutput> pickNLUOutput(String[] rawNLUOutput,Integer nBest, String inputText,Set<String> possibleUserEvents) throws Exception {
+	private List<NLUOutput> pickNLUOutput2(String[] rawNLUOutput,Integer nBest, String inputText,Set<String> possibleUserEvents) throws Exception {
 		ArrayList<String> sortedUserSpeechActs = new ArrayList<String>();
 		NLUOutput userSpeechActsWithProb = processNLUOutputs(rawNLUOutput,nBest,possibleUserEvents,sortedUserSpeechActs);		
 		String classifierText = getClassifierInputUtteranceBeforeGeneralization(inputText);

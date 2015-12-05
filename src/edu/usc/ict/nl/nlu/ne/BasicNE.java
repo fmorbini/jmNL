@@ -14,6 +14,7 @@ import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.bus.special_variables.SpecialEntitiesRepository;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.StringUtils;
@@ -86,7 +87,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		List<Integer> tokenStarts=computeTokenStarts(inputTokens);
 		String input=fromTokensToOriginalString(inputTokens);
 		try {
-			List<NE> nes = extractNamedEntitiesFromText(input, null);
+			List<NE> nes = extractNamedEntitiesFromText(input);
 			filterOverlappingNES(nes);
 			if (nes!=null) {
 				for(NE ne:nes) {
@@ -102,6 +103,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 								Token original=inputTokens.get(j);
 								if (original!=null) {
 									newToken=new Token("<"+ne.getType().toUpperCase()+">", original.getType(), ne.getMatchedString(), start, end);
+									newToken.setAssociatedNamedEntity(ne);
 									if (ret==null) ret=new ArrayList<>();
 									ret.add(newToken);
 								} else {
@@ -221,6 +223,19 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 						((List) content).add(oldElement);
 						((List)content).add(ne.getValue());
 					}
+				}
+			}
+		}
+		return ret;
+	}
+	public static List<NE> filterNESwithSpeechAct(List<NE> nes, String speechAct) {
+		List<NE> ret=null;
+		if (nes!=null && !StringUtils.isEmptyString(speechAct)) {
+			for(NE ne:nes) {
+				NamedEntityExtractorI ext=ne.getExtractor();
+				if (ext==null || ext.isNEAvailableForSpeechAct(ne, speechAct)) {
+					if (ret==null) ret=new ArrayList<>();
+					ret.add(ne);
 				}
 			}
 		}

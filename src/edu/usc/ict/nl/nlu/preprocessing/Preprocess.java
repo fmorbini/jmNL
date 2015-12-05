@@ -1,13 +1,13 @@
 package edu.usc.ict.nl.nlu.preprocessing;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Set;
 
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.util.StringUtils;
 
 public class Preprocess {
@@ -66,6 +66,32 @@ public class Preprocess {
 			}
 		}
 		return ret;
+	}
+	public String getString(List<Token> ts) {
+		if (ts!=null) {
+			TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+			String s=tokenizer.untokenize(ts);
+			if (!StringUtils.isEmptyString(s)) {
+				return s;
+			}
+		}
+		return null;
+	}
+	
+	public List<NE> getAssociatedNamedEntities(List<Token> input) {
+		Set<NE> ret=null;
+		if (input!=null && !input.isEmpty()) {
+			for(Token t:input) {
+				if (t!=null) {
+					NE ne=t.getAssociatedNamedEntity();
+					if (ne!=null) {
+						if (ret==null) ret=new LinkedHashSet<>();
+						ret.add(ne);
+					}
+				}
+			}
+		}
+		return ret!=null?new ArrayList<>(ret):null;
 	}
 
 }

@@ -28,29 +28,33 @@ public class Numbers extends BasicNE {
 	}
 	
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
-		List<NE> payloads = null;
+	public boolean isNEAvailableForSpeechAct(NE ne, String speechAct) {
+		boolean match=true;
 		if (speechAct!=null && sas!=null) {
-			boolean match=false;
+			match=false;
 			for(int i=0;i<sas.length;i++) {
 				Matcher m=sas[i].matcher(speechAct);
 				if (match=m.matches()) break;
 			}
-			if (match) {
-				NumberSearcher ns = new NumberSearcher(getConfiguration(), text);
-				boolean first=true;
-				while(ns.possiblyContainingNumber()) {
-					Double num=ns.getNextNumber();
-					if (num!=null) {
-						logger.info("Extracted number "+num+" from the answer '"+text+"'.");
-						if (payloads==null) payloads=new ArrayList<NE>();
-						if (first) {
-							payloads.add(new NE(firstNumVar.getName(),num,firstNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd())));
-							first=false;
-						}
-						payloads.add(new NE(allNumVar.getName(),num,allNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd())));
-					}
+		}
+		return match;
+	}
+	
+	@Override
+	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
+		List<NE> payloads = null;
+		NumberSearcher ns = new NumberSearcher(getConfiguration(), text);
+		boolean first=true;
+		while(ns.possiblyContainingNumber()) {
+			Double num=ns.getNextNumber();
+			if (num!=null) {
+				logger.info("Extracted number "+num+" from the answer '"+text+"'.");
+				if (payloads==null) payloads=new ArrayList<NE>();
+				if (first) {
+					payloads.add(new NE(firstNumVar.getName(),num,firstNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd()),this));
+					first=false;
 				}
+				payloads.add(new NE(allNumVar.getName(),num,allNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd()),this));
 			}
 		}
 		return payloads;
@@ -61,7 +65,7 @@ public class Numbers extends BasicNE {
 		nlu.getConfiguration().setForcedNLUContentRoot("C:\\simcoach_svn\\trunk\\core\\NLModule\\resources\\characters\\common\\nlu");
 		Numbers ne = new Numbers("test");
 		ne.setConfiguration(nlu.getConfiguration());
-		List<NE> x = ne.extractNamedEntitiesFromText("i want 18 and twenty four bananas with 4 more and thirty.", "test");
+		List<NE> x = ne.extractNamedEntitiesFromText("i want 18 and twenty four bananas with 4 more and thirty.");
 		System.out.println(x);
 		System.out.println(BasicNE.createPayload(x));
 	}

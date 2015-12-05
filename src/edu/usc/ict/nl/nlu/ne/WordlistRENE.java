@@ -53,7 +53,12 @@ public class WordlistRENE extends BasicNE {
 	}
 
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
+	public boolean isNEAvailableForSpeechAct(NE ne, String sa) {
+		return true;
+	}
+	
+	@Override
+	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
 		List<NE> payload = null;
 		if (text == null) // special events like 'login'
 			return null;
@@ -63,7 +68,7 @@ public class WordlistRENE extends BasicNE {
 					TopicMatcherRE tm = matcher.getLastMatchMatcher();
 					String match=tm.getMatchedString(text);
 					if (payload==null) payload=new ArrayList<NE>();
-					payload.add(new NE(tm.getTopicID(),DialogueKBFormula.generateStringConstantFromContent(match),tm.getTopicID(),tm.getStart(),tm.getEnd(),match));
+					payload.add(new NE(tm.getTopicID(),DialogueKBFormula.generateStringConstantFromContent(match),tm.getTopicID(),tm.getStart(),tm.getEnd(),match,this));
 				} while (matcher.findNext());
 			}
 		}

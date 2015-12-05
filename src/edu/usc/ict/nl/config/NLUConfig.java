@@ -39,7 +39,6 @@ public class NLUConfig extends NLConfig {
 	private String nluModelFile,nluTrainingFile,hardLinksFile;
 	private boolean useSystemFormsToTrainNLU=true;
 	private int nBest;
-	private boolean applyTransformationsToInputText;
 	private boolean generalizeNumbers;
 	private Float acceptanceThreshold,regularization;
 	private String lowConfidenceEvent,emptyTextEventName;
@@ -174,9 +173,6 @@ public class NLUConfig extends NLConfig {
 	/** NLU reguralization parameter (if used) */
 	public Float getRegularization() {return regularization;}
 	public void setRegularization(Float t) {this.regularization=t;}
-	/** MXNLU input pre-classification transformations */
-	public boolean getApplyTransformationsToInputText() {return applyTransformationsToInputText;}
-	public void setApplyTransformationsToInputText(boolean a) {this.applyTransformationsToInputText = a;}
 	public boolean getGeneralizeNumbers() {return generalizeNumbers;}
 	public void setGeneralizeNumbers(boolean g) {this.generalizeNumbers=g;}
 	/** nlu and dm class to be used to create nlu and dm instances */

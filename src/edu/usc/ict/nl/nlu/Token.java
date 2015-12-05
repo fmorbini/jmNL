@@ -1,12 +1,13 @@
 package edu.usc.ict.nl.nlu;
 
-import edu.usc.ict.nl.nlu.Token.TokenTypes;
+import edu.usc.ict.nl.nlu.ne.NE;
 
 public class Token implements Comparable<Token> {
 	public enum TokenTypes {WORD,NUM,OTHER};
-	String name,original;
-	TokenTypes type;
+	private String name,original;
+	private TokenTypes type;
 	private int start,end;
+	private NE associatedNamedEntity;
 
 	public Token(String name, TokenTypes type,String original,int start,int end) {
 		setName(name);
@@ -17,6 +18,13 @@ public class Token implements Comparable<Token> {
 	}
 	public Token(String name, TokenTypes type,String original) {
 		this(name, type, original, -1, -1);
+	}
+	
+	public void setAssociatedNamedEntity(NE associatedNamedEntity) {
+		this.associatedNamedEntity = associatedNamedEntity;
+	}
+	public NE getAssociatedNamedEntity() {
+		return associatedNamedEntity;
 	}
 	
 	public String getName() {
