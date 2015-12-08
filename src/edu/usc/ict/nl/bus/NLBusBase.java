@@ -124,8 +124,6 @@ public abstract class NLBusBase implements NLBusInterface {
 	protected Map<Long,DM> session2PolicyDM=null;
 	protected Map<String,Object> character2parsedPolicy=null;
 	protected Map<String,NLBusConfig> character2Config=null;
-	// key: character name, value: unparsed POLICY associated with it
-	//protected Map<String,String> character2unparsedPolicy = null;
 	// stores timestamps for various objects in each session. Used for randomly selecting and rpeferring earlier used things.
 	private static Map<Long,Map<Integer,Long>> session2ContentTimestamps = null;
 
@@ -419,6 +417,16 @@ public abstract class NLBusBase implements NLBusInterface {
 	public void refreshPolicyForCharacter(String characterName) throws Exception {
 		DM dm=getDMForCharacter(characterName);
 		parsePolicyForCharacter(dm);
+	}
+	public void removePolicyForCharacter(String characterName) {
+		if (character2parsedPolicy.containsKey(characterName)) {
+			character2parsedPolicy.remove(characterName);
+		}
+		if (character2DM.containsKey(characterName)) {
+			DM dm=character2DM.get(characterName);
+			if (dm!=null) dm.kill();
+			character2DM.remove(characterName);
+		}
 	}
 	public Set<String> getAvailableCharacterNames() {return character2DM.keySet();}
 
