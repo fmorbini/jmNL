@@ -1,31 +1,24 @@
 package edu.usc.ict.nl.nlu.topic;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
-import edu.usc.ict.nl.nlu.Token.TokenTypes;
-import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher.TopicMatcherRE;
 import edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.FunctionalLibrary;
-import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
 import edu.usc.ict.nl.util.StringUtils;
 
@@ -47,16 +40,9 @@ public class WordlistTopicDetectionRE extends NLU {
 	};
 	
 	public List<String> getTokensStrings(String line) throws Exception {
-		return getTokensStrings(line, "getName");
-	}
-	public List<String> getTokensOriginalStrings(String line) throws Exception {
-		return getTokensStrings(line, "getOriginal");
-	}
-	public List<String> getTokensStrings(String line,String method) throws Exception {
-		BuildTrainingData b = getBTD();
-		String processedText=(getConfiguration().getApplyTransformationsToInputText())?b.prepareUtteranceForClassification(line):line;
-		List<Token> tokens = BuildTrainingData.tokenize(processedText);
-		List<String> ts=(List<String>) FunctionalLibrary.map(tokens, Token.class.getMethod(method));
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		List<Token> tokens = tokenizer.tokenize1(line);
+		List<String> ts=(List<String>) FunctionalLibrary.map(tokens, Token.class.getMethod("getName"));
 		return ts;
 	}
 

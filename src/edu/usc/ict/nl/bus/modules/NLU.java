@@ -466,7 +466,7 @@ public abstract class NLU implements NLUInterface {
 	}
 	
 	public List<TrainingDataFormat> prepareTrainingDataForClassification(List<TrainingDataFormat> td) throws Exception {
-		List<TrainingDataFormat> ret=new ArrayList<TrainingDataFormat>();
+		List<TrainingDataFormat> ret=null;
 		Preprocess pr = getPreprocess();
 		for(TrainingDataFormat d:td) {
 			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
@@ -479,6 +479,7 @@ public abstract class NLU implements NLUInterface {
 						logger.error("start='"+d.getUtterance()+"'");
 						logger.error("end='"+nt+"'");
 					} else {
+						if (ret==null) ret=new ArrayList<TrainingDataFormat>();
 						ret.add(new TrainingDataFormat(nt, d.getLabel()));
 					}
 				}

@@ -24,8 +24,10 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.Rational;
@@ -42,6 +44,7 @@ public class TraverseFST {
 	private File model=null;
 	private static final Logger logger = Logger.getLogger(TraverseFST.class.getName());
 	private String[] fstCmd;
+	private NLUConfig config;
 	//static String[] defaultCmd = {"/bin/bash","-c","fstcompile --isymbols=input.syms --osymbols=input.syms|fstcompose - alignments.fst|fstshortestpath --nshortest=5 |fstprint --isymbols=input.syms --osymbols=output.syms"};
 	//static String[] defaultCmd = "{"C:\\cygwin\\bin\\bash","-c","export PATH=$PATH:/bin:/usr/local/bin; fstcompile.exe --isymbols=input.syms --osymbols=input.syms|fstcompose.exe - alignments.fst|fstshortestpath.exe --nshortest="+nBest+" |fstprint.exe --isymbols=input.syms --osymbols=output.syms"};
 	static String[] defaultCmd ={"C:\\cygwin\\bin\\bash", "-c", "export PATH=$PATH:/bin:/usr/local/bin;fstcompile --isymbols=%IN% --osymbols=%IN%|fstcompose - alignments.fst|fstshortestpath --nshortest=%NBEST% |fstprint --isymbols=%IN% --osymbols=%OUT%"};
@@ -56,9 +59,11 @@ public class TraverseFST {
 		this(new File("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\resources\\characters\\Base-All\\nlu\\input.syms"),
 				new File("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\resources\\characters\\Base-All\\nlu\\output.syms"),
 				new File("C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\NLModule\\resources\\characters\\Base-All\\nlu\\alignments.fst"),
-				defaultCmd);
+				defaultCmd,
+				NLUConfig.WIN_EXE_CONFIG);
 	}
-	public TraverseFST(File iSyms,File oSyms, File fst, String[] cmd) throws Exception {
+	public TraverseFST(File iSyms,File oSyms, File fst, String[] cmd,NLUConfig config) throws Exception {
+		this.config=config;
 		in=iSyms;
 		out=oSyms;
 		model=fst;
@@ -77,6 +82,10 @@ public class TraverseFST {
 					"\n"+in+
 					"\n"+out+
 					"\n"+model); 
+	}
+	
+	public NLUConfig getConfiguration() {
+		return config;
 	}
 	
 	public File getInputSymbols() {return in;}
@@ -184,7 +193,8 @@ public class TraverseFST {
 			Map<Integer, String> syms = openSymbols(iSymbols);
 			knownWords=new HashSet<String>(syms.values());
 		}
-		List<Token> tokens = BuildTrainingData.tokenize(input);
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		List<Token> tokens = tokenizer.tokenize1(input);
 		Iterator<Token> it=tokens.iterator();
 		while(it.hasNext()) {
 			Token t=it.next();
@@ -211,7 +221,8 @@ public class TraverseFST {
 	
 	public String getNLUforUtterance(String input,int nBest) throws Exception {
 		if (nBest<1) nBest=1;
-		input=BuildTrainingData.untokenize(BuildTrainingData.tokenize(input));		
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		input=tokenizer.untokenize(tokenizer.tokenize1(input));
 		for (int i=0;i<fstCmd.length;i++) {
 			fstCmd[i] = fstCmd[i].replaceAll("%NBEST%",nBest+"");
 		}

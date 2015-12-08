@@ -13,12 +13,11 @@ import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.NLUOutput;
-import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.train.Aligner;
 import edu.usc.ict.nl.nlu.fst.train.Alignment;
 import edu.usc.ict.nl.nlu.fst.train.AlignmentSummary;
-import edu.usc.ict.nl.nlu.io.BuildTrainingData;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
@@ -35,7 +34,7 @@ public class FSTNLU extends NLU {
 		File in=new File(c.getFstInputSymbols());
 		File out=new File(c.getFstOutputSymbols());
 		File model=new File(c.getNluModelFile());
-		tf=new TraverseFST(in,out,model,c.getRunningFstCommand());
+		tf=new TraverseFST(in,out,model,c.getRunningFstCommand(),c);
 		if (!in.exists() || !out.exists() || !model.exists()) {
 			logger.warn("input/output/model not existing, retraining...");
 			retrain();
@@ -58,9 +57,8 @@ public class FSTNLU extends NLU {
 	public List<NLUOutput> getNLUOutput(String text,
 			Set<String> possibleNLUOutputIDs, Integer nBest) throws Exception {
 		nBest=(nBest==null || nBest<=0)?1:nBest;
-		BuildTrainingData btd = getBTD();
-		List<Token> tokens = btd.applyBasicTransformationsToStringForClassification(text);
-		String input=BuildTrainingData.untokenize(tokens);
+		TokenizerI tokenizer=getConfiguration().getNluTokenizer();
+		String input=tokenizer.untokenize(tokenizer.tokenize1(text));
 		String retFST=tf.getNLUforUtterance(input,nBest);
 		//System.out.println(retFST);
 		List<NLUOutput> ret=(List)tf.getResults(retFST);
@@ -171,9 +169,9 @@ public class FSTNLU extends NLU {
 	@Override
 	public void train(List<TrainingDataFormat> tds, File model) throws Exception {
 		NLUConfig c = getConfiguration();
-		Aligner a=new Aligner(new File(c.getNLUContentRoot()));
+		Aligner a=new Aligner(new File(c.getNLUContentRoot()),c);
 		logger.info("starting aligner and fst generation");
-		tds=getBTD().prepareTrainingDataForClassification(tds);
+		tds=prepareTrainingDataForClassification(tds);
 		File in=new File(c.getFstInputSymbols());
 		File out=new File(c.getFstOutputSymbols());
 		a.buildFSTFromGoogleXLSX(getTrainingCommand(in.getName(),out.getName(),model.getName(), c.getNluDir(), c.getTrainingFstCommand()),tds, null);//new File(c.getNLUContentRoot(),"dictionary.xlsx"));
@@ -183,7 +181,7 @@ public class FSTNLU extends NLU {
 	
 	public AlignmentSummary readAlignerInfo() throws Exception {
 		NLUConfig c = getConfiguration();
-		Aligner a=new Aligner(new File(c.getNLUContentRoot()));
+		Aligner a=new Aligner(new File(c.getNLUContentRoot()),c);
 		List<Alignment> as = a.readAlignerOutputFile();
 		AlignmentSummary asum=new AlignmentSummary(as);
 		return asum;
@@ -224,7 +222,7 @@ public class FSTNLU extends NLU {
 		logger.warn(" new model: "+model.getAbsolutePath());
 		logger.warn(" input symbols: "+in.getAbsolutePath());
 		logger.warn(" output symbols: "+out.getAbsolutePath());
-		tf=new TraverseFST(in,out,model,c.getRunningFstCommand());
+		tf=new TraverseFST(in,out,model,c.getRunningFstCommand(),c);
 	}
 	
 	public static List<NLUOutput> runFSTNLUTest(String character,String text,int nBest) throws Exception {

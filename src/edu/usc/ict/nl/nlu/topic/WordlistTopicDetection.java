@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,10 +16,10 @@ import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
-import edu.usc.ict.nl.nlu.Token.TokenTypes;
-import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.AhoCorasickList;
 import edu.usc.ict.nl.util.AhoCorasickList.Match;
 import edu.usc.ict.nl.util.AhoCorasickList.MatchList;
@@ -62,7 +61,6 @@ public class WordlistTopicDetection extends NLU {
 		}
 	}
 	
-	private static LinkedHashMap<TokenTypes, Pattern> topicTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(BuildTrainingData.defaultTokenTypes);
 	private class TopicMatcher {
 		AhoCorasickList m;
 		final String topicID; 
@@ -87,9 +85,8 @@ public class WordlistTopicDetection extends NLU {
 	}
 
 	public List<String> getTokensStrings(String line) throws Exception {
-		BuildTrainingData b = getBTD();
-		String processedText=(getConfiguration().getApplyTransformationsToInputText())?b.prepareUtteranceForClassification(line,topicTokenTypes):line;
-		List<Token> tokens = b.tokenize(processedText, topicTokenTypes);
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		List<Token> tokens = tokenizer.tokenize1(line);
 		List<String> ts=(List<String>) FunctionalLibrary.map(tokens, Token.class.getMethod("getName"));
 		return ts;
 	}

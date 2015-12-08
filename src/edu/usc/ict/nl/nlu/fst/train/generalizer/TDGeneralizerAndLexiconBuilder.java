@@ -129,7 +129,7 @@ public class TDGeneralizerAndLexiconBuilder {
 		tmp.setNluConfig(config);
 		NLU nlu=NLU.init(config);
 		nlu.retrain(NLUTest.ros1,NLUTest.ros2,NLUTest.ros3,NLUTest.ros5,NLUTest.ros6,NLUTest.ros7,NLUTest.ros9);
-		Aligner a=new Aligner(new File(config.getNLUContentRoot()));
+		Aligner a=new Aligner(new File(config.getNLUContentRoot()),config);
 		List<Alignment> as = a.readAlignerOutputFile();
 		AlignmentSummary asummary = new AlignmentSummary(as);
 		Map<String, Map<String, Integer>> phrases = asummary.getNluConcepts2phrases();

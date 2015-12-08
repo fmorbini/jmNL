@@ -12,6 +12,7 @@ import edu.usc.ict.nl.nlu.multi.merger.Merger;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
 import edu.usc.ict.nl.nlu.trainingFileReaders.NLUTrainingFileI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.SimcoachUserXLSXFile;
 import edu.usc.ict.nl.util.StringUtils;
@@ -237,6 +238,7 @@ public class NLUConfig extends NLConfig {
 		WIN_EXE_CONFIG.setNluHardLinks("hardlinks.txt");
 		WIN_EXE_CONFIG.setUserUtterances("user-utterances.xlsx");
 		WIN_EXE_CONFIG.setMaximumNumberOfLabels(255);
+		WIN_EXE_CONFIG.setNluTokenizer(new Tokenizer());
 		//WIN_EXE_CONFIG.nlBusConfig=NLBusConfig.WIN_EXE_CONFIG;
 	}
 

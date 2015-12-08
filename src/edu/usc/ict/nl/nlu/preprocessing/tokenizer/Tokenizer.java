@@ -71,13 +71,20 @@ public class Tokenizer implements TokenizerI {
 	@Override
 	public String untokenize(List<Token> tokens) {
 		StringBuffer ret=null;
-		boolean first=true;
-		for (Token m:tokens) {
-			if (first) first=false;
-			else ret.append(" ");
-			if (ret==null) ret=new StringBuffer();
-			ret.append(m.getName());
+		if (tokens!=null) {
+			boolean first=true;
+			for (Token m:tokens) {
+				if (first) first=false;
+				else ret.append(" ");
+				if (ret==null) ret=new StringBuffer();
+				ret.append(m.getName());
+			}
 		}
 		return (ret!=null)?ret.toString():null;
+	}
+	
+	@Override
+	public String tokAnduntok(String input) {
+		return untokenize(tokenize1(input));
 	}
 }

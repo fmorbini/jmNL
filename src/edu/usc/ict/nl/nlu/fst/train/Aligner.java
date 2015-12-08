@@ -18,6 +18,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
+import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.FSTNLUOutput;
 import edu.usc.ict.nl.nlu.fst.TraverseFST;
@@ -38,16 +39,22 @@ public class Aligner {
 	protected File outputDir=null;
 	protected File modeltxt=null;
 	protected File alignerOutput=null;
+	private NLUConfig config;
 
-	public Aligner(File outputDir) {
-		this(outputDir,"input/sample.e","input/sample.nlu","output/training.align","alignments.txt");
+	public Aligner(File outputDir,NLUConfig config) {
+		this(outputDir,"input/sample.e","input/sample.nlu","output/training.align","alignments.txt",config);
 	}
-	public Aligner(File outputDir,String in,String out,String alignerOutput,String prettyPrintedAlignerOutput) {
+	public Aligner(File outputDir,String in,String out,String alignerOutput,String prettyPrintedAlignerOutput,NLUConfig config) {
 		this.outputDir=outputDir;
 		this.in=new File(outputDir,in);
 		this.out=new File(outputDir,out);
 		this.modeltxt=new File(outputDir,prettyPrintedAlignerOutput);
 		this.alignerOutput=new File(outputDir,alignerOutput);
+		this.config=config;
+	}
+	
+	public NLUConfig getConfiguration() {
+		return config;
 	}
 	
 	public List<Alignment> readAlignerOutputFile() throws Exception {
@@ -104,7 +111,7 @@ public class Aligner {
 				String l=td.getLabel();
 				//s=BuildTrainingData.untokenize(BuildTrainingData.removeStopWords(BuildTrainingData.tokenize(s)));
 				s=s.replaceAll("[-:]", "");
-				s=BuildTrainingData.untokenize(BuildTrainingData.tokenize(s));
+				s=getConfiguration().getNluTokenizer().tokAnduntok(s);
 				l=StringUtils.cleanupSpaces(l);
 				s=s.toLowerCase();
 				l=l.toLowerCase();
@@ -253,7 +260,7 @@ public class Aligner {
 	}
 	
 	private PerformanceResult evaluateFST(List<TrainingDataFormat> tds,	File in, File out, File model) throws Exception {
-		TraverseFST tf = new TraverseFST(in, out, model, null);
+		TraverseFST tf = new TraverseFST(in, out, model, null,null);
 		PerformanceResult ret=new PerformanceResult();
 		for(TrainingDataFormat td:tds) {
 			String label=td.getLabel();
