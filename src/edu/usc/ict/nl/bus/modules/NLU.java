@@ -399,10 +399,6 @@ public abstract class NLU implements NLUInterface {
 	}
 
 	@Override
-	public Map<String, Float> getUtteranceScores(String utt,String modelFileName) throws Exception {
-		throw new Exception("unhandled");
-	}
-	@Override
 	public List<Pair<String, Float>> getTokensScoresForLabel(String utt,String label,String modelFileName) throws Exception {
 		throw new Exception("unhandled");
 	}
@@ -460,9 +456,33 @@ public abstract class NLU implements NLUInterface {
 
 	@Override
 	public List<List<Token>> preprocess(String text) {
-		NLUConfig config = getConfiguration();
-		List<PreprocesserI> prs = config.getNluPreprocessers();
-		
+		try {
+			return getPreprocess().prepareUtteranceForClassification(text);
+		} catch (Exception e) {
+			logger.error(e);
+		}
 		return null;
+	}
+	
+	public List<TrainingDataFormat> prepareTrainingDataForClassification(List<TrainingDataFormat> td) throws Exception {
+		List<TrainingDataFormat> ret=new ArrayList<TrainingDataFormat>();
+		Preprocess pr = getPreprocess();
+		for(TrainingDataFormat d:td) {
+			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
+			List<List<Token>> nus = pr.prepareUtteranceForClassification(d.getUtterance());
+			if (nus!=null) {
+				for(List<Token> nu:nus) {
+					String nt=pr.getString(nu);
+					if (StringUtils.isEmptyString(nt)) {
+						logger.error("Empty utterance after filters to prepare it from training: ");
+						logger.error("start='"+d.getUtterance()+"'");
+						logger.error("end='"+nt+"'");
+					} else {
+						ret.add(new TrainingDataFormat(nt, d.getLabel()));
+					}
+				}
+			}
+		}
+		return ret;
 	}
 }

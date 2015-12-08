@@ -278,15 +278,7 @@ public class HierarchicalNLU extends NLU {
 		}
 		return result;
 	}
-	@Override
-	public Map<String, Float> getUtteranceScores(String utt,String modelFileName) throws Exception {
-		List<Pair<NLUOutput, NLU>> iResult = getHierarchyClassificationResults(utt, null,null);
-		if (iResult!=null && !iResult.isEmpty()) {
-			NLU nlu=iResult.get(0).getSecond();
-			return nlu.getUtteranceScores(utt,modelFileName);
-		}
-		return null;
-	}
+
 	@Override
 	public List<Pair<String,Float>> getTokensScoresForLabel(String utt,String label,String modelFileName) throws Exception {
 		NLU nlu=getNLUForLabel(label);

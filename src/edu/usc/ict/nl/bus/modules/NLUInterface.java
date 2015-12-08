@@ -40,7 +40,6 @@ public interface NLUInterface {
 	public Map<String,ConfusionEntry> computeConfusionMatrix() throws Exception;
 	public NLUConfig getConfiguration();
 	
-	public Map<String,Float> getUtteranceScores(String utt,String modelFileName) throws Exception;
 	public List<Pair<String,Float>> getTokensScoresForLabel(String utt,String label,String modelFileName) throws Exception;
 	public List<String> getFeaturesFromUtterance(String utt);
 	public List<String> getFeaturesFromPositionInUtterance(String[] tokens,int pos);

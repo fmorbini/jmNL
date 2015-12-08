@@ -94,7 +94,8 @@ public class BuildTrainingData {
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public List<TrainingDataFormat> buildTrainingData(NLUConfig config) {
+	public List<TrainingDataFormat> buildTrainingData() {
+		config=getConfiguration();
 		File userFile=new File(config.getUserUtterances());
 		List<TrainingDataFormat> td = null;
 		try {
@@ -175,7 +176,7 @@ public class BuildTrainingData {
 
 
 	public List<TrainingDataFormat> getAllSimcoachData() throws InvalidFormatException, FileNotFoundException, IOException {
-		List<TrainingDataFormat> td = buildTrainingData(getConfiguration());
+		List<TrainingDataFormat> td = buildTrainingData();
 		for (File f:FileUtils.getAllFiles(new File("resources/data/"), ".*\\.xlsx$")) {
 			String filename=f.getAbsolutePath();
 			System.out.println("considering file: "+filename+" for addition.");
@@ -500,25 +501,7 @@ public class BuildTrainingData {
 
 
 
-	public List<TrainingDataFormat> prepareTrainingDataForClassification(List<TrainingDataFormat> td) throws Exception {
-		List<TrainingDataFormat> ret=new ArrayList<TrainingDataFormat>();
-		for(TrainingDataFormat d:td) {
-			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
-			List<String> nus=prepareUtteranceForClassification(d.getUtterance());
-			if (nus!=null) {
-				for(String nu:nus) {
-					if (StringUtils.isEmptyString(nu)) {
-						logger.error("Empty utterance after filters to prepare it from training: ");
-						logger.error("start='"+d.getUtterance()+"'");
-						logger.error("end='"+nu+"'");
-					} else {
-						ret.add(new TrainingDataFormat(nu, d.getLabel()));
-					}
-				}
-			}
-		}
-		return ret;
-	}
+
 
 	public ArrayList<String> getSessionsFromString(String sessionsString) throws Exception {
 		ArrayList<String> ret=new ArrayList<String>();
