@@ -332,7 +332,7 @@ public abstract class NLU implements NLUInterface {
 	public Map<String, Object> getPayload(String speechAct, String text) throws Exception {
 		Map<String, Object> totalPayload=null;
 		Preprocess pr = getPreprocess();
-		List<List<Token>> options = pr.prepareUtteranceForClassification(text);
+		List<List<Token>> options = pr.process(text);
 		if (options!=null) {
 			for(List<Token> option:options) {
 				List<NE> nes = pr.getAssociatedNamedEntities(option);
@@ -458,7 +458,7 @@ public abstract class NLU implements NLUInterface {
 	@Override
 	public List<List<Token>> preprocess(String text) {
 		try {
-			return getPreprocess().prepareUtteranceForClassification(text);
+			return getPreprocess().process(text);
 		} catch (Exception e) {
 			logger.error(e);
 		}
@@ -470,7 +470,7 @@ public abstract class NLU implements NLUInterface {
 		Preprocess pr = getPreprocess();
 		for(TrainingDataFormat d:td) {
 			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
-			List<List<Token>> nus = pr.prepareUtteranceForClassification(d.getUtterance());
+			List<List<Token>> nus = pr.process(d.getUtterance());
 			if (nus!=null) {
 				for(List<Token> nu:nus) {
 					String nt=pr.getString(nu);

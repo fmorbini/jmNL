@@ -39,7 +39,7 @@ public class MXChartClassifierNLU extends NLU {
 
 	// additional test to make the approach linear
 	public Collection<PartialClassification> runChartClassifier3(String text,MXClassifierNLU nlu, boolean applyTransformationsToInput,boolean onlyOneSpeechAct) throws Exception {
-		String processedText=(applyTransformationsToInput)?nlu.getBTD().prepareUtteranceForClassification(text):text;
+		String processedText=(applyTransformationsToInput)?nlu.getBTD().process(text):text;
 		String[] words=processedText.split(" ");
 		int numWords=words.length;
 		Collection<PartialClassification> chart=new ArrayList<PartialClassification>();
@@ -100,7 +100,7 @@ public class MXChartClassifierNLU extends NLU {
 			return ret;
 		}
 		String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
-		String processedText=(applyTransformationsToInput)?getBTD().prepareUtteranceForClassification(text):text;
+		String processedText=(applyTransformationsToInput)?getBTD().process(text):text;
 		String[] words=processedText.split("[\\s]+");
 		int numWords=words.length;
 		
@@ -208,7 +208,7 @@ public class MXChartClassifierNLU extends NLU {
 	// initial test
 	public Collection<PartialClassification> runChartClassifier(String text,MXClassifierNLU nlu, boolean applyTransformationsToInput) throws Exception {
 		Collection<PartialClassification> chart=new ArrayList<PartialClassification>();
-		String processedText=(applyTransformationsToInput)?nlu.getBTD().prepareUtteranceForClassification(text):text;
+		String processedText=(applyTransformationsToInput)?nlu.getBTD().process(text):text;
 		String[] words=processedText.split(" ");
 		int numWords=words.length;
 		LinkedList<PartialClassification> partials=new LinkedList<PartialClassification>();

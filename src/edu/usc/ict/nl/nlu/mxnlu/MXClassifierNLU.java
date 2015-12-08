@@ -145,7 +145,7 @@ public class MXClassifierNLU extends NLU {
 		if (logger.isDebugEnabled()) logger.info("input text: '"+text+"'");
 
 		Preprocess pr=getPreprocess();
-		List<List<Token>> options = pr.prepareUtteranceForClassification(text);
+		List<List<Token>> options = pr.process(text);
 		sortOptionsByText(options);
 
 		NLUOutput hardLabel=getHardLinkMappingOf(text);
@@ -222,7 +222,7 @@ public class MXClassifierNLU extends NLU {
 	public List<NLUOutput> getNLUOutputFake(String[] nluOutputIDs,String inputText) throws Exception {
 		List<NLUOutput> ret=new ArrayList<NLUOutput>();
 		Preprocess pr=getPreprocess();
-		List<List<Token>> options = pr.prepareUtteranceForClassification(inputText);
+		List<List<Token>> options = pr.process(inputText);
 		sortOptionsByText(options);
 
 		List<NLUOutput> userSpeechActsWithProb = processNLUOutputs(nluOutputIDs,null,null,null);		
@@ -420,7 +420,7 @@ public class MXClassifierNLU extends NLU {
 		Model m=readModelWithCache(modelFileName);
 		if (m!=null) {
 			Preprocess pr = getPreprocess();
-			String processedText=pr.getString(pr.prepareUtteranceForClassification(utt).get(0));
+			String processedText=pr.getString(pr.process(utt).get(0));
 			if (!StringUtils.isEmptyString(processedText)) {
 				String[] tokens=("<s> "+processedText+" </s>").split("[\\s]+");
 				int l=tokens.length;

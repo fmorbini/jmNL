@@ -82,7 +82,7 @@ public class WordlistRENE extends BasicNE {
 		busconfig.setNluConfig(config);
 		NLU component=(NLU) NLBusBase.createSubcomponent(config, config.getNluClass());
 		Preprocess preprocess = component.getPreprocess();
-		List<List<Token>> out = preprocess.prepareUtteranceForClassification("i want to eat a pig and an apple but also a lot of chickens");
+		List<List<Token>> out = preprocess.process("i want to eat a pig and an apple but also a lot of chickens");
 		System.out.println(preprocess.getStrings(out));
 		/*
 		WordlistRENE t = new WordlistRENE("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\test");

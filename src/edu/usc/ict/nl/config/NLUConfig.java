@@ -43,9 +43,8 @@ public class NLUConfig extends NLConfig {
 	private boolean generalizeNumbers;
 	private Float acceptanceThreshold,regularization;
 	private String lowConfidenceEvent,emptyTextEventName;
-	private List<NamedEntityExtractorI> nes;
-	private TokenizerI tokenizer;
-	private List<PreprocesserI> prs;
+	
+	private PreprocessingConfig prConfig=null;
 	
 	// fst specific
 	private String fstInputSymbols=null,fstOutputSymbols=null;
@@ -147,15 +146,6 @@ public class NLUConfig extends NLConfig {
 	public void setTrainingDataReader(NLUTrainingFileI trainingDataReader) {
 		this.trainingDataReader = trainingDataReader;
 	}
-	/** NLU named entities */
-	public List<NamedEntityExtractorI> getNluNamedEntityExtractors() {return nes;}
-	public void setNluNamedEntityExtractors(List<NamedEntityExtractorI> nes) {this.nes=nes;}
-	/** NLU preprocessing */
-	public List<PreprocesserI> getNluPreprocessers() {return prs;}
-	public void setNluPreprocessers(List<PreprocesserI> prs) {this.prs=prs;}
-	/** NLU tokenizer */
-	public TokenizerI getNluTokenizer() {return tokenizer;}
-	public void setNluTokenizer(TokenizerI t) {this.tokenizer=t;}
 	/** NLU nbest */
 	public int getnBest() {return nBest;}
 	public void setnBest(int nBest) {this.nBest = nBest;}
@@ -223,6 +213,21 @@ public class NLUConfig extends NLConfig {
 	
 	public Boolean isInAdvicerMode() {return (nlBusConfig!=null)?nlBusConfig.isInAdvicerMode():false;}  
 	
+	public PreprocessingConfig getPreprocessingConfig() {return prConfig;}
+	public void setPreprocessingConfig(PreprocessingConfig prConfig) {this.prConfig = prConfig;}
+	public List<NamedEntityExtractorI> getNluNamedEntityExtractors() {
+		if (getPreprocessingConfig()!=null) {
+			return getPreprocessingConfig().getNluNamedEntityExtractors();
+		}
+		return null;
+	}
+	public TokenizerI getNluTokenizer() {
+		if (getPreprocessingConfig()!=null) {
+			return getPreprocessingConfig().getNluTokenizer();
+		}
+		return null;
+	}
+	
 	// sample config used to run mxnlu during testing
 	public static final NLUConfig WIN_EXE_CONFIG=new NLUConfig();
 	static{
@@ -238,7 +243,6 @@ public class NLUConfig extends NLConfig {
 		WIN_EXE_CONFIG.setNluHardLinks("hardlinks.txt");
 		WIN_EXE_CONFIG.setUserUtterances("user-utterances.xlsx");
 		WIN_EXE_CONFIG.setMaximumNumberOfLabels(255);
-		WIN_EXE_CONFIG.setNluTokenizer(new Tokenizer());
 		//WIN_EXE_CONFIG.nlBusConfig=NLBusConfig.WIN_EXE_CONFIG;
 	}
 

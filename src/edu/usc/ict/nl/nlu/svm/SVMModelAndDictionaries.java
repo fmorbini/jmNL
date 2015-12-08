@@ -188,7 +188,7 @@ public class SVMModelAndDictionaries {
 					outputClassCounter++;
 				}
 				Preprocess pr = getNlu().getPreprocess();
-				List<List<Token>> options = pr.prepareUtteranceForClassification(td.getUtterance());
+				List<List<Token>> options = pr.process(td.getUtterance());
 				List<String> tdOptions=pr.getStrings(options);
 				if (tdOptions!=null) {
 					for(String text:tdOptions) {
@@ -212,7 +212,7 @@ public class SVMModelAndDictionaries {
 			for(TrainingDataFormat td:tds) {
 				String sa=td.getLabel();
 				Preprocess pr = getNlu().getPreprocess();
-				List<List<Token>> options = pr.prepareUtteranceForClassification(td.getUtterance());
+				List<List<Token>> options = pr.process(td.getUtterance());
 				List<String> tdOptions=pr.getStrings(options);
 				if (tdOptions!=null) {
 					for(String text:tdOptions) {

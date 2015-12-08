@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.util.StringUtils;
@@ -13,13 +14,13 @@ import edu.usc.ict.nl.util.StringUtils;
 public class Preprocess {
 	
 	
-	private NLUConfig config;
+	private PreprocessingConfig config;
 
-	public Preprocess(NLUConfig c) {
+	public Preprocess(PreprocessingConfig c) {
 		this.config=c;
 	}
 	
-	public NLUConfig getConfiguration() {
+	public PreprocessingConfig getConfiguration() {
 		return config;
 	}
 
@@ -38,8 +39,8 @@ public class Preprocess {
 		return (ret!=null)?ret.toString():null;
 	}
 
-	public List<List<Token>> prepareUtteranceForClassification(String text) throws Exception {
-		NLUConfig config=getConfiguration();
+	public List<List<Token>> process(String text) throws Exception {
+		PreprocessingConfig config=getConfiguration();
 		TokenizerI tokenizer = config.getNluTokenizer();
 		List<PreprocesserI> prs = config.getNluPreprocessers();
 		List<List<Token>> tokens = tokenizer.tokenize(text);
