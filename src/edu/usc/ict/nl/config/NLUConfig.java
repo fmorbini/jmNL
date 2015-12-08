@@ -228,7 +228,6 @@ public class NLUConfig extends NLConfig {
 		WIN_EXE_CONFIG.setnBest(2);
 		WIN_EXE_CONFIG.setAcceptanceThreshold(0.4f);
 		WIN_EXE_CONFIG.setLowConfidenceEvent("internal.low-confidence");
-		WIN_EXE_CONFIG.setApplyTransformationsToInputText(true);
 		WIN_EXE_CONFIG.setGeneralizeNumbers(true);
 		WIN_EXE_CONFIG.setNluModelFile("classifier-model");
 		WIN_EXE_CONFIG.setNluTrainingFile("classifier-training.txt");

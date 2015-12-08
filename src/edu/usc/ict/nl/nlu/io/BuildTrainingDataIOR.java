@@ -27,16 +27,14 @@ public class BuildTrainingDataIOR extends BuildTrainingData {
 		// first build the map of user utterance paired to the list of preceding system utterances.
 		for(Pair<String, String> su:suPairs) {
 			String systemUtt=su.getFirst();
-			List<String> userUtts=prepareUtteranceForClassification(su.getSecond());
-			String userUtt=userUtts.get(0);
+			String userUtt=su.getSecond();
 			Collection<String> systemUtts=userSystemMap.get(userUtt);
 			if (systemUtts==null) userSystemMap.put(userUtt, systemUtts=new HashSet<String>());
 			systemUtts.add(systemUtt);
 		}
 		// then build the map of user utterances paired to the speech act and system utterances preceding that user utterance.
 		for(TrainingDataFormat d:data) {
-			List<String> userUtterances=prepareUtteranceForClassification(d.getUtterance());
-			String userUtterance=userUtterances.get(0);
+			String userUtterance=d.getUtterance();
 			String userUtteranceSpeechAct=d.getLabel();
 			Pair<String, Collection<String>> saAndsystemUttsPair = ad.get(userUtterance);
 			String a=(saAndsystemUttsPair!=null)?saAndsystemUttsPair.getFirst():null;
@@ -70,8 +68,6 @@ public class BuildTrainingDataIOR extends BuildTrainingData {
 				foundText=!foundText;
 				if (!foundText) {
 					text=text.replaceFirst("^.*=>[\\s]*", "");
-					List<String> texts = prepareUtteranceForClassification(text);
-					text=texts.get(0);
 					if ((lastItem!=null) && text.equals(lastItem.getFirst())) {
 						lastItem.getSecond().addAll(sas);
 					} else {
@@ -115,42 +111,5 @@ public class BuildTrainingDataIOR extends BuildTrainingData {
 		lineOut.close();
 		saOut.close();
 		linksOut.close();
-	}
-	
-	public static void main(String[] args) {
-		try {
-			
-			
-			//System.out.println(stemm("i'm cars read reads redded"));
-			BuildTrainingDataIOR btd = new BuildTrainingDataIOR(NLUConfig.WIN_EXE_CONFIG);
-			List<TrainingDataFormat> td2 = btd.buildTrainingData();
-			System.out.println(btd.prepareUtteranceForClassification("are you really smart the cars <num> lifted tomatoes running matters years months sometimes on the streets nothing quite"));
-			System.exit(1);
-			ArrayList<Pair<String, Collection<String>>> r = btd.readIORExportedLinks("exported-links.txt");
-			int tot=0,mul=0;
-			for(Pair<String, Collection<String>>d:r) {
-				if (d.getSecond().size()>1) mul++;
-				tot++;
-			}
-			System.out.println(tot+" "+mul);
-			System.out.println(btd.prepareUtteranceForClassification("<NUM> years"));
-			System.exit(1);
-
-			List<TrainingDataFormat> td=btd.getAllSimcoachData();
-			List<Pair<String, String>> sud=btd.getAllSystemUserPairs();
-			HashMap<String, Pair<String,Collection<String>>> iorData = btd.produceDataForIOR(td,sud);
-			btd.dumpIORDataInImportableTXT(iorData, "allSimcoachLines", "allSimcoachSpeechActs","allSimcoachLinks");
-			System.exit(1);
-			
-			List<TrainingDataFormat> a = btd.buildTrainingDataFromFormsExcel("../../simcoach-runtime/SimcoachApp/src/forms.xlsx", 0);
-			//btd.mergeUserUtterances("localhost:8080","sclab1");
-			//System.out.println(btd.tokenize("??"));
-			//ArrayList<Pair<String, TokenTypes>> tokens = btd.tokenize("forty-four");			
-			System.out.println(btd.applyBasicTransformationsToStringForClassification("fourty six"));
-			//System.out.println(EnglishWrittenNumbers2Digits.parseWrittenNumbers(tokens));
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 }

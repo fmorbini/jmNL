@@ -16,6 +16,8 @@ import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
@@ -57,15 +59,6 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		return null;
 	}
 
-	public static String fromTokensToOriginalString(List<Token> in) {
-		try {
-			return FunctionalLibrary.printCollection(FunctionalLibrary.map(in, Token.class.getMethod("getOriginal")), "", "", " ");
-		} catch (Exception e) {
-			logger.error(e);
-		}
-		return null;
-	}
-
 	private List<Integer> computeTokenStarts(List<Token> inputTokens) {
 		List<Integer> tokenStarts=null;
 		if (inputTokens!=null) {
@@ -85,7 +78,8 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 	public List<Token> getModifiedTokens(List<Token> inputTokens) {
 		List<Token> ret=null;
 		List<Integer> tokenStarts=computeTokenStarts(inputTokens);
-		String input=fromTokensToOriginalString(inputTokens);
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		String input=Preprocess.getString(inputTokens, tokenizer);
 		try {
 			List<NE> nes = extractNamedEntitiesFromText(input);
 			filterOverlappingNES(nes);

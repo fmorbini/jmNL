@@ -166,7 +166,7 @@ public abstract class NLU implements NLUInterface {
 	public void dumpTrainingDataToFileNLUFormat(File trainingFile,List<TrainingDataFormat> td) throws Exception {
 		btd=getBTD();
 		if (trainingFile.exists()) trainingFile.delete();
-		List<TrainingDataFormat> preparedTrainingData=btd.prepareTrainingDataForClassification(td);
+		List<TrainingDataFormat> preparedTrainingData=prepareTrainingDataForClassification(td);
         BufferedWriter outputStream = new BufferedWriter(new FileWriter(trainingFile));
 		for(TrainingDataFormat row:preparedTrainingData) {
 			outputStream.write(row.toNluformat(this));
@@ -329,12 +329,14 @@ public abstract class NLU implements NLUInterface {
 		return payloads;
 	}
 	@Override
-	public Map<String, Object> getPayload(String sa, String text) throws Exception {
-		List<NamedEntityExtractorI> nes = getNamedEntityExtractors();
+	public Map<String, Object> getPayload(String speechAct, String text) throws Exception {
 		Map<String, Object> totalPayload=null;
-		if (nes!=null) {
-			for(NamedEntityExtractorI ne:nes) {
-				List<NE> foundNEs=ne.extractNamedEntitiesFromText(text, sa);
+		Preprocess pr = getPreprocess();
+		List<List<Token>> options = pr.prepareUtteranceForClassification(text);
+		if (options!=null) {
+			for(List<Token> option:options) {
+				List<NE> nes = pr.getAssociatedNamedEntities(option);
+				List<NE> foundNEs=BasicNE.filterNESwithSpeechAct(nes, speechAct);
 				if (foundNEs!=null) {
 					Map<String,Object> payload=BasicNE.createPayload(foundNEs);
 					if (totalPayload==null) totalPayload=payload;
@@ -344,7 +346,6 @@ public abstract class NLU implements NLUInterface {
 		}
 		return totalPayload;
 	}
-	
 	protected static String springConfig=null;
 	static protected AbstractApplicationContext context;
 	public static NLUConfig getNLUConfig(String beanName) {

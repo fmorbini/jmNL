@@ -14,17 +14,18 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
+
+import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
+import edu.usc.ict.nl.nlu.trainingFileReaders.MXNLUTrainingFile;
 import libsvm.svm;
 import libsvm.svm_model;
 import libsvm.svm_node;
 import libsvm.svm_parameter;
 import libsvm.svm_problem;
-
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
-
-import edu.usc.ict.nl.nlu.TrainingDataFormat;
-import edu.usc.ict.nl.nlu.trainingFileReaders.MXNLUTrainingFile;
 
 public class SVMModelAndDictionaries {
 	private Map<String,Integer> outputClassDictionary=null;
@@ -37,6 +38,14 @@ public class SVMModelAndDictionaries {
 	private XStream outputCenverter=new XStream(new StaxDriver());
 	private LibSVMNLU nlu=null;
 
+	private LibSVMNLU getNlu() {
+		return nlu;
+	}
+
+	private void setNlu(LibSVMNLU nlu) {
+		this.nlu = nlu;
+	}
+	
 	private svm_parameter initParams() {
 		svm_parameter param = new svm_parameter();
 		// default values
@@ -64,9 +73,8 @@ public class SVMModelAndDictionaries {
 	}
 
 	public SVMModelAndDictionaries(LibSVMNLU nlu) {
-		this.nlu=nlu;
+		this.setNlu(nlu);
 	}
-
 
 	private static <Ti,To> Map<Ti,To> invertMap(Map<To,Ti> input) {
 		Map<Ti,To> ret=null;
@@ -179,12 +187,18 @@ public class SVMModelAndDictionaries {
 					outputClassDictionary.put(sa, outputClassCounter);
 					outputClassCounter++;
 				}
-				String text=nlu.doPreprocessingForClassify(td.getUtterance());
-				String[] features=text.split("[\\s]+");
-				for(String f:features) {
-					if (!featuresDictionary.containsKey(f)) {
-						featuresDictionary.put(f,featuresCounter);
-						featuresCounter++;
+				Preprocess pr = getNlu().getPreprocess();
+				List<List<Token>> options = pr.prepareUtteranceForClassification(td.getUtterance());
+				List<String> tdOptions=pr.getStrings(options);
+				if (tdOptions!=null) {
+					for(String text:tdOptions) {
+						String[] features=text.split("[\\s]+");
+						for(String f:features) {
+							if (!featuresDictionary.containsKey(f)) {
+								featuresDictionary.put(f,featuresCounter);
+								featuresCounter++;
+							}
+						}
 					}
 				}
 			}
@@ -197,10 +211,16 @@ public class SVMModelAndDictionaries {
 			BufferedWriter out=new BufferedWriter(new FileWriter(output));
 			for(TrainingDataFormat td:tds) {
 				String sa=td.getLabel();
-				String text=nlu.doPreprocessingForClassify(td.getUtterance());
-				String[] features=text.split("[\\s]+");
-				String line=writeSVMLine(outputClassDictionary.get(sa),features,featuresDictionary);
-				out.write(line+"\n");
+				Preprocess pr = getNlu().getPreprocess();
+				List<List<Token>> options = pr.prepareUtteranceForClassification(td.getUtterance());
+				List<String> tdOptions=pr.getStrings(options);
+				if (tdOptions!=null) {
+					for(String text:tdOptions) {
+						String[] features=text.split("[\\s]+");
+						String line=writeSVMLine(outputClassDictionary.get(sa),features,featuresDictionary);
+						out.write(line+"\n");
+					}
+				}
 			}
 			out.close();
 		}
@@ -311,4 +331,6 @@ public class SVMModelAndDictionaries {
 		}
 		return(d);
 	}
+
+
 }

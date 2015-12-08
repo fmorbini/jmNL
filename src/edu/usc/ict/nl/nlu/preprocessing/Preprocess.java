@@ -57,7 +57,7 @@ public class Preprocess {
 			TokenizerI tokenizer = getConfiguration().getNluTokenizer();
 			for(List<Token> ts:input) {
 				if (ts!=null) {
-					String s=tokenizer.untokenize(ts);
+					String s=getString(ts, tokenizer);
 					if (!StringUtils.isEmptyString(s)) {
 						if (ret==null) ret=new ArrayList<>();
 						ret.add(s);
@@ -68,8 +68,10 @@ public class Preprocess {
 		return ret;
 	}
 	public String getString(List<Token> ts) {
+		return getString(ts, getConfiguration().getNluTokenizer());
+	}
+	public static String getString(List<Token> ts,TokenizerI tokenizer) {
 		if (ts!=null) {
-			TokenizerI tokenizer = getConfiguration().getNluTokenizer();
 			String s=tokenizer.untokenize(ts);
 			if (!StringUtils.isEmptyString(s)) {
 				return s;
