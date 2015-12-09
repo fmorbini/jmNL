@@ -4,10 +4,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocesser;
 import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
 import edu.usc.ict.nl.util.StringUtils;
 
-public abstract class Remover implements RemoverI {
+public abstract class Remover extends Preprocesser implements RemoverI {
 	
 
 

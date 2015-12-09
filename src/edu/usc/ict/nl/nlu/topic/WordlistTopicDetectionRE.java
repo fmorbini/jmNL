@@ -58,11 +58,11 @@ public class WordlistTopicDetectionRE extends NLU {
 		if (nluResult==null || nluResult.isEmpty()) {
 			String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				if (nluResult==null) nluResult=new ArrayList<NLUOutput>();
 				nluResult.add(new NLUOutput(text,lowConfidenceEvent,1f,null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		return nluResult;
@@ -118,8 +118,8 @@ public class WordlistTopicDetectionRE extends NLU {
 			} else {
 				result.add(false);
 				if (printMistakes) {
-					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
-					else logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
+					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
+					else getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
 				}
 			}
 		}

@@ -1,22 +1,23 @@
 package edu.usc.ict.nl.nlu.preprocessing.spellchecker;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.nlu.Token;
-import edu.usc.ict.nl.nlu.Token.TokenTypes;
-import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocesser;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.StringUtils;
 
-public abstract class SpellChecker implements SpellCheckerI {
+public abstract class SpellChecker extends Preprocesser implements SpellCheckerI {
 	
-	private NLUConfig config=null;
+	private PreprocessingConfig config=null;
 
-	public SpellChecker(NLUConfig config) {
+	public SpellChecker(PreprocessingConfig config) {
 		this.config=config;
+	}
+	
+	public PreprocessingConfig getConfiguration() {
+		return config;
 	}
 	
 	@Override

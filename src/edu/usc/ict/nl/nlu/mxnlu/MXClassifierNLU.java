@@ -69,7 +69,7 @@ public class MXClassifierNLU extends NLU {
 		try {
 			model=readModelWithCache(modelFileName);
 		} catch (Exception e) {
-			logger.error("Error opening model file: '"+modelFileName+"' while asking for possible NLU speech acts. Returning none.");
+			getLogger().error("Error opening model file: '"+modelFileName+"' while asking for possible NLU speech acts. Returning none.");
 		}
 
 		if (model!=null) {
@@ -116,7 +116,7 @@ public class MXClassifierNLU extends NLU {
 		new File(getExeName(config)).setExecutable(true);
 		File model=new File(config.getNluModelFile());
 		if (!model.exists()) {
-			logger.warn("no model found, retraining...");
+			getLogger().warn("no model found, retraining...");
 			boolean startTrainingNLUP=getNLUProcess()==null;
 			if (startTrainingNLUP) setNLUProcess(startMXNLUProcessWithTheseParams(null,(config.isInAdvicerMode())?-1:config.getnBest()));
 			retrain();
@@ -142,7 +142,7 @@ public class MXClassifierNLU extends NLU {
 	public List<NLUOutput> classify(String text,Set<String> possibleUserEvents, Integer nBest) throws Exception {
 		List<NLUOutput> ret=null;
 
-		if (logger.isDebugEnabled()) logger.info("input text: '"+text+"'");
+		if (getLogger().isDebugEnabled()) getLogger().info("input text: '"+text+"'");
 
 		Preprocess pr=getPreprocess();
 		List<List<Token>> options = pr.process(text);
@@ -170,7 +170,7 @@ public class MXClassifierNLU extends NLU {
 				String t=pr.getString(option);
 				String features=null;
 				String[] result=null;
-				if (logger.isDebugEnabled()) logger.info(" considering preprocessed option: '"+t+"'");
+				if (getLogger().isDebugEnabled()) getLogger().info(" considering preprocessed option: '"+t+"'");
 
 				if (pt==null || !t.equals(pt)) {
 					pt=t;
@@ -268,7 +268,7 @@ public class MXClassifierNLU extends NLU {
 	private List<NLUOutput> processNLUOutputs(String[] nlu,Integer nBest, Set<String> possibleUserEvents,ArrayList<String> sortedOutputKeys) throws Exception {
 		Float acceptanceThreshold=this.acceptanceThreshold;
 		NLUConfig config=getConfiguration();
-		logger.debug("PROCESS NLU: input user speechActs: "+((nlu==null)?nlu:Arrays.asList(nlu)));
+		getLogger().debug("PROCESS NLU: input user speechActs: "+((nlu==null)?nlu:Arrays.asList(nlu)));
 		if (sortedOutputKeys!=null) sortedOutputKeys.clear();
 		if (nlu==null) return null;
 
@@ -284,7 +284,7 @@ public class MXClassifierNLU extends NLU {
 				prbString=m.group(1);
 				sa=StringUtils.removeLeadingAndTrailingSpaces(m.group(2));
 			} else {
-				logger.error("NO MATCH WITH INPUT SPEECHACT AND PROBABILITY. Forcing P=1 and SpeechAct = '"+s+"'");
+				getLogger().error("NO MATCH WITH INPUT SPEECHACT AND PROBABILITY. Forcing P=1 and SpeechAct = '"+s+"'");
 				prbString="1";
 				sa=s;
 			}
@@ -295,7 +295,7 @@ public class MXClassifierNLU extends NLU {
 						if (userEvents.size()<=nBest) {
 							userEvents.add(new NLUOutput(null, sa, prb,null));
 							if (sortedOutputKeys!=null) sortedOutputKeys.add(sa);
-							logger.debug(" user speechAct: "+sa+" with probability "+prb);
+							getLogger().debug(" user speechAct: "+sa+" with probability "+prb);
 							if (possibleUserEvents!=null) {
 								possibleUserEvents.remove(sa);
 								if (possibleUserEvents.size()<=0) break;
@@ -304,7 +304,7 @@ public class MXClassifierNLU extends NLU {
 					}
 				}
 			} catch (NumberFormatException e) {
-				logger.error(" probability associated with '"+s+"' is not a number.");
+				getLogger().error(" probability associated with '"+s+"' is not a number.");
 			}
 		}
 		// if no event is left: update the current state by following all user edges (this is the case
@@ -312,11 +312,11 @@ public class MXClassifierNLU extends NLU {
 		if (userEvents.isEmpty()) {
 			String lowConfidenceEvent=config.getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				userEvents.add(new NLUOutput(null, lowConfidenceEvent, 1f, null));
 				if (sortedOutputKeys!=null) sortedOutputKeys.add(lowConfidenceEvent);
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		return userEvents;
@@ -342,7 +342,7 @@ public class MXClassifierNLU extends NLU {
 			} else {
 				result.add(false);
 				if (printMistakes) {
-					logger.error(generateErrorString(sortedNLUOutput,td,modelFile));
+					getLogger().error(generateErrorString(sortedNLUOutput,td,modelFile));
 				}
 			}
 		}
@@ -377,7 +377,7 @@ public class MXClassifierNLU extends NLU {
 		List<TrainingDataFormat> td =BuildTrainingData.buildTrainingDataFromNLUFormatFile(trainingFile);
 		if (td!=null && !td.isEmpty()) {
 			Set<String> sas = BuildTrainingData.getAllSpeechActsInTrainingData(td);
-			if (maximumNumberOfLabels!=null && sas.size()>maximumNumberOfLabels) logger.error("skipping training because too many labels ("+sas.size()+">"+maximumNumberOfLabels+") in "+trainingFile);
+			if (maximumNumberOfLabels!=null && sas.size()>maximumNumberOfLabels) getLogger().error("skipping training because too many labels ("+sas.size()+">"+maximumNumberOfLabels+") in "+trainingFile);
 			else {
 
 				td=btd.cleanTrainingData(td);
@@ -385,7 +385,7 @@ public class MXClassifierNLU extends NLU {
 				trainNLUOnThisData(td, trainingFile, modelFile);
 			}
 		} else {
-			logger.warn("couldn't train because didn't find any data: '"+trainingFile+"'");
+			getLogger().warn("couldn't train because didn't find any data: '"+trainingFile+"'");
 		}
 	}
 	@Override
@@ -393,7 +393,7 @@ public class MXClassifierNLU extends NLU {
 			throws Exception {
 		Integer maximumNumberOfLabels=getConfiguration().getMaximumNumberOfLabels();
 		Set<String> sas = BuildTrainingData.getAllSpeechActsInTrainingData(td);
-		if (maximumNumberOfLabels!=null && sas.size()>maximumNumberOfLabels) logger.error("skipping training because too many labels ("+sas.size()+">"+maximumNumberOfLabels+") in training data");
+		if (maximumNumberOfLabels!=null && sas.size()>maximumNumberOfLabels) getLogger().error("skipping training because too many labels ("+sas.size()+">"+maximumNumberOfLabels+") in training data");
 		else {
 			NLUConfig config=getConfiguration();
 			trainNLUOnThisData(td, new File(config.getNluTrainingFile()), model);

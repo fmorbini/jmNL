@@ -181,9 +181,9 @@ public class NLUExe extends NLU {
 		case TRAIN:
 			File inputFile=new File(config.getNluTrainingFile());
 			List<TrainingDataFormat> tds = reader.getTrainingInstances(inputFile);
-			logger.info("starting training with data from: "+inputFile);
-			if (tds!=null) logger.info("lines: "+tds.size());
-			else logger.info("null data.");
+			getLogger().info("starting training with data from: "+inputFile);
+			if (tds!=null) getLogger().info("lines: "+tds.size());
+			else getLogger().info("null data.");
 			nlu.train(tds, new File(config.getNluModelFile()));
 			nlu.kill();
 		}

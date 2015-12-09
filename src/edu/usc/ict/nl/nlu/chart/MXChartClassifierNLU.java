@@ -350,8 +350,8 @@ public class MXChartClassifierNLU extends NLU {
 			} else {
 				result.add(false);
 				if (printMistakes) {
-					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
-					else logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
+					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
+					else getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
 				}
 			}
 		}
@@ -536,10 +536,10 @@ public class MXChartClassifierNLU extends NLU {
 		} else {
 			String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				ret.add(new NLUOutput(text,lowConfidenceEvent, 1f, null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		return ret;

@@ -39,7 +39,7 @@ public class SPSFSTNLU extends FSTNLU {
 			try {
 				mapper=new SAMapper(c);
 			} catch (Exception e) {
-				logger.warn("mapper model not present, retraining.",e);
+				getLogger().warn("mapper model not present, retraining.",e);
 				SAMapper.trainMapperAndSave(new File(c.getSpsMapperModelFile()),this,new File(c.getUserUtterances()));
 				mapper=new SAMapper(c);
 			}
@@ -57,7 +57,7 @@ public class SPSFSTNLU extends FSTNLU {
 				if (nlu.getId() == null)
 					continue;
 				String sa=mapper.getSimcoachSAForFSTNLUOutput(nlu,false);
-				logger.info("SPS FSTNLU converted FST output: '"+nlu+"' to sps speech act: '"+sa+"'");
+				getLogger().info("SPS FSTNLU converted FST output: '"+nlu+"' to sps speech act: '"+sa+"'");
 				if (ret==null) ret=new ArrayList<NLUOutput>();
 				if (sa != null)
 					ret.add(new NLUOutput(text, sa, nlu.getProb().getResult(), nlu.getPayload()));
@@ -66,11 +66,11 @@ public class SPSFSTNLU extends FSTNLU {
 		if (ret==null || ret.isEmpty()) {
 			String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				if (ret==null) ret=new ArrayList<NLUOutput>();
 				ret.add(new NLUOutput(text, lowConfidenceEvent, 1f, null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 
@@ -87,7 +87,7 @@ public class SPSFSTNLU extends FSTNLU {
 		internalNLU.train(tds, model);
 		mapper.trainMapperAndSave(this,tds);
 		mapper.loadMapperModel();
-		logger.info("done construction of sps mapper to ontology labels.");
+		getLogger().info("done construction of sps mapper to ontology labels.");
 	}
 	
 	@Override
@@ -101,7 +101,7 @@ public class SPSFSTNLU extends FSTNLU {
 		internalNLU.retrain(files);
 		mapper.trainMapperAndSave(this, files);
 		mapper.loadMapperModel();
-		logger.info("done construction of sps mapper to ontology labels.");
+		getLogger().info("done construction of sps mapper to ontology labels.");
 	}
 	
 	public static void main(String[] args) throws Exception {

@@ -76,7 +76,7 @@ public class NLUTest extends FSTNLU {
 				boolean rr=nlu1.nluTest(spsTD,r);
 				p.add(rr);
 				if (!rr && printErrors) {
-					logger.error("'"+td.getUtterance()+"' classified as: "+r+" instead of "+spsTD.getLabel()+"\n"+
+					getLogger().error("'"+td.getUtterance()+"' classified as: "+r+" instead of "+spsTD.getLabel()+"\n"+
 							"   original label: "+td.getLabel()+" returned label: "+rawr
 							);
 				}
@@ -244,7 +244,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 		File model2=new File(config2.getNluModelFile());
 		
 		File u=new File(config.getUserUtterances()); // this file contains both the new nlu annotation and the ontology single label.
-		logger.info("preparing training data for aligner");
+		getLogger().info("preparing training data for aligner");
 		List<TrainingDataFormat> itds = Aligner.extractTrainingDataFromSingleStep1and3GoogleXLSXForSPS(u);
 		Set<String> sas = BuildTrainingData.getAllSpeechActsInTrainingData(itds);
 		System.out.println(itds.size()+" "+sas.size());

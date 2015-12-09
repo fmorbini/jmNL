@@ -3,9 +3,10 @@ package edu.usc.ict.nl.nlu.preprocessing.stemmer;
 import java.util.List;
 
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocesser;
 import edu.usc.ict.nl.util.StringUtils;
 
-public abstract class Stemmer implements StemmerI {
+public abstract class Stemmer extends Preprocesser implements StemmerI {
 
 	@Override
 	public void run(List<List<Token>> input) {

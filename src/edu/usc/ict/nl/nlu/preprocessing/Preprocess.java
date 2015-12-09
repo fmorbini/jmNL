@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.ne.NE;
@@ -14,14 +14,14 @@ import edu.usc.ict.nl.util.StringUtils;
 public class Preprocess {
 	
 	
-	private PreprocessingConfig config;
+	private NLU nlu;
 
-	public Preprocess(PreprocessingConfig c) {
-		this.config=c;
+	public Preprocess(NLU nlu) {
+		this.nlu=nlu;
 	}
 	
 	public PreprocessingConfig getConfiguration() {
-		return config;
+		return nlu.getConfiguration().getPreprocessingConfig();
 	}
 
 	public static String getStringOfTokensSpan(List<Token> tokens,int start, int end) {
@@ -46,6 +46,7 @@ public class Preprocess {
 		List<List<Token>> tokens = tokenizer.tokenize(text);
 		if (prs!=null) {
 			for(PreprocesserI pr:prs) {
+				pr.setNlu(nlu);
 				pr.run(tokens);
 			}
 		}

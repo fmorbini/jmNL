@@ -73,7 +73,7 @@ public class GeneralizedFSTNLU extends FSTNLU {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Error while reading the lexicon: '"+lexiconFile+"'",e);
+			getLogger().error("Error while reading the lexicon: '"+lexiconFile+"'",e);
 		}
 	}
 
@@ -129,11 +129,11 @@ public class GeneralizedFSTNLU extends FSTNLU {
 		if (ret==null || ret.isEmpty()) {
 			String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				if (ret==null) ret=new ArrayList<FSTNLUOutput>();
 				ret.add(new FSTNLUOutput(text, lowConfidenceEvent, 1f, null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 

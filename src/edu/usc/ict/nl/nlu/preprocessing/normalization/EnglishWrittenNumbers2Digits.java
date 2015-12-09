@@ -1,14 +1,14 @@
-package edu.usc.ict.nl.utils;
+package edu.usc.ict.nl.nlu.preprocessing.normalization;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
-import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
@@ -17,9 +17,15 @@ import edu.usc.ict.nl.parser.ChartParser.Item;
 import edu.usc.ict.nl.util.LevenshteinDistance;
 import edu.usc.ict.nl.util.Pair;
 
-public class EnglishWrittenNumbers2Digits {
+public class EnglishWrittenNumbers2Digits extends Normalizer {
+
+	public EnglishWrittenNumbers2Digits() {
+	}
 	
-	
+	@Override
+	public List<Token> normalize(List<Token> tokens) {
+		return parseWrittenNumbers(getNluConfiguration(), tokens);
+	}
 
 	public static Pair<String,Integer> findBestMatch(String m,Collection<String> c) {
 		int minD=Integer.MAX_VALUE;
@@ -31,18 +37,23 @@ public class EnglishWrittenNumbers2Digits {
 		return new Pair<String,Integer>(ret,minD);
 	}
 
-	public static List<Token> parseWrittenNumbers(NLUConfig nluConfig,List<Token> tokens) throws Exception {
+	private static List<Token> parseWrittenNumbers(NLUConfig nluConfig,List<Token> tokens) {
 		File grammar=new File(new File(nluConfig.nlBusConfig.getContentRoot()).getParent(),"preprocessing/written-numbers-grammar.txt");
 		if (!grammar.exists()) return tokens;
 		else {
-			ChartParser parser=ChartParser.getParserForGrammar(grammar);
-			ArrayList<String> input=new ArrayList<String>();
-			for (Token t:tokens) {
-				input.add(t.getName());
+			try {
+				ChartParser parser=ChartParser.getParserForGrammar(grammar);
+				ArrayList<String> input=new ArrayList<String>();
+				for (Token t:tokens) {
+					input.add(t.getName());
+				}
+				Collection<Item> result = parser.parseAndFilter(input,"<N>");
+				return replaceItemsInTokens(tokens,result);
+			} catch (Exception e) {
+				logger.error(e);
 			}
-			Collection<Item> result = parser.parseAndFilter(input,"<N>");
-			return replaceItemsInTokens(tokens,result);
 		}
+		return tokens;
 	}
 	
 	private static List<Token> replaceItemsInTokens(List<Token> tokens, Collection<Item> numbers) {
@@ -71,4 +82,5 @@ public class EnglishWrittenNumbers2Digits {
 		tokens=parseWrittenNumbers(NLUConfig.WIN_EXE_CONFIG,tokens);
 		System.out.println(tokens);
 	}
+
 }

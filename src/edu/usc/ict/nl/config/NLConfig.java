@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import edu.usc.ict.nl.config.NLConfig.ExecutablePlatform;
 import edu.usc.ict.nl.util.StringUtils;
 
 
@@ -54,7 +55,8 @@ public abstract class NLConfig {
 				return null;
 		}
 	}
-	protected ExecutablePlatform getExecutablePlatform() {
+	/** Executable platform */
+	public ExecutablePlatform getExecutablePlatform() {
 		ExecutablePlatform result = ExecutablePlatform.UNKNOWN;
 		String os = System.getProperty("os.name").toLowerCase();
 		if(os.indexOf( "lin" ) >= 0)

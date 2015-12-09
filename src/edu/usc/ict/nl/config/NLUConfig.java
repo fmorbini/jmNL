@@ -86,18 +86,6 @@ public class NLUConfig extends NLConfig {
 	
 
 	
-	/** Executable platform */
-	public ExecutablePlatform getExecutablePlatform() {
-		ExecutablePlatform result = ExecutablePlatform.UNKNOWN;
-		String os = System.getProperty("os.name").toLowerCase();
-		if(os.indexOf( "lin" ) >= 0)
-			result = ExecutablePlatform.LINUXi386;
-		else if(os.indexOf( "mac" ) >= 0)
-			result = ExecutablePlatform.MACOSX;
-		else if(os.indexOf( "win" ) >= 0)
-			result = ExecutablePlatform.WIN32;
-		return result;
-	}
 	
 	private String forcedNluContentRoot=null,nluDir="nlu";
 	public String getNluDir() {

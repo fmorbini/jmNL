@@ -10,23 +10,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.usc.ict.nl.config.NLConfig.ExecutablePlatform;
-import edu.usc.ict.nl.nlu.Token;
-import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
+import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.util.StringUtils;
-import edu.usc.ict.nl.config.NLUConfig;
 
 
 public class Hunspell extends SpellChecker {
-	private NLUConfig configuration;
 	private Process p=null;
 	private ProcessBuilder pb;
 	public BufferedReader from;
 	public OutputStream to;
-	public NLUConfig getConfiguration() {return configuration;}
 
-	public Hunspell(NLUConfig config) throws Exception {
+	public Hunspell(PreprocessingConfig config) throws Exception {
 		super(config);
-		this.configuration=config;
 		new File(getExeName()).setExecutable(true);
 		p=startSpellCheckProcess(getExeName());
 	}
@@ -147,7 +142,7 @@ public class Hunspell extends SpellChecker {
 	public static void main(String[] args) {
 
 		try {
-			Hunspell sc = new Hunspell(NLUConfig.WIN_EXE_CONFIG);
+			Hunspell sc = new Hunspell(PreprocessingConfig.WIN_EXE_CONFIG);
 			System.out.println(sc.sendWordGetFirstChoice("nighmares"));
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -50,7 +50,7 @@ public abstract class NLU implements NLUInterface {
 	private Method featuresBuilder,featuresAtPosBuilder;
 	private static NLU _instance;
 
-	protected static final Logger logger = Logger.getLogger(NLU.class.getName());
+	private static final Logger logger = Logger.getLogger(NLU.class.getName());
 	static {
 		URL log4Jresource=LogConfig.findLogConfig("src","log4j.properties", false);
 		if (log4Jresource != null)
@@ -61,7 +61,7 @@ public abstract class NLU implements NLUInterface {
 		_instance = this;
 		this.configuration=c;
 		setBTD(new BuildTrainingData(c));
-		setPreprocess(new Preprocess(c));
+		setPreprocess(new Preprocess(this));
 		hardLinkMap=getBTD().buildHardLinksMap();
 		featuresBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildfeaturesFromUtterance", String.class);
 		featuresAtPosBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildFeatureForWordAtPosition", String[].class,int.class);
@@ -95,9 +95,9 @@ public abstract class NLU implements NLUInterface {
 	public NLUOutput getHardLinkMappingOf(String text) throws Exception {
 		String emptyLineEvent=getConfiguration().getEmptyTextEventName();
 		if (StringUtils.isEmptyString(text)) {
-			logger.info("Empty line received.");
+			getLogger().info("Empty line received.");
 			if (!StringUtils.isEmptyString(emptyLineEvent)) {
-				logger.info("Sending special '"+emptyLineEvent+"' event.");
+				getLogger().info("Sending special '"+emptyLineEvent+"' event.");
 				return new NLUOutput(text, emptyLineEvent, 1f, null);
 			}
 		}
@@ -460,7 +460,7 @@ public abstract class NLU implements NLUInterface {
 		try {
 			return getPreprocess().process(text);
 		} catch (Exception e) {
-			logger.error(e);
+			getLogger().error(e);
 		}
 		return null;
 	}
@@ -475,9 +475,9 @@ public abstract class NLU implements NLUInterface {
 				for(List<Token> nu:nus) {
 					String nt=pr.getString(nu);
 					if (StringUtils.isEmptyString(nt)) {
-						logger.error("Empty utterance after filters to prepare it from training: ");
-						logger.error("start='"+d.getUtterance()+"'");
-						logger.error("end='"+nt+"'");
+						getLogger().error("Empty utterance after filters to prepare it from training: ");
+						getLogger().error("start='"+d.getUtterance()+"'");
+						getLogger().error("end='"+nt+"'");
 					} else {
 						if (ret==null) ret=new ArrayList<TrainingDataFormat>();
 						ret.add(new TrainingDataFormat(nt, d.getLabel()));
@@ -486,5 +486,9 @@ public abstract class NLU implements NLUInterface {
 			}
 		}
 		return ret;
+	}
+
+	public static Logger getLogger() {
+		return logger;
 	}
 }

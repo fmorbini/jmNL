@@ -97,14 +97,14 @@ public class MalletMaxEntClassifierNLU extends JMXClassifierNLU {
 					PerformanceResult p=testNLUOnThisData(list, modelFile, false);
 					t.add(p);
 				}
-				logger.warn("parameter search: "+parameter+" obtained accuracy of: "+t.getPrecision());
+				getLogger().warn("parameter search: "+parameter+" obtained accuracy of: "+t.getPrecision());
 				if (t.getPrecision()>bestAccuracy) {
 					bestAccuracy=t.getPrecision();
 					bestParameter=parameter;
 				}
 				parameter*=2;
 			}
-			logger.warn("best parameter: "+bestParameter);
+			getLogger().warn("best parameter: "+bestParameter);
 			reguralizationParameter=(float) bestParameter;
 		}
 

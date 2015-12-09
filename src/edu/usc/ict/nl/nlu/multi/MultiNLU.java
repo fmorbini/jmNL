@@ -96,8 +96,8 @@ public class MultiNLU extends NLU {
 			} else {
 				result.add(false);
 				if (printMistakes) {
-					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
-					else logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
+					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
+					else getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
 				}
 			}
 		}
@@ -169,7 +169,7 @@ public class MultiNLU extends NLU {
 		if (name2nluInstance!=null) {
 			for(String nluName:name2nluInstance.keySet()) {
 				NLU nlu=name2nluInstance.get(nluName);
-				if (logger.isDebugEnabled()) logger.debug("considering NLU named: "+nluName);
+				if (getLogger().isDebugEnabled()) getLogger().debug("considering NLU named: "+nluName);
 				List<NLUOutput> presult=nlu.getNLUOutput(text, possibleNLUOutputIDs,nBest);
 				if (presult!=null) {
 					NLUOutput r=presult.get(0);
@@ -188,11 +188,11 @@ public class MultiNLU extends NLU {
 		if (result==null) {
 			String lowConfidenceEvent=config.getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				if (result==null) result=new ChartNLUOutput(text, null);
 				result.addPortion(0,0,new NLUOutput(text,lowConfidenceEvent,1f,null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		List<NLUOutput> listResult=new ArrayList<NLUOutput>();
@@ -220,15 +220,15 @@ public class MultiNLU extends NLU {
 	@Override
 	public void retrain() throws Exception {
 		Map<String, NLU> hnlu = getHNLU();
-		logger.info("Starting multi nlu training...");
+		getLogger().info("Starting multi nlu training...");
 		if (hnlu!=null) {
 			for(String nluName:hnlu.keySet()) {
 				NLU nlu=hnlu.get(nluName);
-				logger.info("Retraining nlu named: "+nluName);
+				getLogger().info("Retraining nlu named: "+nluName);
 				nlu.retrain();
 			}
 		}
-		logger.info("Done multi nlu training.");
+		getLogger().info("Done multi nlu training.");
 	}
 	
 	public static void main(String[] args) throws Exception {

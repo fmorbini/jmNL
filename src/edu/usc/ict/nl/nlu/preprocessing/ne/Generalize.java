@@ -8,23 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
-import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocesser;
 
-public class Generalize implements PreprocesserI {
+public class Generalize extends Preprocesser {
 
-	private NLUConfig config;
-	
-	public Generalize(NLUConfig config) {
-		this.config=config;
-	}
-	
-	public NLUConfig getConfiguration() {
-		return config;
-	}
-	
 	@Override
 	public void run(List<List<Token>> input) {
 		if (input!=null) {

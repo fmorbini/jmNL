@@ -1,21 +1,16 @@
 package edu.usc.ict.nl.nlu.preprocessing.normalization;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.regex.Pattern;
 
-import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.nlu.Token;
-import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 
 public class Chattifier extends Normalizer {
 
-	private NLUConfig config;
+	private PreprocessingConfig config;
 
-	public Chattifier(NLUConfig config) {
+	public Chattifier(PreprocessingConfig config) {
 		this.config=config;
 	}
 	

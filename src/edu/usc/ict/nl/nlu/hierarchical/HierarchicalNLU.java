@@ -125,8 +125,8 @@ public class HierarchicalNLU extends NLU {
 			} else {
 				result.add(false);
 				if (printMistakes) {
-					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
-					else logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
+					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
+					else getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
 				}
 			}
 		}
@@ -187,11 +187,11 @@ public class HierarchicalNLU extends NLU {
 		} else {
 			String lowConfidenceEvent=config.getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				if (result==null) result=new ArrayList<NLUOutput>();
 				result.add(new NLUOutput(text,lowConfidenceEvent,1f,null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		return result;
@@ -229,7 +229,7 @@ public class HierarchicalNLU extends NLU {
 		q.add(new Triple<NLU,Rational,NLUOutput>(rootNLU,Rational.one,null));
 		while(!q.isEmpty()) {
 			Triple<NLU,Rational,NLUOutput> n=q.poll();
-			if (logger.isDebugEnabled()) logger.debug("considering node: "+n.getFirst().getConfiguration().getNluModelFile()+" "+n);
+			if (getLogger().isDebugEnabled()) getLogger().debug("considering node: "+n.getFirst().getConfiguration().getNluModelFile()+" "+n);
 			NLU cNLU=n.getFirst();
 			Rational pp=n.getSecond();
 			List<NLUOutput> presult=cNLU.getNLUOutput(text, possibleNLUOutputIDs,nBest);
@@ -308,12 +308,12 @@ public class HierarchicalNLU extends NLU {
 		if (!modelFile.isAbsolute()) modelFile=new File(getConfiguration().getNLUContentRoot(),modelFile.getPath());
 
 		if (!modelFile.exists()) {
-			logger.warn("no model found.");
+			getLogger().warn("no model found.");
 			if (trainIfNoModel) {
-				logger.warn("retraining...");
+				getLogger().warn("retraining...");
 				retrain();
 			} else {
-				logger.warn("doing nothing.");
+				getLogger().warn("doing nothing.");
 				return null;
 			}
 		}
@@ -334,7 +334,7 @@ public class HierarchicalNLU extends NLU {
 			}
 			in.close();
 		} catch (Exception e) {
-			logger.warn("Error during hierarchical model building.",e);
+			getLogger().warn("Error during hierarchical model building.",e);
 		}
 		return ret;
 	}
@@ -352,11 +352,11 @@ public class HierarchicalNLU extends NLU {
 		String internalNLUclass = config.getInternalNluClass4Hier();
 		Hnode root = buildDataHierachy(td);
 		root=compressHierarchyAt(root,50,2);
-		if (logger.isDebugEnabled()) root.toGDLGraph("nlu-hier.gdl");
+		if (getLogger().isDebugEnabled()) root.toGDLGraph("nlu-hier.gdl");
 		HashSet<Node> trainingNodes=root.getReachableNonLeaves();
 		// at least the root must be there
 		if (trainingNodes==null || trainingNodes.isEmpty()) {
-			logger.warn("empty set of intermediate NLU nodes in NLU hierarchy. No training.");
+			getLogger().warn("empty set of intermediate NLU nodes in NLU hierarchy. No training.");
 		} else {
 			NLUConfig internalConfig=(NLUConfig) config.clone();
 			internalConfig.setNluModelFile(null);
@@ -370,14 +370,14 @@ public class HierarchicalNLU extends NLU {
 				Collection<String> possibleLabels = FunctionalLibrary.map(n.getImmediateChildren(), getNameMethod);
 				// change training data using only the above labels.
  				List<TrainingDataFormat> ctd = compressTrainingDataBasedOnPossibleLabels(td,n.getName(),possibleLabels);
-				logger.info(nodeName+" "+ctd.size()+" utterances with "+BuildTrainingData.getAllSpeechActsInTrainingData(ctd).size()+" labels "+modelFileForNode+" "+trainingFileForNode);
+				getLogger().info(nodeName+" "+ctd.size()+" utterances with "+BuildTrainingData.getAllSpeechActsInTrainingData(ctd).size()+" labels "+modelFileForNode+" "+trainingFileForNode);
 				//System.out.println(nodeName+" "+ctd.size()+" with "+BuildTrainingData.getAllSpeechActsInTrainingData(ctd).size()+" "+modelFileForNode+" "+trainingFileForNode);
 				if (!ctd.isEmpty()) {
 					dumpTrainingDataToFileNLUFormat(trainingFileForNode, ctd);
 					newModelContent+=nodeName+"\t"+modelFileForNode.getName()+"\n";
 					internalNLU.train(trainingFileForNode, modelFileForNode);
 					if (modelFileForNode.length()==0) throw new Exception("training failed for "+modelFileForNode+" resulting file is empty.");
-				} else logger.error(nodeName+" has produced a null compressed training data.");
+				} else getLogger().error(nodeName+" has produced a null compressed training data.");
 			}
 			BufferedWriter out=new BufferedWriter(new FileWriter(modelFile));
 			out.write(newModelContent);
@@ -479,7 +479,7 @@ public class HierarchicalNLU extends NLU {
 									for(Node l:leaves) {
 										if (l.hasChildren()) q.add(l);
 										if (l.getSingleParent()!=n) {
-											if (logger.isDebugEnabled()) logger.debug("attaching "+l+" to current node: "+n);
+											if (getLogger().isDebugEnabled()) getLogger().debug("attaching "+l+" to current node: "+n);
 											l.clearIncomingEdges();
 											n.addEdgeTo(l, true, true);
 										}
@@ -487,7 +487,7 @@ public class HierarchicalNLU extends NLU {
 								} else {
 									Node p=n.getSingleParent();
 									for(Node l:leaves) {
-										if (logger.isDebugEnabled()) logger.debug("attaching "+l+" to parent of current node("+n+"): "+p);
+										if (getLogger().isDebugEnabled()) getLogger().debug("attaching "+l+" to parent of current node("+n+"): "+p);
 										if (l.hasChildren()) q.add(l);
 										n.removeEdgeTo(l);
 										l.clearIncomingEdges();
@@ -511,8 +511,8 @@ public class HierarchicalNLU extends NLU {
 						q.add(n);
 					}
 				} else if (children.size()>minth && children.size()<maxth) {
-					if (logger.isDebugEnabled()) logger.debug("leaving level rooted at "+n+" as it is.");
-					if (logger.isDebugEnabled()) logger.debug("   children: "+children);
+					if (getLogger().isDebugEnabled()) getLogger().debug("leaving level rooted at "+n+" as it is.");
+					if (getLogger().isDebugEnabled()) getLogger().debug("   children: "+children);
 					for(int i=0;i<childAndNumLeaves.size();i++) {
 						q.add(childAndNumLeaves.get(i).getFirst());
 					}
@@ -531,20 +531,20 @@ public class HierarchicalNLU extends NLU {
 					int posMax=-1;
 					do{
 						if (posMax>0) {
-							if (logger.isDebugEnabled()) logger.debug("iter="+iter+", setting previous max to 0: "+deltas.get(posMax));
+							if (getLogger().isDebugEnabled()) getLogger().debug("iter="+iter+", setting previous max to 0: "+deltas.get(posMax));
 							deltas.set(posMax, 0d);
 						} else if (posMax==0) {
 							throw new Exception("max found at position 0 but sum of labels larger than threashold, impossible to compress hier.");
 						}
 						posMax=FunctionalLibrary.findPosMax(deltas);
-						if (logger.isDebugEnabled()) logger.debug("iter="+iter+", pos of max delta="+posMax+": input numbers: "+FunctionalLibrary.printCollection(numbers, "", "", " "));
+						if (getLogger().isDebugEnabled()) getLogger().debug("iter="+iter+", pos of max delta="+posMax+": input numbers: "+FunctionalLibrary.printCollection(numbers, "", "", " "));
 						sumLabelsToBeIncludedInSingleClassifier=0;
 						iter++;
 						for(int i=0;i<posMax;i++) sumLabelsToBeIncludedInSingleClassifier+=childAndNumLeaves.get(i).getSecond();
 					} while (sumLabelsToBeIncludedInSingleClassifier>=maxth);
 					for(int i=0;i<posMax;i++) {
 						Node child=childAndNumLeaves.get(i).getFirst();
-						if (logger.isDebugEnabled()) logger.debug("removing edge "+n+"->"+child);
+						if (getLogger().isDebugEnabled()) getLogger().debug("removing edge "+n+"->"+child);
 						n.removeEdgeTo(child);
 						HashSet<Node> leaves = child2Leaves.get(child);
 						if (leaves!=null) {
