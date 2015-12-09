@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:camel="http://camel.apache.org/schema/spring"
+       xmlns:broker="http://activemq.apache.org/schema/core"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="basic" class="edu.usc.ict.nl.config.PreprocessingConfig">
+		<property name="tokenizer" ref="SpaceTokenizer"/>
+		<property name="nluPreprocessers">
+			<list>
+				<ref bean="NumberNE"/>
+				<ref bean="TimeDurationNE"/>
+				<ref bean="TimeFrequencyNE"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="SpaceTokenizer" class="edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer"/>
+	
+	<bean id="Chattifier" class="edu.usc.ict.nl.nlu.preprocessing.normalization.Chattifier"/>
+
+	<bean id="NumberNE" class="edu.usc.ict.nl.nlu.ne.Numbers">
+		<constructor-arg>
+ 			<value type="java.lang.String[]">.*number,answer.bio-info.user.age</value>
+		</constructor-arg>
+		<!-- 
+ 		<constructor-arg index="0" value=".*number"/>
+		<constructor-arg index="1" value="answer.number"/>
+		<constructor-arg index="2" value="answer.relative-quantity.number"/>
+		<constructor-arg index="3" value="answer.bio-info.user.age"/>
+		-->
+	</bean>
+	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration">
+	</bean>
+	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency">
+	</bean>
+	<bean id="openNLU" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="acceptanceThreshold" value="0.0"/>
+		<property name="maximumNumberOfLabels"><null/></property>
+	</bean>
+		<bean id="openNLU" parent="MXNLU">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="acceptanceThreshold" value="0.0"/>
+		<property name="maximumNumberOfLabels"><null/></property>
+	</bean>
+	
+
+</beans>

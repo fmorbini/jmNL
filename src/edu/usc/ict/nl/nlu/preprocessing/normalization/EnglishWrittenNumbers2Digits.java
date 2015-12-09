@@ -19,9 +19,6 @@ import edu.usc.ict.nl.util.Pair;
 
 public class EnglishWrittenNumbers2Digits extends Normalizer {
 
-	public EnglishWrittenNumbers2Digits() {
-	}
-	
 	@Override
 	public List<Token> normalize(List<Token> tokens) {
 		return parseWrittenNumbers(getNluConfiguration(), tokens);

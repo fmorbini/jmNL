@@ -10,8 +10,6 @@ import edu.usc.ict.nl.util.StringUtils;
 
 public abstract class Remover extends Preprocesser implements RemoverI {
 	
-
-
 	@Override
 	public void run(List<List<Token>> input) {
 		if (input!=null) {

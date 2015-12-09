@@ -10,19 +10,10 @@ import edu.usc.ict.nl.util.StringUtils;
 
 public abstract class SpellChecker extends Preprocesser implements SpellCheckerI {
 	
-	private PreprocessingConfig config=null;
-
-	public SpellChecker(PreprocessingConfig config) {
-		this.config=config;
-	}
-	
-	public PreprocessingConfig getConfiguration() {
-		return config;
-	}
-	
 	@Override
 	public void run(List<List<Token>> input) {
 		if (input!=null) {
+			PreprocessingConfig config = getConfiguration();
 			for(List<Token> pi:input) {
 				int position=0;
 				while(position<pi.size()) {

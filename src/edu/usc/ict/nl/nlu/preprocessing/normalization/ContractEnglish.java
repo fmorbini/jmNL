@@ -9,15 +9,10 @@ import edu.usc.ict.nl.util.EnglishUtils;
 
 public class ContractEnglish extends Normalizer {
 
-	private PreprocessingConfig config;
-
-	public ContractEnglish(PreprocessingConfig config) {
-		this.config=config;
-	}
-
 	@Override
 	public List<Token> normalize(List<Token> tokens) {
 		if (tokens!=null && !tokens.isEmpty()) {
+			PreprocessingConfig config = getConfiguration();
 			Token pp=tokens.get(0);
 			String pWord=pp.getName();
 			for(int i=1;i<tokens.size();) {

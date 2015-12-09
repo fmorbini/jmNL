@@ -8,14 +8,9 @@ import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 
 public class Chattifier extends Normalizer {
 
-	private PreprocessingConfig config;
-
-	public Chattifier(PreprocessingConfig config) {
-		this.config=config;
-	}
-	
 	@Override
 	public List<Token> normalize(List<Token> tokens) {
+		PreprocessingConfig config = getConfiguration();
 		if (tokens!=null && !tokens.isEmpty()) {
 			for(int i=0;i<tokens.size();) {
 				int size=1;

@@ -20,8 +20,7 @@ public class Hunspell extends SpellChecker {
 	public BufferedReader from;
 	public OutputStream to;
 
-	public Hunspell(PreprocessingConfig config) throws Exception {
-		super(config);
+	public Hunspell() throws Exception {
 		new File(getExeName()).setExecutable(true);
 		p=startSpellCheckProcess(getExeName());
 	}
@@ -142,7 +141,7 @@ public class Hunspell extends SpellChecker {
 	public static void main(String[] args) {
 
 		try {
-			Hunspell sc = new Hunspell(PreprocessingConfig.WIN_EXE_CONFIG);
+			Hunspell sc = new Hunspell();
 			System.out.println(sc.sendWordGetFirstChoice("nighmares"));
 		} catch (Exception e) {
 			e.printStackTrace();
