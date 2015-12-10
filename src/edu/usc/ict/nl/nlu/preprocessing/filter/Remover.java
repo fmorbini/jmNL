@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.preprocessing.stopwords;
+package edu.usc.ict.nl.nlu.preprocessing.filter;
 
 import java.util.Iterator;
 import java.util.List;

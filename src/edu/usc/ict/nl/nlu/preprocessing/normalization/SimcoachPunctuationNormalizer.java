@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 
-public class Punctuation extends Normalizer {
+public class SimcoachPunctuationNormalizer extends Normalizer {
 	private static final Pattern puntToKeep=Pattern.compile("^([\\?]+)|([\\%]+)|(')$");
 	
 	@Override

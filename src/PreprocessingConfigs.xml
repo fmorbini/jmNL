@@ -11,9 +11,39 @@
         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="basic" class="edu.usc.ict.nl.config.PreprocessingConfig">
+	<bean id="simple" class="edu.usc.ict.nl.config.PreprocessingConfig">
 		<property name="tokenizer" ref="SpaceTokenizer"/>
 		<property name="nluPreprocessers">
+			<list>
+				<ref bean="Lowercase"/>
+				<ref bean="WrittenNumbers2Digits"/>
+				<ref bean="NEextractor"/>
+			</list>
+		</property>
+		<property name="nluNamedEntityExtractors">
+			<list>
+				<ref bean="NumberNE"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="simcoach" class="edu.usc.ict.nl.config.PreprocessingConfig">
+		<property name="tokenizer" ref="SpaceTokenizer"/>
+		<property name="nluPreprocessers">
+			<list>
+				<ref bean="Lowercase"/>
+				<!-- <ref bean="Hunspell"/> -->
+				<ref bean="Uk2Us"/>
+				<ref bean="SimcoachPunctuationFilter"/>
+				<ref bean="SimcoachNormalizer"/>
+				<ref bean="Chattifier"/>
+				<ref bean="ContractEnglish"/>
+				<!-- <ref bean="KStemmer"/> -->
+				<ref bean="WrittenNumbers2Digits"/>
+				<ref bean="NEextractor"/>
+			</list>
+		</property>
+		<property name="nluNamedEntityExtractors">
 			<list>
 				<ref bean="NumberNE"/>
 				<ref bean="TimeDurationNE"/>
@@ -24,7 +54,22 @@
 
 	<bean id="SpaceTokenizer" class="edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer"/>
 	
+	<bean id="NEextractor" class="edu.usc.ict.nl.nlu.preprocessing.ne.Generalize"/>
+	
 	<bean id="Chattifier" class="edu.usc.ict.nl.nlu.preprocessing.normalization.Chattifier"/>
+	<bean id="ContractEnglish" class="edu.usc.ict.nl.nlu.preprocessing.normalization.ContractEnglish"/>
+	<bean id="WrittenNumbers2Digits" class="edu.usc.ict.nl.nlu.preprocessing.normalization.EnglishWrittenNumbers2Digits"/>
+	<bean id="Lowercase" class="edu.usc.ict.nl.nlu.preprocessing.normalization.Lowercase"/>
+	<bean id="SimcoachNormalizer" class="edu.usc.ict.nl.nlu.preprocessing.normalization.SimcoachNormalizer"/>
+	<bean id="SimcoachPunctuationFilter" class="edu.usc.ict.nl.nlu.preprocessing.normalization.SimcoachPunctuationNormalizer"/>
+	<bean id="Uk2Us" class="edu.usc.ict.nl.nlu.preprocessing.normalization.UK2USNormalizer"/>
+	
+	<bean id="Hunspell" class="edu.usc.ict.nl.nlu.preprocessing.spellchecker.Hunspell"/>
+	
+	<bean id="KStemmer" class="edu.usc.ict.nl.nlu.preprocessing.stemmer.KStemmer"/>
+	<bean id="PorterStemmer" class="edu.usc.ict.nl.nlu.preprocessing.stemmer.PorterStemmer"/>
+
+	<bean id="EnglishStopWordFilter" class="edu.usc.ict.nl.nlu.preprocessing.filter.EnglishStopWords"/>
 
 	<bean id="NumberNE" class="edu.usc.ict.nl.nlu.ne.Numbers">
 		<constructor-arg>
@@ -37,24 +82,6 @@
 		<constructor-arg index="3" value="answer.bio-info.user.age"/>
 		-->
 	</bean>
-	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration">
-	</bean>
-	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency">
-	</bean>
-	<bean id="openNLU" parent="MXNLU">
-		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
-		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
-		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
-		<property name="acceptanceThreshold" value="0.0"/>
-		<property name="maximumNumberOfLabels"><null/></property>
-	</bean>
-		<bean id="openNLU" parent="MXNLU">
-		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
-		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
-		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
-		<property name="acceptanceThreshold" value="0.0"/>
-		<property name="maximumNumberOfLabels"><null/></property>
-	</bean>
-	
-
+	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration"/>
+	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency"/>
 </beans>

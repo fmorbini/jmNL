@@ -20,23 +20,13 @@ public class PreprocessingConfig extends NLConfig {
 	
 	/** NLU preprocessing */
 	public List<PreprocesserI> getNluPreprocessers() {return prs;}
-	public void setNluPreprocessers(List<PreprocesserI> prs) {
-		this.prs=prs;
-		nes=null;
-		if (prs!=null) {
-			for(PreprocesserI pr:prs) {
-				if (pr!=null && pr instanceof NamedEntityExtractorI) {
-					if (nes==null) nes=new ArrayList<>();
-					nes.add((NamedEntityExtractorI) pr);
-				}
-			}
-		}
-	}
+	public void setNluPreprocessers(List<PreprocesserI> prs) {this.prs=prs;}
 	/** NLU tokenizer */
 	public TokenizerI getNluTokenizer() {return tokenizer;}
 	public void setNluTokenizer(TokenizerI t) {this.tokenizer=t;}
 	/** NLU named entities */
 	public List<NamedEntityExtractorI> getNluNamedEntityExtractors() {return nes;}
+	public void setNluNamedEntityExtractors(List<NamedEntityExtractorI> nes) {this.nes=nes;}
 
 	public PreprocessingConfig() {
 		super();
