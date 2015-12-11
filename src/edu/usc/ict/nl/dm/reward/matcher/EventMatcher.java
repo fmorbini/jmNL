@@ -1,15 +1,11 @@
-package edu.usc.ict.nl.dm.reward;
+package edu.usc.ict.nl.dm.reward.matcher;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -28,98 +24,12 @@ public class EventMatcher<T> {
 			PropertyConfigurator.configure( log4Jresource );	
 	}
 	
-	private State root;
+	private State<T> root;
 	
 	private HashMap<String,T> storedEvents;
 	
-	private class State {
-		private boolean isStarState=false;
-		private char c;
-		private boolean hasChar=false;
-		private HashMap<Character,State> next;
-		private Set<T> payload=null;
-
-		public State(char c) {
-			if (c=='*') isStarState=true;
-			this.c=c;
-			hasChar=true;
-		}
-		public State() {}
-		
-		public boolean isStar() {return isStarState;}
-		public boolean withPayload() {return payload!=null && !payload.isEmpty();}
-		public State addNext(char c) {
-			if (next==null) next=new HashMap<Character, EventMatcher<T>.State>();
-			State n=next.get(c);
-			if (n==null) next.put(c,n=new State(c));
-			return n;
-		}
-		public void attachPayload(T p) {
-			if (payload==null) payload=new HashSet<T>();
-			payload.add(p);
-		}
-		/**
-		 * should be called only on the State that is the root of the event matcher. 
-		 * @param path
-		 * @param p
-		 */
-		public void removePayloadAndPath(String path,T p) {
-			Deque<State> statesInPath=new LinkedList<EventMatcher<T>.State>();
-			State current=this;
-			statesInPath.push(current);
-			Deque<Character> pathc=new LinkedList<Character>();
-			for(char c:path.toCharArray()) {
-				pathc.push(c);
-				if (current.next!=null && current.next.containsKey(c)) {
-					current=current.next.get(c);
-					statesInPath.push(current);
-				}
-			}
-			boolean first=true;
-			while(statesInPath!=null && !statesInPath.isEmpty()) {
-				State s=statesInPath.pop();
-				char c=pathc.pop();
-				State parent=statesInPath.peek();
-				if (first) {
-					if (p!=null) {
-						if (s.payload==null || !s.payload.contains(p)) logger.error("Error removing path '"+path+"', no payload found.");
-						else s.payload.remove(p);
-					}
-					first=false;
-				}
-				if ((s.next==null || s.next.isEmpty()) && (s.payload==null || s.payload.isEmpty())) {
-					if (parent!=null && parent.next!=null) {
-						if (!parent.next.containsKey(c)) logger.error("Char not found in next where is supposed to be.");
-						else parent.next.remove(c);
-					}
-				} else break;
-			}
-		}
-		public List<State> getNext(char c) {
-			List<State>l=null;
-			State n=null;
-			if (next!=null) {
-				if ((n=next.get(c))!=null) {
-					if (l==null) l=new ArrayList<EventMatcher<T>.State>();
-					l.add(n);
-				}
-				if ((n=next.get('*'))!=null) {
-					if (l==null) l=new ArrayList<EventMatcher<T>.State>();
-					l.add(n);
-				}
-			}
-			return l;
-		}
-		@Override
-		public String toString() {
-			return (isStarState)?"*":((hasChar)?c+"":"");
-		}
-		public Set<T> getPayload() {
-			return payload;
-		}
-	}
 	public EventMatcher() {
-		root=new State();
+		root=new State<T>();
 		this.storedEvents=new HashMap<String, T>();
 	}
 	
@@ -127,7 +37,7 @@ public class EventMatcher<T> {
 		if (root==null) return null;
 		return search(event.toCharArray(),0,root,new LinkedHashSet<T>());
 	}
-	private Set<T> search(char[] charArray, int i,State as,Set<T>result) {
+	private Set<T> search(char[] charArray, int i,State<T> as,Set<T>result) {
 		int inputLen=charArray.length;
 		if (i>=inputLen) {
 			if (as.withPayload()) result.addAll(as.getPayload());
@@ -137,17 +47,17 @@ public class EventMatcher<T> {
 		if (as.isStar()) {
 			if (as.withPayload()) result.addAll(as.getPayload());
 			// continue recursion only if the star is not the last char in this chain
-			if ((as.next!=null) && !as.next.isEmpty()) {
+			if (as.hasNext()) {
 				for (int j=i;j<inputLen;j++) {
 					char nextChar=charArray[j];
 					List<State> next;
 					if ((next=as.getNext(nextChar))!=null)
-						for(State nextState:next) search(charArray,j+1,nextState,result);
+						for(State<T> nextState:next) search(charArray,j+1,nextState,result);
 				}
 			}
 		}
 		List<State> next = as.getNext(currentChar);
-		if (next!=null) for(State nextState:next) search(charArray,i+1,nextState,result);
+		if (next!=null) for(State<T> nextState:next) search(charArray,i+1,nextState,result);
 		return result;
 	}
 
@@ -155,7 +65,7 @@ public class EventMatcher<T> {
 		if (storedEvents.containsKey(event)) logger.warn("ignoring adding event '"+event+"' because already present in this matcher.");
 		else {
 			storedEvents.put(event, payload);
-			State next=root;
+			State<T> next=root;
 			for(char c:event.toCharArray()) {
 				next=next.addNext(c);
 			}
@@ -180,7 +90,7 @@ public class EventMatcher<T> {
 			payload=(T) new ArrayList<Object>();
 			((List<Object>) payload).add(update);
 			storedEvents.put(event, payload);
-			State next=root;
+			State<T> next=root;
 			for(char c:event.toCharArray()) {
 				next=next.addNext(c);
 			}
@@ -212,9 +122,15 @@ public class EventMatcher<T> {
 	}
 	public HashMap<String,T> getAllMatchedEventsWithPayload() {return storedEvents;}
 	
-	private Set<String> collectAllStoredEvents(State state,String currentMatchedEvent,HashSet<String> result) {
+	private Set<String> collectAllStoredEvents(State<T> state,String currentMatchedEvent,HashSet<String> result) {
 		if (state.withPayload()) result.add(currentMatchedEvent);
-		if (state.next!=null) for(State cState:state.next.values()) collectAllStoredEvents(cState, currentMatchedEvent+cState.toString(),result);
+		Iterator<State> it=state.iterator();
+		if (it!=null) {
+			while(it.hasNext()) {
+				State cState=it.next();
+				collectAllStoredEvents(cState, currentMatchedEvent+cState.toString(),result);
+			}
+		}
 		return result;
 	}
 

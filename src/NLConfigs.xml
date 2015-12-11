@@ -16,7 +16,7 @@
 	<bean id="nlConfigMXNLU_FSMDM_EchoNLG" class="edu.usc.ict.nl.config.NLBusConfig">
        	<property name="runningMode" value="EXE"/>
        	<property name="isLoadBalancing" value="false"/>
-		<property name="contentRoot" value="resources/characters/"/>
+		<property name="contentRoot" value="resources/all-characters/"/>
 		<property name="character" value="change_this"/>
 		<property name="chatLog" value="./logs/chat-log"/>
 		

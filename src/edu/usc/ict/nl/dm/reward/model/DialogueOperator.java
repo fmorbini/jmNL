@@ -20,7 +20,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import edu.usc.ict.nl.bus.events.NLUEvent;
-import edu.usc.ict.nl.dm.reward.EventMatcher;
+import edu.usc.ict.nl.dm.reward.matcher.EventMatcher;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction.ActiveStates;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNode.TYPE;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNodeTransition.TransitionType;

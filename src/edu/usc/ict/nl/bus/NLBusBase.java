@@ -503,9 +503,13 @@ public abstract class NLBusBase implements NLBusInterface {
 	public synchronized Map<String,DM> startDMs(Collection<String> characters) {
 		character2DM.clear();
 		if (characters!=null) {
+			logger.info(characters.size()+" character(s) to parse.");
+			int i=1;
 			for(String c:characters) {
 				try {
+					logger.info("loading "+i+" of "+characters.size());
 					startDMForCharacter(c);
+					i++;
 				} catch (Exception e) {
 					logger.error("error while starting DM",e);
 				}
