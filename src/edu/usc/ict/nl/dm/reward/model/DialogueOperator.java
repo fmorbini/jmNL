@@ -20,6 +20,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.dm.reward.matcher.EventComparer;
 import edu.usc.ict.nl.dm.reward.matcher.EventMatcher;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction.ActiveStates;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNode.TYPE;
@@ -922,7 +923,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 	}
 	private enum EventREcomparison {Y,N,M};
 	private EventREcomparison givenThisWillTheOtherHappen(String re1,String re2) {
-		int result=EventMatcher.compare(re1, re2);
+		int result=EventComparer.compare(re1, re2);
 		switch (result) {
 		case 0:
 		case -1:
@@ -1013,7 +1014,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		if (effects!=null && !effects.isEmpty()) {
 			String transitionEvent=tr.getEvent();
 			if(!StringUtils.isEmptyString(transitionEvent)) {
-				int relation=EventMatcher.compare(transitionEvent, matcherEvent);
+				int relation=EventComparer.compare(transitionEvent, matcherEvent);
 				switch (relation) {
 				case 0:
 				case -1:
