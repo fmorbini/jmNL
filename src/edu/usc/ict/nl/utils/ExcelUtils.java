@@ -200,6 +200,32 @@ public class ExcelUtils {
 		}
 		return ret;
 	}
+	public static Map<Integer,String> extractRowAndColumnWiseDataWithColumns(Sheet sheet,int rownum,int start,int end,boolean cleanupSpaces,boolean skipBlanks) throws Exception {
+		Map<Integer,String> ret=new HashMap<Integer,String>();
+		if (sheet != null)
+		{
+			for(Iterator<Row> rowIter = sheet.rowIterator(); rowIter.hasNext(); ) {
+				Row row = rowIter.next();
+				if (row.getRowNum()==rownum) {
+					for(Iterator<Cell> cellIter = row.cellIterator(); cellIter.hasNext(); ) {
+						Cell cell = cellIter.next();
+						if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+							int column=cell.getColumnIndex();
+							if ((column<=end || end<0) && (column>=start || start<0)) {
+								String tmp=cell.getStringCellValue();
+								if (cleanupSpaces) tmp=StringUtils.cleanupSpaces(tmp);
+								if (!skipBlanks || !StringUtils.isEmptyString(tmp)) {
+									ret.put(column,tmp);
+								}
+							}
+						}
+					}
+					break;
+				}
+			}
+		}
+		return ret;
+	}
 	public static Map<Integer,List<String>> extractRowsAndColumnWiseData(String file,int sheetNum,int skip,int start,int end,boolean cleanupSpaces,boolean skipBlanks) throws Exception {
 		Map<Integer,List<String>> ret=null;
 		Sheet sheet = getSpreadSheet(file, sheetNum);
