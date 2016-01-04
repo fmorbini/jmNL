@@ -206,6 +206,12 @@ public class MXClassifierNLU extends NLU {
 		return ret;
 	}
 
+	/**
+	 * options may differ just because of different named entities recognized altough superficially the text is the same.
+	 * to avoid computing features (for classifiers) over and over for the same text, this sorting routine can be used together
+	 * with some more intelligent code.
+	 * @param options
+	 */
 	private void sortOptionsByText(List<List<Token>> options) {
 		final Preprocess pr = getPreprocess();
 		Collections.sort(options, new Comparator<List<Token>>(){

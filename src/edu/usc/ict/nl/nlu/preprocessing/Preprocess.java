@@ -39,17 +39,35 @@ public class Preprocess {
 		return (ret!=null)?ret.toString():null;
 	}
 
+	/**
+	 * returns all possible preprocessing options
+	 * @param text
+	 * @return
+	 * @throws Exception
+	 */
 	public List<List<Token>> process(String text) throws Exception {
+		return process(text, false);
+	}
+	/**
+	 * if acceptOnlyUnambigous is set to true, the method will throw an exception if more than 1 option becomes available.
+	 * @param text
+	 * @param acceptOnlyUnambigous
+	 * @return
+	 * @throws Exception
+	 */
+	public List<List<Token>> process(String text,boolean acceptOnlyUnambigous) throws Exception {
 		PreprocessingConfig config=getConfiguration();
 		TokenizerI tokenizer = config.getNluTokenizer();
 		List<PreprocesserI> prs = config.getNluPreprocessers();
 		List<List<Token>> tokens = tokenizer.tokenize(text);
 		if (prs!=null) {
 			for(PreprocesserI pr:prs) {
+				if (acceptOnlyUnambigous && tokens!=null && tokens.size()>1) throw new Exception("more than one option created during processing and option for just 1 set.");
 				pr.setNlu(nlu);
 				pr.run(tokens);
 			}
 		}
+		if (acceptOnlyUnambigous && tokens!=null && tokens.size()>1) throw new Exception("more than one option created during processing and option for just 1 set.");
 		return tokens;
 	}
 	

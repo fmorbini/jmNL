@@ -56,7 +56,7 @@ public abstract class NLConfig {
 		}
 	}
 	/** Executable platform */
-	public ExecutablePlatform getExecutablePlatform() {
+	public static ExecutablePlatform getExecutablePlatform() {
 		ExecutablePlatform result = ExecutablePlatform.UNKNOWN;
 		String os = System.getProperty("os.name").toLowerCase();
 		if(os.indexOf( "lin" ) >= 0)

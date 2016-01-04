@@ -40,7 +40,6 @@ public class NLUConfig extends NLConfig {
 	private String nluModelFile,nluTrainingFile,hardLinksFile;
 	private boolean useSystemFormsToTrainNLU=true;
 	private int nBest;
-	private boolean generalizeNumbers;
 	private Float acceptanceThreshold,regularization;
 	private String lowConfidenceEvent,emptyTextEventName;
 	
@@ -152,8 +151,6 @@ public class NLUConfig extends NLConfig {
 	/** NLU reguralization parameter (if used) */
 	public Float getRegularization() {return regularization;}
 	public void setRegularization(Float t) {this.regularization=t;}
-	public boolean getGeneralizeNumbers() {return generalizeNumbers;}
-	public void setGeneralizeNumbers(boolean g) {this.generalizeNumbers=g;}
 	/** nlu and dm class to be used to create nlu and dm instances */
 	public String getNluClass() {return nluClass;}
 	public void setNluClass(String nlu) {this.nluClass=nlu;}	
@@ -222,7 +219,6 @@ public class NLUConfig extends NLConfig {
 		WIN_EXE_CONFIG.setnBest(2);
 		WIN_EXE_CONFIG.setAcceptanceThreshold(0.4f);
 		WIN_EXE_CONFIG.setLowConfidenceEvent("internal.low-confidence");
-		WIN_EXE_CONFIG.setGeneralizeNumbers(true);
 		WIN_EXE_CONFIG.setNluModelFile("classifier-model");
 		WIN_EXE_CONFIG.setNluTrainingFile("classifier-training.txt");
 		WIN_EXE_CONFIG.setChartNluMaxLength(30);

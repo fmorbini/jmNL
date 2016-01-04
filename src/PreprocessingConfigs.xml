@@ -12,7 +12,7 @@
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<bean id="simple" class="edu.usc.ict.nl.config.PreprocessingConfig">
-		<property name="tokenizer" ref="SpaceTokenizer"/>
+		<property name="nluTokenizer" ref="SpaceTokenizer"/>
 		<property name="nluPreprocessers">
 			<list>
 				<ref bean="Lowercase"/>
@@ -28,7 +28,7 @@
 	</bean>
 
 	<bean id="simcoach" class="edu.usc.ict.nl.config.PreprocessingConfig">
-		<property name="tokenizer" ref="SpaceTokenizer"/>
+		<property name="nluTokenizer" ref="SpaceTokenizer"/>
 		<property name="nluPreprocessers">
 			<list>
 				<ref bean="Lowercase"/>
@@ -52,6 +52,17 @@
 		</property>
 	</bean>
 
+	<bean id="test" parent="simple">
+		<property name="nluNamedEntityExtractors">
+			<list>
+				<ref bean="NumberNE"/>
+				<ref bean="TimeDurationNE"/>
+				<ref bean="TimeFrequencyNE"/>
+				<ref bean="KeywordNE"/>
+			</list>
+		</property>
+	</bean>
+	
 	<bean id="SpaceTokenizer" class="edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer"/>
 	
 	<bean id="NEextractor" class="edu.usc.ict.nl.nlu.preprocessing.ne.Generalize"/>
@@ -84,4 +95,15 @@
 	</bean>
 	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration"/>
 	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency"/>
+		<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
+		<constructor-arg>
+ 			<value type="java.lang.String">test</value>
+		</constructor-arg>
+		<!-- 
+ 		<constructor-arg index="0" value=".*number"/>
+		<constructor-arg index="1" value="answer.number"/>
+		<constructor-arg index="2" value="answer.relative-quantity.number"/>
+		<constructor-arg index="3" value="answer.bio-info.user.age"/>
+		-->
+	</bean>
 </beans>

@@ -22,10 +22,10 @@
 		<property name="emptyTextEventName" value="empty"/>
 		<property name="doSpellchecking" value="false"/>
 		
+		<property name="preprocessingConfig" ref="simcoach"/>
+		
 		<!-- ########################## NLU START ################################### -->
 		<!-- general nlu setup --> 
-		<property name="stemmerClass"><null/></property>
-		<!-- property name="stemmerClass"  value="edu.usc.ict.nl.stemmer.KStemmer"/-->
 		<property name="printNluErrors" value="true"/>
 		<property name="chartNluMaxLength" value="30"/>
 		<property name="nluModelFile" value="classifier-model"/>
@@ -34,8 +34,6 @@
 		<property name="useSystemFormsToTrainNLU" value="true"/>
 		<property name="userUtterances" value="user-utterances.xlsx"/>
 		<property name="nBest" value="2"/>
-		<property name="applyTransformationsToInputText" value="true"/>
-		<property name="generalizeNumbers" value="true"/>
 		<!-- ** some alternative classifiers available ** -->
 		<!-- setup required for mxnlu to work  -->
 		<property name="nluClass" value="edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU"/>
@@ -198,15 +196,9 @@
 	</bean>
 	
 	<bean id="testNLU" parent="openNLU">
-		<property name="nluNamedEntityExtractors">
-			<list>
-				<ref bean="NumberNE"/>
-				<ref bean="TimeDurationNE"/>
-				<ref bean="TimeFrequencyNE"/>
-				<ref bean="KeywordNE"/>
-			</list>
-		</property>
+		<property name="preprocessingConfig" ref="test"/>
 	</bean>
+	
 	<bean id="openNLU" parent="MXNLU">
 		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
 		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>

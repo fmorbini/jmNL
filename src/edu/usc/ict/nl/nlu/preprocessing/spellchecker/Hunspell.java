@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.usc.ict.nl.config.NLConfig;
 import edu.usc.ict.nl.config.NLConfig.ExecutablePlatform;
 import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.util.StringUtils;
@@ -26,7 +27,7 @@ public class Hunspell extends SpellChecker {
 	}
 
 	private String getExeName() {
-		ExecutablePlatform executablePlatform = getConfiguration().getExecutablePlatform();
+		ExecutablePlatform executablePlatform = NLConfig.getExecutablePlatform();
 		String exe="spell-checker/hunspell-"+executablePlatform.toString();
 		if (executablePlatform == ExecutablePlatform.WIN32) exe+=".exe";
 		return exe;
