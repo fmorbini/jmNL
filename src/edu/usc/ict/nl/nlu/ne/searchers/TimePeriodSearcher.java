@@ -32,7 +32,7 @@ public class TimePeriodSearcher {
 			if (config==null) grammar=new File("resources/characters/common/nlu/time-period-grammar.txt");
 			else {
 				grammar=new File(config.getNLUContentRoot(),"time-period-grammar.txt");
-				if (config.nlBusConfig!=null && !grammar.exists()) grammar=new File(config.nlBusConfig.getContentRoot(),"common/nlu/time-period-grammar.txt");
+				if (config.getNlBusConfigNC()!=null && !grammar.exists()) grammar=new File(config.getNlBusConfigNC().getContentRoot(),"common/nlu/time-period-grammar.txt");
 			}
 			if (grammar.exists()) {
 				parser = ChartParser.getParserForGrammar(grammar);

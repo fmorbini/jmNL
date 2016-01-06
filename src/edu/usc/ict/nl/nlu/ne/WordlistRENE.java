@@ -37,7 +37,7 @@ public class WordlistRENE extends BasicNE {
 		super.setConfiguration(configuration);
 		try {
 			File model=new File(configuration.getNLUContentRoot(),modelName);
-			if (!model.exists() && configuration.nlBusConfig!=null) model=new File(configuration.nlBusConfig.getContentRoot(),"common/nlu/"+modelName);
+			if (!model.exists() && configuration.getNlBusConfigNC()!=null) model=new File(configuration.getNlBusConfigNC().getContentRoot(),"common/nlu/"+modelName);
 			if (model.exists())
 				loadModel(model);
 			else throw new IOException("File not found: " + model.getAbsolutePath());

@@ -272,7 +272,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		File sessionDump=null;
 		DM dm=getDM(sid,false);
 		if (dm!=null) {
-			String d=dm.getConfiguration().nlBusConfig.getPausedSessionsRoot();
+			String d=dm.getConfiguration().getNlBusConfigNC().getPausedSessionsRoot();
 			File sessionDir=new File(d+sid+File.separator);
 			sessionDir.mkdirs();
 			sessionDump=File.createTempFile(sid+"-", ".is", sessionDir);
@@ -561,7 +561,7 @@ public abstract class NLBusBase implements NLBusInterface {
 	private void parsePolicyForCharacter(DM dm) throws Exception {
 		if (dm!=null) {
 			DMConfig dmConfig = dm.getConfiguration();
-			String characterName=dmConfig.nlBusConfig.getCharacter();
+			String characterName=dmConfig.getNlBusConfigNC().getCharacter();
 			String policyLocation=dmConfig.getDMContentRoot()+File.separator+dmConfig.getInitialPolicyFileName();
 			Object policy = dm.parseDialoguePolicy(policyLocation);
 			logger.info("DONE parsing DM policy for character: "+characterName);
@@ -687,9 +687,9 @@ public abstract class NLBusBase implements NLBusInterface {
 				config=(NLBusConfig) getConfiguration().clone();
 				NLBusConfig pc=getPersonalizedNLConfigurationForCharacter(characterName);
 				if (pc!=null) {
-					if (pc.nluConfig!=null) config.setNluConfig(pc.nluConfig);
-					if (pc.nlgConfig!=null) config.setNlgConfig(pc.nlgConfig);
-					if (pc.dmConfig!=null) config.setDmConfig(pc.dmConfig);
+					if (pc.getNluConfigNC()!=null) config.setNluConfig(pc.getNluConfigNC());
+					if (pc.getNlgConfigNC()!=null) config.setNlgConfig(pc.getNlgConfigNC());
+					if (pc.getDmConfigNC()!=null) config.setDmConfig(pc.getDmConfigNC());
 				}
 				config.setCharacter(characterName);
 				character2Config.put(characterName, config);
@@ -735,13 +735,13 @@ public abstract class NLBusBase implements NLBusInterface {
 	}
 
 	protected NLUConfig getNLUConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
-		return getConfigurationForCharacter(characterName).nluConfig;
+		return getConfigurationForCharacter(characterName).getNluConfigNC();
 	}
 	protected DMConfig getDMConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
-		return getConfigurationForCharacter(characterName).dmConfig;
+		return getConfigurationForCharacter(characterName).getDmConfigNC();
 	}
 	protected NLGConfig getNLGConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
-		return getConfigurationForCharacter(characterName).nlgConfig;
+		return getConfigurationForCharacter(characterName).getNlgConfigNC();
 	}
 
 	@Override

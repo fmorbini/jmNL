@@ -1104,7 +1104,7 @@ public class RewardDM extends DM {
 			return speechAct;
 		}
 		else {
-			String lowConfidenceEvent=getConfiguration().nluConfig.getLowConfidenceEvent();
+			String lowConfidenceEvent=getConfiguration().getNluConfigNC().getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
 				logger.warn(" no NLU output and LOW confidence event disabled, returning no NLU results.");
 				return null;

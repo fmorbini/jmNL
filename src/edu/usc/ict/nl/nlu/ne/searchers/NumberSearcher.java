@@ -27,7 +27,7 @@ public class NumberSearcher {
 	public NumberSearcher(NLUConfig nluConfig, String text) {
 		m=p.matcher(text);
 		File grammar=new File(nluConfig.getNLUContentRoot(),"written-numbers-grammar.txt");
-		if (nluConfig.nlBusConfig!=null && !grammar.exists()) grammar=new File(nluConfig.nlBusConfig.getContentRoot(),"common/nlu/written-numbers-grammar.txt");
+		if (nluConfig.getNlBusConfigNC()!=null && !grammar.exists()) grammar=new File(nluConfig.getNlBusConfigNC().getContentRoot(),"common/nlu/written-numbers-grammar.txt");
 		if (grammar.exists()) {
 			try {
 				parser = ChartParser.getParserForGrammar(grammar);
