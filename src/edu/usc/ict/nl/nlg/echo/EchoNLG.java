@@ -48,7 +48,7 @@ public class EchoNLG extends NLG {
 	}
 	
 	private String getContentDir() {
-		return getConfiguration().nlBusConfig.getCharacterContentRoot();
+		return getConfiguration().getNlBusConfigNC().getCharacterContentRoot();
 	}
 
 	public EchoNLGData getData() {
@@ -70,7 +70,7 @@ public class EchoNLG extends NLG {
 
 	@Override
 	public Float getDurationOfThisDMEvent(Long sessionID, NLGEvent ev) throws Exception {
-		if (getConfiguration().dmConfig.getSystemEventsHaveDuration()) {
+		if (getConfiguration().getDmConfigNC().getSystemEventsHaveDuration()) {
 			String text=ev.getName();
 			if (text!=null) {
 				String[] words=text.split("[\\s]+");
@@ -233,7 +233,7 @@ public class EchoNLG extends NLG {
 	@Override
 	public void reloadData(boolean forceReload) throws Exception {
 		logger.info("re-loading data.");
-		String dir = getConfiguration().nlBusConfig.getCharacterContentRoot();
+		String dir = getConfiguration().getNlBusConfigNC().getCharacterContentRoot();
 		if (forceReload || !allNLGData.containsKey(dir)) {
 			logger.info(" forcing reload of data.");
 			EchoNLGData data = new EchoNLGData(getConfiguration());

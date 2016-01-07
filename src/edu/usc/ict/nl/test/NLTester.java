@@ -137,7 +137,7 @@ public class NLTester {
 		return success;
 	}
 	public Pair<NLUOutput, List<NLGEvent>> sendLoginAndGetReplies(long sid) throws Exception {
-		return sendForcedNLU(getConfiguration().dmConfig.getLoginEventName(), sid);
+		return sendForcedNLU(getConfiguration().getDmConfigNC().getLoginEventName(), sid);
 	}
 	public Pair<NLUOutput, List<NLGEvent>> sendForcedNLU(String nluSA,long sid) throws Exception {
 		// simulates the initial login event

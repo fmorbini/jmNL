@@ -10,7 +10,7 @@ import org.w3c.dom.Node;
 
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLUEvent;
-import edu.usc.ict.nl.dm.reward.EventMatcher;
+import edu.usc.ict.nl.dm.reward.matcher.EventMatcher;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.nlu.ChartNLUOutput;
 import edu.usc.ict.nl.nlu.NLUOutput;

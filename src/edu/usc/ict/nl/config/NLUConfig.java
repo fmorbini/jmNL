@@ -57,6 +57,19 @@ public class NLUConfig extends NLConfig {
 		super();
 	}
 	
+	@Override
+	public NLUConfig getNluConfigNC() {
+		return this;
+	}
+	@Override
+	public DMConfig getDmConfigNC() {
+		return getNlBusConfigNC().getDmConfigNC();
+	}
+	@Override
+	public NLGConfig getNlgConfigNC() {
+		return getNlBusConfigNC().getNlgConfigNC();
+	}
+	
 	public NLUConfig cloneObject() {
 		NLUConfig ret=null;
 		try {

@@ -209,7 +209,7 @@ public class MultiNLU extends NLU {
 		for(String nodeName:name2nluClass.keySet()) {
 			NLUConfig internalConfig=(NLUConfig) name2nluClass.get(nodeName);
 			if (internalConfig!=null) {
-				internalConfig.nlBusConfig=getConfiguration().nlBusConfig;
+				internalConfig.setNlBusConfig(getConfiguration().getNlBusConfigNC());
 				NLU internalNLU = (NLU) NLBus.createSubcomponent(internalConfig,internalConfig.getNluClass());
 				ret.put(nodeName, internalNLU);
 			}

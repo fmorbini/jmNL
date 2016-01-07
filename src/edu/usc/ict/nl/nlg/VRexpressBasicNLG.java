@@ -26,12 +26,12 @@ public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInt
 		super(c,loadData);
 		tracker=new UtteranceDoneTracker(logger);
 		try {
-			String activeMQserver=c.nlBusConfig.getVhServer();
-			String activeMQtopic=c.nlBusConfig.getVhTopic();
+			String activeMQserver=c.getNlBusConfigNC().getVhServer();
+			String activeMQtopic=c.getNlBusConfigNC().getVhTopic();
 			if (!StringUtils.isEmptyString(activeMQserver) && !StringUtils.isEmptyString(activeMQtopic)) {
-				vhBridge=new VHBridge(c.nlBusConfig.getVhServer(), c.nlBusConfig.getVhTopic());
+				vhBridge=new VHBridge(c.getNlBusConfigNC().getVhServer(), c.getNlBusConfigNC().getVhTopic());
 			}
-			characterName=getConfiguration().nlBusConfig.getVhSpeaker();
+			characterName=getConfiguration().getNlBusConfigNC().getVhSpeaker();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

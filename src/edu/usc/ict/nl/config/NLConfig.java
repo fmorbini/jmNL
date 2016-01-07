@@ -14,10 +14,10 @@ import edu.usc.ict.nl.util.StringUtils;
 public abstract class NLConfig {
 	// don't add both getters and setters for the above otherwise the cloneObject method will
 	// try to automatically get and set those properties 
-	public NLBusConfig nlBusConfig=null;
-	public NLUConfig nluConfig=null;
-	public DMConfig dmConfig=null;
-	public NLGConfig nlgConfig=null;
+	protected NLBusConfig nlBusConfig=null;
+	protected NLUConfig nluConfig=null;
+	protected DMConfig dmConfig=null;
+	protected NLGConfig nlgConfig=null;
 
 	public void setNluConfig(NLUConfig nluConfig) {
 		this.nluConfig = nluConfig;
@@ -31,7 +31,23 @@ public abstract class NLConfig {
 		this.nlgConfig = nlgConfig;
 		if (this instanceof NLBusConfig) this.nlgConfig.nlBusConfig=(NLBusConfig) this;
 	}
+	public void setNlBusConfig(NLBusConfig nlBusConfig) {
+		this.nlBusConfig = nlBusConfig;
+	}
 
+	public NLBusConfig getNlBusConfigNC() {
+		return nlBusConfig;
+	}
+	public DMConfig getDmConfigNC() {
+		return dmConfig;
+	}
+	public NLUConfig getNluConfigNC() {
+		return nluConfig;
+	}
+	public NLGConfig getNlgConfigNC() {
+		return nlgConfig;
+	}
+	
 	public NLConfig() {
 		if (this instanceof NLUConfig) nluConfig=(NLUConfig) this;
 		else if (this instanceof DMConfig) dmConfig=(DMConfig) this;

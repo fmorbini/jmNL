@@ -171,7 +171,7 @@ public abstract class DM implements DMInterface {
 				closeChatLog();
 				startTime=System.currentTimeMillis();
 				line=0;
-				String logFileName=getConfiguration().nlBusConfig.getChatLog();
+				String logFileName=getConfiguration().getNlBusConfigNC().getChatLog();
 
 				String baseFileName=logFileName+"-"+getIDPortionLogFileName();
 				File f=new File(baseFileName+".xml");
@@ -327,7 +327,7 @@ public abstract class DM implements DMInterface {
 
 	@Override
 	public void logEventInChatLog(Event ev) {
-		if (!configuration.nlBusConfig.getLoggingEventsInChatLog())
+		if (!configuration.getNlBusConfigNC().getLoggingEventsInChatLog())
 			return;
 		try {
 			if (chatLog==null) chatLog=new ChatLog();

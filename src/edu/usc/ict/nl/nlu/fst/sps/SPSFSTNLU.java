@@ -29,7 +29,7 @@ public class SPSFSTNLU extends FSTNLU {
 		String beanName=c.getInternalNluClass4Hier();
 		NLUConfig config=NLU.getNLUConfig(beanName);
 
-		NLBusConfig bc=c.nlBusConfig;
+		NLBusConfig bc=c.getNlBusConfigNC();
 		if (bc!=null) bc=(NLBusConfig) bc.clone();
 		bc.setNluConfig(config);
 		internalNLU = (FSTNLU) init(config);

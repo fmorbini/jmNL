@@ -48,7 +48,7 @@ public class VHProtocol extends Protocol {
 			if (!StringUtils.isEmptyString(vhOther)) {
 				if (StringUtils.isEmptyString(vhMyself)) throw new Exception("Invalid configuration as it sets property vhOtherSpeak but not vhSpeaker.");
 				inTwoVHCharactersMode=true;
-				usingJustVRSpeak=!config.dmConfig.getSystemEventsHaveDuration();
+				usingJustVRSpeak=!config.getDmConfigNC().getSystemEventsHaveDuration();
 			}
 			VHBridge vhBridge=new VHBridge(config.getVhServer(), config.getVhTopic());
 			setVHBridge(vhBridge);
