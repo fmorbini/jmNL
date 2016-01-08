@@ -35,7 +35,6 @@ import edu.usc.ict.nl.nlu.ne.BasicNE;
 import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
-import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
 import edu.usc.ict.nl.util.StringUtils;
@@ -50,7 +49,7 @@ public abstract class NLU implements NLUInterface {
 	private Method featuresBuilder,featuresAtPosBuilder;
 	private static NLU _instance;
 
-	private static final Logger logger = Logger.getLogger(NLU.class.getName());
+	protected static final Logger logger = Logger.getLogger(NLU.class.getName());
 	static {
 		URL log4Jresource=LogConfig.findLogConfig("src","log4j.properties", false);
 		if (log4Jresource != null)
@@ -349,7 +348,7 @@ public abstract class NLU implements NLUInterface {
 	protected static String springConfig=null;
 	static protected AbstractApplicationContext context;
 	public static NLUConfig getNLUConfig(String beanName) {
-		System.out.println("Initializing NLU configuration with bean named: '"+beanName+"'");
+		logger.info("Initializing NLU configuration with bean named: '"+beanName+"'");
 		if (springConfig==null)
 			context = new ClassPathXmlApplicationContext(new String[] {"NLUConfigs.xml"});
 		else 
