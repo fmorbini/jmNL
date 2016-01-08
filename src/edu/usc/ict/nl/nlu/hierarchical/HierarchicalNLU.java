@@ -24,12 +24,7 @@ import java.util.regex.Pattern;
 import edu.usc.ict.nl.bus.NLBus;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
-<<<<<<< HEAD
-import edu.usc.ict.nl.dm.reward.EventMatcher;
-=======
 import edu.usc.ict.nl.dm.reward.matcher.EventMatcher;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
->>>>>>> remotes/origin/master
 import edu.usc.ict.nl.nlu.ConfusionEntry;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;

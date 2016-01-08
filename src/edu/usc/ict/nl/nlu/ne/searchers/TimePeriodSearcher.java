@@ -27,7 +27,7 @@ public class TimePeriodSearcher {
 			TokenizerI tokenizer=config.getNluTokenizer();
 			this.text=input;
 			this.tokens=tokenizer.tokenize1(input);
-			File grammar=new File(new File(config.nlBusConfig.getContentRoot()).getParent(),"preprocessing/time-period-grammar.txt");
+			File grammar=new File(new File(config.getNlBusConfigNC().getContentRoot()).getParent(),"preprocessing/time-period-grammar.txt");
 			if (grammar.exists()) {
 				parser = ChartParser.getParserForGrammar(grammar);
 			}

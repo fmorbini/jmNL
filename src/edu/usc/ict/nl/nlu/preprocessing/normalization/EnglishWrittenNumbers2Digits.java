@@ -35,7 +35,7 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 	}
 
 	private static List<Token> parseWrittenNumbers(NLUConfig nluConfig,List<Token> tokens) {
-		File grammar=new File(new File(nluConfig.nlBusConfig.getContentRoot()).getParent(),"preprocessing/written-numbers-grammar.txt");
+		File grammar=new File(new File(nluConfig.getNlBusConfigNC().getContentRoot()).getParent(),"preprocessing/written-numbers-grammar.txt");
 		if (!grammar.exists()) return tokens;
 		else {
 			try {
