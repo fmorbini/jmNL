@@ -52,9 +52,19 @@ public class NumberSearcher {
 	}
 	public Double getNextNumber() {
 		Double numD=findNumber();
+		if (numD==null) {
+			start=-1;
+		} else {
+			start=nextstart;
+		}
+		return numD;
+	}
+	public Double getNextNumberAlsoWritten() {
+		Double numD=findNumber();
 		int dStart=nextstart;
 		Double numW=findWrittenNumber();
 		int wStart=nextstart;
+		if (numW!=null && wStart<=start) numW=null;
 		Double num=null;
 		if (numD==null) {
 			if (numW!=null) {

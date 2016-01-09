@@ -59,7 +59,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		return null;
 	}
 
-	private List<Integer> computeTokenStarts(List<Token> inputTokens) {
+	public static List<Integer> computeTokenStarts(List<Token> inputTokens) {
 		List<Integer> tokenStarts=null;
 		if (inputTokens!=null) {
 			new ArrayList<Integer>();
@@ -96,7 +96,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 							if (j==startToken) {
 								Token original=inputTokens.get(j);
 								if (original!=null) {
-									newToken=new Token("<"+ne.getType().toUpperCase()+">", original.getType(), ne.getMatchedString(), start, end);
+									newToken=new Token(ne.getType().toUpperCase(), original.getType(), ne.getMatchedString(), start, end);
 									newToken.setAssociatedNamedEntity(ne);
 									if (ret==null) ret=new ArrayList<>();
 									ret.add(newToken);
@@ -192,7 +192,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 	}
 	
-	private int getTokenAtPosition(int chPos, List<Integer> tokenStarts) {
+	public static int getTokenAtPosition(int chPos, List<Integer> tokenStarts) {
 		int token=0;
 		for(int tokenStartPos:tokenStarts) {
 			if (chPos<tokenStartPos) return token-1;

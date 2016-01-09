@@ -1,6 +1,7 @@
 package edu.usc.ict.nl.nlu.ne.searchers;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -61,6 +62,7 @@ public class TimePeriodSearcher {
 
 	public Double getTimesEachDay() {
 		try {
+			BasicNE.logger.info(" extracting frequency from: "+text);
 			List<String> ts=(List<String>) FunctionalLibrary.map(tokens, Token.class.getMethod("getOriginal"));
 			Collection<Item> result = parser.parseAndFilter(ts,"<FP>");
 			Double prevTimesEachSecond=null;
@@ -72,7 +74,6 @@ public class TimePeriodSearcher {
 				else prevTimesEachSecond=timesEachSecond;
 			}
 			if (prevTimesEachSecond==null) {
-				BasicNE.logger.info(" extracting frequency from: "+text);
 				return null;
 			} else {
 				return ParserSemanticRulesTimeAndNumbers.numSecondsInDay*prevTimesEachSecond;

@@ -95,9 +95,9 @@
 	</bean>
 	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration"/>
 	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency"/>
-		<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
+	<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
 		<constructor-arg>
- 			<value type="java.lang.String">test</value>
+ 			<value type="java.lang.String">nere</value>
 		</constructor-arg>
 		<!-- 
  		<constructor-arg index="0" value=".*number"/>

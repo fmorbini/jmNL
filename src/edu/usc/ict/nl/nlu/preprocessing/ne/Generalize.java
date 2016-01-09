@@ -9,8 +9,13 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.ne.BasicNE;
+import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocesser;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.util.StringUtils;
 
 public class Generalize extends Preprocesser {
 
@@ -26,7 +31,7 @@ public class Generalize extends Preprocesser {
 					size=tmp.size();
 					input.remove(position);
 					for(int i=0;i<tmp.size();i++) {
-						input.add(position+1,tmp.get(i));
+						input.add(position,tmp.get(i));
 					}
 				}
 				position+=size;
@@ -63,12 +68,51 @@ public class Generalize extends Preprocesser {
 			}
 		}
 		
-		List<Token> sortedModifiedTokens=new ArrayList<>(overlappingTokens.keySet());
-		Collections.sort(sortedModifiedTokens);
-		List<List<Token>> sols=new ArrayList<>();
-		getNESoptions(sortedModifiedTokens.get(0),sortedModifiedTokens,null,sols,overlappingTokens);
+		if (overlappingTokens!=null && !overlappingTokens.isEmpty()) {
+			List<Token> sortedModifiedTokens=new ArrayList<>(overlappingTokens.keySet());
+			Collections.sort(sortedModifiedTokens);
+			List<List<Token>> sols=new ArrayList<>();
+			getNESoptions(sortedModifiedTokens.get(0),sortedModifiedTokens,null,sols,overlappingTokens);
+			List<List<Token>> newTokens=mergeTokensWithGeneralizedTokens(sols,tokens);
+			return newTokens;
+		}
+		return null;
+	}
+
+	private List<List<Token>> mergeTokensWithGeneralizedTokens(List<List<Token>> sols, List<Token> tokens) {
+		List<Integer> tokenStarts=BasicNE.computeTokenStarts(tokens);
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		String input=Preprocess.getString(tokens, tokenizer);
+		try {
+			if (sols!=null) {
+				for(List<Token> sol:sols) {
+					int position=0;
+					int pend=0;
+					while(position<sol.size()) {
+						Token current=sol.get(position);
+						int start=current.getStart();
+						int end=current.getEnd();
+						boolean isWholeWordsSubstring=StringUtils.isWholeWordSubstring(start,end,input);
+						if (isWholeWordsSubstring) {
+							int startToken = BasicNE.getTokenAtPosition(start,tokenStarts);
+							int endToken=BasicNE.getTokenAtPosition(end,tokenStarts);
+							for (int j=pend;j<startToken;j++) {
+								sol.add(position+j-pend, tokens.get(j));
+							}
+							position+=startToken-pend;
+							pend=endToken+1;
+						}
+						position++;
+					}
+					for (int j=pend;j<tokens.size();j++) {
+						sol.add(tokens.get(j));
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("error generalizing text", e);
+		}
 		return sols;
-		
 	}
 
 	/** input: t initial token (first generalized token (by start position)) 
@@ -91,17 +135,25 @@ public class Generalize extends Preprocesser {
 	 */
 	private void getNESoptions(Token current, List<Token> sortedTokens,List<Token> sol, List<List<Token>> sols, Map<Token, Set<Token>> overlappingTokens) {
 		Set<Token> ots = overlappingTokens.get(current);
-		boolean usedCurrentSolution=false;
-		for(Token ot:ots) {
-			if (usedCurrentSolution || sol==null) {
-				if (sol==null) sol=new ArrayList<>();
-				else sol=new ArrayList<>(sol);
-				sols.add(sol);
+		
+		if (sol==null) sol=new ArrayList<>();
+		else sol=new ArrayList<>(sol);
+		sols.add(sol);
+		sol.add(current);
+
+		if (ots!=null) {
+			boolean usedCurrentSolution=false;
+			for(Token ot:ots) {
+				if (usedCurrentSolution || sol==null) {
+					if (sol==null) sol=new ArrayList<>();
+					else sol=new ArrayList<>(sol);
+					sols.add(sol);
+				}
+				usedCurrentSolution=true;
+				sol.add(ot);
+				Token nextToken=getNonOverlappingAhead(ot,sortedTokens);
+				getNESoptions(nextToken,sortedTokens,sol,sols,overlappingTokens);
 			}
-			usedCurrentSolution=true;
-			sol.add(ot);
-			Token nextToken=getNonOverlappingAhead(ot,sortedTokens);
-			getNESoptions(nextToken,sortedTokens,sol,sols,overlappingTokens);
 		}
 	}
 	

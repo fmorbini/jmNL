@@ -16,6 +16,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import edu.usc.ict.nl.bus.modules.NLU;
+import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.trainingFileReaders.MXNLUTrainingFile;
 import edu.usc.ict.nl.nlu.trainingFileReaders.NLUTrainingFileI;
@@ -151,7 +152,10 @@ public class NLUExe extends NLU {
 	
 	public static void main(final String[] args) throws Exception {
 		digestCommandLineArguments(args);
+		NLBusConfig busConfig = NLBusConfig.WIN_EXE_CONFIG;
+		busConfig.setCharacter("test");
 		NLUConfig config=getNLUConfig(beanName);
+		config.setNlBusConfig(busConfig);
 		String nluRootDir=rootDir.getAbsolutePath();
 		if (modelFile!=null) {
 			config.setNluModelFile(modelFile.getPath());

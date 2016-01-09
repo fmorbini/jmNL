@@ -27,7 +27,7 @@ public class ContractEnglish extends Normalizer {
 						size=tmpTs.size();
 						tokens.remove(i-1);
 						tokens.remove(i-1);
-						for(int j=0;i<size;j++) {
+						for(int j=0;j<size;j++) {
 							tokens.add(i-1+j, tmpTs.get(j));
 						}
 						size-=1;

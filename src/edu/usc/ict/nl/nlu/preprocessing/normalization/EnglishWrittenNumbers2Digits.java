@@ -64,7 +64,9 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 			lastInsertedToken=it.getEnd();
 		}
 		for (int i=lastInsertedToken;i<tokens.size();i++) out.add(tokens.get(i));
-		return out;
+		tokens.clear();
+		tokens.addAll(out);
+		return tokens;
 	}
 
 	public static void main(String[] args) throws Exception {

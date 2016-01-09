@@ -26,6 +26,10 @@ public class SimcoachUserXLSXFile implements NLUTrainingFileI {
 	private Iterator<Row> rowIter=null;
 	private String lastSpeechAct=null;
 
+	public SimcoachUserXLSXFile() {
+		this(0);
+	}
+	
 	public SimcoachUserXLSXFile(int skip) {
 		setSkip(skip);
 	}

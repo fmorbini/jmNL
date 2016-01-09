@@ -23,15 +23,18 @@ public class WordlistRENE extends BasicNE {
 
 	public WordlistRENE(String file) {
 		this.modelName=file;
+		/*
 		try {
 			File modelFile = new File(modelName);
-			if (modelFile.exists())
+			if (modelFile.exists()) {
 				loadModel(modelFile);
-			else
-				logger.warn("error loading -no config- file");
+			} else {
+				logger.warn("error loading "+this.getClass().getName()+": no config file");
+			}
 		} catch (Exception e) {
-			logger.warn("error loading -no config- file",e);
+			logger.warn("error loading config file.",e);
 		}
+		*/
 	}
 	
 	@Override

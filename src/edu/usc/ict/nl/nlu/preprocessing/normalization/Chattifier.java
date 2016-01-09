@@ -12,7 +12,8 @@ public class Chattifier extends Normalizer {
 	public List<Token> normalize(List<Token> tokens) {
 		PreprocessingConfig config = getConfiguration();
 		if (tokens!=null && !tokens.isEmpty()) {
-			for(int i=0;i<tokens.size();) {
+			int i=0;
+			while(i<tokens.size()) {
 				int size=1;
 				Token cp=tokens.get(i);
 				String word=cp.getName();
@@ -29,21 +30,30 @@ public class Chattifier extends Normalizer {
 					List<Token> tmp = tokenizer.tokenize1("i'm");
 					if (tmp!=null && !tmp.isEmpty()) {
 						size=tmp.size();
-						for(int j=0;j<size;j++) tokens.add(i+j, tmp.get(j));
+						tokens.remove(i);
+						for(int j=0;j<size;j++) {
+							tokens.add(i+j, tmp.get(j));
+						}
 					}
 				} else if (word.equals("dont")) {
 					TokenizerI tokenizer = config.getNluTokenizer();
 					List<Token> tmp = tokenizer.tokenize1("don't");
 					if (tmp!=null && !tmp.isEmpty()) {
 						size=tmp.size();
-						for(int j=0;j<size;j++) tokens.add(i+j, tmp.get(j));
+						tokens.remove(i);
+						for(int j=0;j<size;j++) {
+							tokens.add(i+j, tmp.get(j));
+						}
 					}
 				} else if (word.equals("ive")) {
 					TokenizerI tokenizer = config.getNluTokenizer();
 					List<Token> tmp = tokenizer.tokenize1("i've");
 					if (tmp!=null && !tmp.isEmpty()) {
 						size=tmp.size();
-						for(int j=0;j<size;j++) tokens.add(i+j, tmp.get(j));
+						tokens.remove(i);
+						for(int j=0;j<size;j++) {
+							tokens.add(i+j, tmp.get(j));
+						}
 					}
 				}
 				i+=size;
