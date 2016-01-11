@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:camel="http://camel.apache.org/schema/spring"
+       xmlns:broker="http://activemq.apache.org/schema/core"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="simple" class="edu.usc.ict.nl.config.PreprocessingConfig">
+		<property name="nluTokenizer" ref="SpaceTokenizer"/>
+		<property name="nluPreprocessers">
+			<list>
+				<ref bean="Lowercase"/>
+				<ref bean="WrittenNumbers2Digits"/>
+				<ref bean="NEextractor"/>
+			</list>
+		</property>
+		<property name="nluNamedEntityExtractors">
+			<list>
+				<ref bean="NumberNE"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="simcoach" class="edu.usc.ict.nl.config.PreprocessingConfig">
+		<property name="nluTokenizer" ref="SpaceTokenizer"/>
+		<property name="nluPreprocessers">
+			<list>
+				<ref bean="Lowercase"/>
+				<!-- <ref bean="Hunspell"/> -->
+				<ref bean="Uk2Us"/>
+				<ref bean="SimcoachPunctuationFilter"/>
+				<ref bean="SimcoachNormalizer"/>
+				<ref bean="Chattifier"/>
+				<ref bean="ContractEnglish"/>
+				<!-- <ref bean="KStemmer"/> -->
+				<ref bean="WrittenNumbers2Digits"/>
+				<ref bean="NEextractor"/>
+			</list>
+		</property>
+		<property name="nluNamedEntityExtractors">
+			<list>
+				<ref bean="NumberNE"/>
+				<ref bean="TimeDurationNE"/>
+				<ref bean="TimeFrequencyNE"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="test" parent="simple">
+		<property name="nluNamedEntityExtractors">
+			<list>
+				<ref bean="NumberNE"/>
+				<ref bean="TimeDurationNE"/>
+				<ref bean="TimeFrequencyNE"/>
+				<ref bean="KeywordNE"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="SpaceTokenizer" class="edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer"/>
+	
+	<bean id="NEextractor" class="edu.usc.ict.nl.nlu.preprocessing.ne.Generalize"/>
+	
+	<bean id="Chattifier" class="edu.usc.ict.nl.nlu.preprocessing.normalization.Chattifier"/>
+	<bean id="ContractEnglish" class="edu.usc.ict.nl.nlu.preprocessing.normalization.ContractEnglish"/>
+	<bean id="WrittenNumbers2Digits" class="edu.usc.ict.nl.nlu.preprocessing.normalization.EnglishWrittenNumbers2Digits"/>
+	<bean id="Lowercase" class="edu.usc.ict.nl.nlu.preprocessing.normalization.Lowercase"/>
+	<bean id="SimcoachNormalizer" class="edu.usc.ict.nl.nlu.preprocessing.normalization.SimcoachNormalizer"/>
+	<bean id="SimcoachPunctuationFilter" class="edu.usc.ict.nl.nlu.preprocessing.normalization.SimcoachPunctuationNormalizer"/>
+	<bean id="Uk2Us" class="edu.usc.ict.nl.nlu.preprocessing.normalization.UK2USNormalizer"/>
+	
+	<bean id="Hunspell" class="edu.usc.ict.nl.nlu.preprocessing.spellchecker.Hunspell"/>
+	
+	<bean id="KStemmer" class="edu.usc.ict.nl.nlu.preprocessing.stemmer.KStemmer"/>
+	<bean id="PorterStemmer" class="edu.usc.ict.nl.nlu.preprocessing.stemmer.PorterStemmer"/>
+
+	<bean id="EnglishStopWordFilter" class="edu.usc.ict.nl.nlu.preprocessing.filter.EnglishStopWords"/>
+
+	<bean id="NumberNE" class="edu.usc.ict.nl.nlu.ne.Numbers">
+		<constructor-arg>
+ 			<value type="java.lang.String[]">.*number,answer.bio-info.user.age</value>
+		</constructor-arg>
+		<!-- 
+ 		<constructor-arg index="0" value=".*number"/>
+		<constructor-arg index="1" value="answer.number"/>
+		<constructor-arg index="2" value="answer.relative-quantity.number"/>
+		<constructor-arg index="3" value="answer.bio-info.user.age"/>
+		-->
+	</bean>
+	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration">
+		<constructor-arg>
+ 			<value type="java.lang.Boolean">false</value>
+		</constructor-arg>
+	</bean>
+	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency">
+		<constructor-arg>
+ 			<value type="java.lang.Boolean">false</value>
+		</constructor-arg>
+	</bean>
+	<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
+		<constructor-arg>
+ 			<value type="java.lang.String">nere</value>
+		</constructor-arg>
+		<!-- 
+ 		<constructor-arg index="0" value=".*number"/>
+		<constructor-arg index="1" value="answer.number"/>
+		<constructor-arg index="2" value="answer.relative-quantity.number"/>
+		<constructor-arg index="3" value="answer.bio-info.user.age"/>
+		-->
+	</bean>
+</beans>

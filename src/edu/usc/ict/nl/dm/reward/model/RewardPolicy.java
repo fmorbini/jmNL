@@ -39,9 +39,8 @@ import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.config.DMConfig;
-import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.dm.reward.EventMatcher;
+import edu.usc.ict.nl.dm.reward.matcher.EventMatcher;
 import edu.usc.ict.nl.dm.reward.model.textFormat.TextFormatGrammar;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
@@ -494,7 +493,7 @@ public class RewardPolicy {
 					}
 				}
 				if (!events.isEmpty()) {
-					if (c.nlgConfig.getIsStrictNLG()) {
+					if (c.getNlgConfigNC().getIsStrictNLG()) {
 						logger.error(FunctionalLibrary.printCollection(events, "Unknown system speech acts:\n[", "]", "\n"));
 						logger.error("press ENTER to continue.");
 						while(in.readLine()==null);
@@ -567,7 +566,7 @@ public class RewardPolicy {
 				}
 				nlModule.killNlu(sid);
 				nlModule.killNlg(sid);
-				if (!events.isEmpty() && c.nlgConfig.getIsStrictNLG()) {
+				if (!events.isEmpty() && c.getNlgConfigNC().getIsStrictNLG()) {
 					logger.error("There are INPUT speech acts used by the system but not defined in the NLU.");
 					logger.error(FunctionalLibrary.printCollection(events, "[", "]", "\n"));
 				}

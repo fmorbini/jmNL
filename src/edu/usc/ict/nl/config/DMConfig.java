@@ -132,6 +132,19 @@ public class DMConfig extends NLConfig {
 	public void setValueTrackers(List<String> valueTrackers) {
 		this.valueTrackers = valueTrackers;
 	}
+
+	@Override
+	public DMConfig getDmConfigNC() {
+		return this;
+	}
+	@Override
+	public NLUConfig getNluConfigNC() {
+		return getNlBusConfigNC().getNluConfigNC();
+	}
+	@Override
+	public NLGConfig getNlgConfigNC() {
+		return getNlBusConfigNC().getNlgConfigNC();
+	}
 	
 	public String getDMContentRoot() {return (nlBusConfig!=null)?nlBusConfig.getCharacterContentRoot()+File.separator+"dm"+File.separator:"";}
 	

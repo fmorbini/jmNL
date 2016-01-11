@@ -48,10 +48,6 @@ public class NLBusConfig extends NLConfig {
 	// feedback config
 	private String feedbackInputForm;
 	
-	// Stemmer
-	private String stemmerClass;
-	
-	
 	private List<String> protocols=null;
 	
 
@@ -177,9 +173,6 @@ public class NLBusConfig extends NLConfig {
 	public boolean isInAdvicerMode() { return getRunningMode()==RunningMode.ADVICER; }
 	public boolean isInAuthoringMode() { return getRunningMode()==RunningMode.AUTHORING; }
 
-	public String getStemmerClass() {return this.stemmerClass;}
-	public void setStemmerClass(String sc) {this.stemmerClass=sc;}
-	
 	public String getFeedbackInputform() {return feedbackInputForm;}
 	public void setFeedbackInputForm(String i) {this.feedbackInputForm=i;}
 	
@@ -218,7 +211,6 @@ public class NLBusConfig extends NLConfig {
 		WIN_EXE_CONFIG.setRunningMode(RunningMode.EXE);
 		WIN_EXE_CONFIG.setIsLoadBalancing(false);
 		WIN_EXE_CONFIG.setContentRoot("resources/characters/");
-		WIN_EXE_CONFIG.setStemmerClass("edu.usc.ict.nl.stemmer.KStemmer");
 		WIN_EXE_CONFIG.nluConfig=NLUConfig.WIN_EXE_CONFIG;
 		WIN_EXE_CONFIG.nlgConfig=NLGConfig.WIN_EXE_CONFIG;
 		//WIN_EXE_CONFIG.setSystemUtterances("system-utterances.xlsx");

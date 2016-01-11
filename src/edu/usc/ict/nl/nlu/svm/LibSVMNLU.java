@@ -21,7 +21,7 @@ public class LibSVMNLU extends JMXClassifierNLU {
 		try {
 			p.run(model, nbest);
 		} catch (Exception e) {
-			logger.warn(e);
+			getLogger().warn(e);
 		}
 		return p;
 	}

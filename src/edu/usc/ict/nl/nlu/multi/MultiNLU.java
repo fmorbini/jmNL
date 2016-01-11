@@ -1,7 +1,6 @@
 package edu.usc.ict.nl.nlu.multi;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,16 +10,14 @@ import java.util.Set;
 
 import edu.usc.ict.nl.bus.NLBus;
 import edu.usc.ict.nl.bus.modules.NLU;
-import edu.usc.ict.nl.config.NLConfig;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ChartNLUOutput;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.multi.merger.Merger;
 import edu.usc.ict.nl.util.PerformanceResult;
 import edu.usc.ict.nl.util.StringUtils;
-import edu.usc.ict.nl.util.graph.Node;
 
 public class MultiNLU extends NLU {
 
@@ -99,8 +96,8 @@ public class MultiNLU extends NLU {
 			} else {
 				result.add(false);
 				if (printMistakes) {
-					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
-					else logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
+					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
+					else getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
 				}
 			}
 		}
@@ -135,6 +132,7 @@ public class MultiNLU extends NLU {
 		}
 		return null;
 	}
+
 	@Override
 	public Map<String, Object> getPayload(String sa, String text)
 			throws Exception {
@@ -171,7 +169,7 @@ public class MultiNLU extends NLU {
 		if (name2nluInstance!=null) {
 			for(String nluName:name2nluInstance.keySet()) {
 				NLU nlu=name2nluInstance.get(nluName);
-				if (logger.isDebugEnabled()) logger.debug("considering NLU named: "+nluName);
+				if (getLogger().isDebugEnabled()) getLogger().debug("considering NLU named: "+nluName);
 				List<NLUOutput> presult=nlu.getNLUOutput(text, possibleNLUOutputIDs,nBest);
 				if (presult!=null) {
 					NLUOutput r=presult.get(0);
@@ -190,11 +188,11 @@ public class MultiNLU extends NLU {
 		if (result==null) {
 			String lowConfidenceEvent=config.getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				if (result==null) result=new ChartNLUOutput(text, null);
 				result.addPortion(0,0,new NLUOutput(text,lowConfidenceEvent,1f,null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		List<NLUOutput> listResult=new ArrayList<NLUOutput>();
@@ -211,7 +209,7 @@ public class MultiNLU extends NLU {
 		for(String nodeName:name2nluClass.keySet()) {
 			NLUConfig internalConfig=(NLUConfig) name2nluClass.get(nodeName);
 			if (internalConfig!=null) {
-				internalConfig.nlBusConfig=getConfiguration().nlBusConfig;
+				internalConfig.setNlBusConfig(getConfiguration().getNlBusConfigNC());
 				NLU internalNLU = (NLU) NLBus.createSubcomponent(internalConfig,internalConfig.getNluClass());
 				ret.put(nodeName, internalNLU);
 			}
@@ -219,27 +217,18 @@ public class MultiNLU extends NLU {
 		return ret;
 	}
 	
-	private static Method getNameMethod=null;
-	static {
-		try {
-			getNameMethod=Node.class.getMethod("getName");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
 	@Override
 	public void retrain() throws Exception {
 		Map<String, NLU> hnlu = getHNLU();
-		logger.info("Starting multi nlu training...");
+		getLogger().info("Starting multi nlu training...");
 		if (hnlu!=null) {
 			for(String nluName:hnlu.keySet()) {
 				NLU nlu=hnlu.get(nluName);
-				logger.info("Retraining nlu named: "+nluName);
+				getLogger().info("Retraining nlu named: "+nluName);
 				nlu.retrain();
 			}
 		}
-		logger.info("Done multi nlu training.");
+		getLogger().info("Done multi nlu training.");
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -249,7 +238,6 @@ public class MultiNLU extends NLU {
 		NLUConfig topicConfig=(NLUConfig) NLUConfig.WIN_EXE_CONFIG.clone();
 		topicConfig.setNluClass("edu.usc.ict.nl.nlu.topic.WordlistTopicDetection");
 		topicConfig.setNluModelFile("topic-models");
-		topicConfig.setApplyTransformationsToInputText(false);
 		nlus.put("topic", topicConfig);
 		NLUConfig classifierConfig=(NLUConfig) NLUConfig.WIN_EXE_CONFIG.clone();
 		classifierConfig.setNluClass("edu.usc.ict.nl.nlu.hierarchical.HierarchicalNLU");

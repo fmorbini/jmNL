@@ -10,6 +10,9 @@ import java.util.Map;
 
 import edu.usc.ict.nl.nlu.multi.merger.Merger;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
+import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
 import edu.usc.ict.nl.nlu.trainingFileReaders.NLUTrainingFileI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.SimcoachUserXLSXFile;
 import edu.usc.ict.nl.util.StringUtils;
@@ -37,11 +40,10 @@ public class NLUConfig extends NLConfig {
 	private String nluModelFile,nluTrainingFile,hardLinksFile;
 	private boolean useSystemFormsToTrainNLU=true;
 	private int nBest;
-	private boolean applyTransformationsToInputText;
-	private boolean generalizeNumbers;
 	private Float acceptanceThreshold,regularization;
 	private String lowConfidenceEvent,emptyTextEventName;
-	private List<NamedEntityExtractorI> nes;
+	
+	private PreprocessingConfig prConfig=null;
 	
 	// fst specific
 	private String fstInputSymbols=null,fstOutputSymbols=null;
@@ -49,13 +51,23 @@ public class NLUConfig extends NLConfig {
 	// sps fst specific
 	private boolean spsMapperUsesNluOutput=false;
 	private String spsMapperModelFile=null;
-	
-	// Stemmer
-	private String stemmerClass;
 
 	
 	public NLUConfig() {
 		super();
+	}
+	
+	@Override
+	public NLUConfig getNluConfigNC() {
+		return this;
+	}
+	@Override
+	public DMConfig getDmConfigNC() {
+		return getNlBusConfigNC().getDmConfigNC();
+	}
+	@Override
+	public NLGConfig getNlgConfigNC() {
+		return getNlBusConfigNC().getNlgConfigNC();
 	}
 	
 	public NLUConfig cloneObject() {
@@ -86,18 +98,6 @@ public class NLUConfig extends NLConfig {
 	
 
 	
-	/** Executable platform */
-	public ExecutablePlatform getExecutablePlatform() {
-		ExecutablePlatform result = ExecutablePlatform.UNKNOWN;
-		String os = System.getProperty("os.name").toLowerCase();
-		if(os.indexOf( "lin" ) >= 0)
-			result = ExecutablePlatform.LINUXi386;
-		else if(os.indexOf( "mac" ) >= 0)
-			result = ExecutablePlatform.MACOSX;
-		else if(os.indexOf( "win" ) >= 0)
-			result = ExecutablePlatform.WIN32;
-		return result;
-	}
 	
 	private String forcedNluContentRoot=null,nluDir="nlu";
 	public String getNluDir() {
@@ -146,9 +146,6 @@ public class NLUConfig extends NLConfig {
 	public void setTrainingDataReader(NLUTrainingFileI trainingDataReader) {
 		this.trainingDataReader = trainingDataReader;
 	}
-	/** NLU named entities */
-	public List<NamedEntityExtractorI> getNluNamedEntityExtractors() {return nes;}
-	public void setNluNamedEntityExtractors(List<NamedEntityExtractorI> nes) {this.nes=nes;}
 	/** NLU nbest */
 	public int getnBest() {return nBest;}
 	public void setnBest(int nBest) {this.nBest = nBest;}
@@ -167,11 +164,6 @@ public class NLUConfig extends NLConfig {
 	/** NLU reguralization parameter (if used) */
 	public Float getRegularization() {return regularization;}
 	public void setRegularization(Float t) {this.regularization=t;}
-	/** MXNLU input pre-classification transformations */
-	public boolean getApplyTransformationsToInputText() {return applyTransformationsToInputText;}
-	public void setApplyTransformationsToInputText(boolean a) {this.applyTransformationsToInputText = a;}
-	public boolean getGeneralizeNumbers() {return generalizeNumbers;}
-	public void setGeneralizeNumbers(boolean g) {this.generalizeNumbers=g;}
 	/** nlu and dm class to be used to create nlu and dm instances */
 	public String getNluClass() {return nluClass;}
 	public void setNluClass(String nlu) {this.nluClass=nlu;}	
@@ -204,9 +196,6 @@ public class NLUConfig extends NLConfig {
 	public boolean getNluVhGenerating() {return nluVhGenerating;}
 	public void setNluVhGenerating(boolean s) {this.nluVhGenerating=s;}
 	
-	public String getStemmerClass() {return this.stemmerClass;}
-	public void setStemmerClass(String sc) {this.stemmerClass=sc;}
-
 	public String getFstInputSymbols() {return getNLUContentRoot()+fstInputSymbols;}
 	public void setFstInputSymbols(String fstInputSymbols) {this.fstInputSymbols = removeAbsolutePath(fstInputSymbols);}
 	public String getFstOutputSymbols() {return getNLUContentRoot()+fstOutputSymbols;}
@@ -222,19 +211,32 @@ public class NLUConfig extends NLConfig {
 	
 	public Boolean isInAdvicerMode() {return (nlBusConfig!=null)?nlBusConfig.isInAdvicerMode():false;}  
 	
+	public PreprocessingConfig getPreprocessingConfig() {return prConfig;}
+	public void setPreprocessingConfig(PreprocessingConfig prConfig) {this.prConfig = prConfig;}
+	public List<NamedEntityExtractorI> getNluNamedEntityExtractors() {
+		if (getPreprocessingConfig()!=null) {
+			return getPreprocessingConfig().getNluNamedEntityExtractors();
+		}
+		return null;
+	}
+	public TokenizerI getNluTokenizer() {
+		if (getPreprocessingConfig()!=null) {
+			return getPreprocessingConfig().getNluTokenizer();
+		}
+		return null;
+	}
+	
 	// sample config used to run mxnlu during testing
 	public static final NLUConfig WIN_EXE_CONFIG=new NLUConfig();
 	static{
 		WIN_EXE_CONFIG.setnBest(2);
+		WIN_EXE_CONFIG.setNlBusConfig(NLBusConfig.WIN_EXE_CONFIG);
 		WIN_EXE_CONFIG.setAcceptanceThreshold(0.4f);
 		WIN_EXE_CONFIG.setLowConfidenceEvent("internal.low-confidence");
-		WIN_EXE_CONFIG.setApplyTransformationsToInputText(true);
-		WIN_EXE_CONFIG.setGeneralizeNumbers(true);
 		WIN_EXE_CONFIG.setNluModelFile("classifier-model");
 		WIN_EXE_CONFIG.setNluTrainingFile("classifier-training.txt");
 		WIN_EXE_CONFIG.setChartNluMaxLength(30);
 		WIN_EXE_CONFIG.setDoSpellchecking(false);
-		WIN_EXE_CONFIG.setStemmerClass("edu.usc.ict.nl.stemmer.KStemmer");
 		WIN_EXE_CONFIG.setNluFeaturesBuilderClass("edu.usc.ict.nl.nlu.features.FeaturesBuilderForMXClassifier");
 		WIN_EXE_CONFIG.setNluHardLinks("hardlinks.txt");
 		WIN_EXE_CONFIG.setUserUtterances("user-utterances.xlsx");

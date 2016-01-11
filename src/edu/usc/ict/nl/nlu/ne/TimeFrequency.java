@@ -8,19 +8,26 @@ import edu.usc.ict.nl.nlu.ne.searchers.TimePeriodSearcher;
 public class TimeFrequency extends Numbers {
 
 	public TimeFrequency() {
+		this(true);
+	}
+	public TimeFrequency(boolean generalize) {
+		super(generalize,(String[])null);
 	}
 
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
+	public boolean isNEAvailableForSpeechAct(NE ne, String speechAct) {
+		return (speechAct!=null && speechAct.equals("answer.number-in-period"));
+	}
+	
+	@Override
+	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
 		List<NE> payloads = null;
-		if (speechAct!=null && speechAct.equals("answer.number-in-period")) {
-			TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),text);
-			Double num=ts.getTimesEachDay();
-			if (num!=null) {
-				logger.info("Extracted "+num+" times per day from the answer '"+text+"'.");
-				if (payloads==null) payloads=new ArrayList<NE>();
-				payloads.add(new NE(firstNumVar.getName(), num));
-			}
+		TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),text);
+		Double num=ts.getTimesEachDay();
+		if (num!=null) {
+			logger.info("Extracted "+num+" times per day from the answer '"+text+"'.");
+			if (payloads==null) payloads=new ArrayList<NE>();
+			payloads.add(new NE(firstNumVar.getName(),num,this));
 		}
 		return payloads;
 	}

@@ -6,18 +6,21 @@ public class NE {
 	private Object value;
 	private String varName;
 	private String type;
+	private NamedEntityExtractorI extractor;
+	
 	public static final String INFOSTATE="informationStateNamedEntity";
 	
-	public NE(String varName,Object value,String type,int start,int end,String match) {
+	public NE(String varName,Object value,String type,int start,int end,String match,NamedEntityExtractorI ext) {
 		this.varName=varName;
 		this.value=value;
 		this.type=type;
 		this.start=start;
 		this.end=end;
 		this.matchedString=match;
+		this.extractor=ext;
 	}
-	public NE(String varName,Object value) {
-		this(varName,value,INFOSTATE,-1,-1,null);
+	public NE(String varName,Object value, NamedEntityExtractorI ext) {
+		this(varName,value,INFOSTATE,-1,-1,null,ext);
 	}
 
 	public boolean isInfoState() {
@@ -49,5 +52,8 @@ public class NE {
 	public String toString() {
 		return getVarName()+"="+getValue()+" ("+getStart()+","+getEnd()+","+getMatchedString()+")";
 	}
-	
+
+	public NamedEntityExtractorI getExtractor() {
+		return extractor;
+	}
 }

@@ -121,7 +121,7 @@ public class EchoNLGData {
 								if (!StringUtils.isEmptyString(value)) {
 									List<SpeechActWithProperties> list = ret.get(lastKey);
 									if (list==null) ret.put(lastKey,list=new ArrayList<SpeechActWithProperties>());
-									Map<Integer,String> lps = ExcelUtils.extractRowAndColumnWiseDataWithColumns(file, 0, rownum, startPropertyColumn, endPropertyColumn, true, true);
+									Map<Integer,String> lps = ExcelUtils.extractRowAndColumnWiseDataWithColumns(sheet, rownum, startPropertyColumn, endPropertyColumn, true, true);
 									SpeechActWithProperties rv=new SpeechActWithProperties();
 									rv.setText(value);
 									if (ps!=null && lps!=null) {
@@ -141,7 +141,7 @@ public class EchoNLGData {
 						}
 					}
 				} else {
-					ps = ExcelUtils.extractRowAndColumnWiseDataWithColumns(file, 0, 0, startPropertyColumn, endPropertyColumn, true, true);
+					ps = ExcelUtils.extractRowAndColumnWiseDataWithColumns(sheet, 0, startPropertyColumn, endPropertyColumn, true, true);
 					if (ps!=null && endPropertyColumn<0) for(Integer c:ps.keySet()) if (c>endPropertyColumn) endPropertyColumn=c;
 				}
 			}
@@ -285,6 +285,4 @@ public class EchoNLGData {
 			}
 		}
 	}
-
-	
 }

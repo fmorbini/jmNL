@@ -7,6 +7,7 @@ import java.util.Set;
 
 import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
 
@@ -102,11 +103,6 @@ public class NoNLU implements NLUInterface {
 	}
 
 	@Override
-	public Map<String, Float> getUtteranceScores(String utt, String modelFileName) throws Exception {
-		return null;
-	}
-
-	@Override
 	public List<Pair<String, Float>> getTokensScoresForLabel(String utt, String label, String modelFileName)
 			throws Exception {
 		return null;
@@ -119,6 +115,11 @@ public class NoNLU implements NLUInterface {
 
 	@Override
 	public List<String> getFeaturesFromPositionInUtterance(String[] tokens, int pos) {
+		return null;
+	}
+
+	@Override
+	public List<List<Token>> preprocess(String text) {
 		return null;
 	}
 

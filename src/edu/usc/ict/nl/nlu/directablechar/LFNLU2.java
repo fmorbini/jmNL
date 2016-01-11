@@ -45,11 +45,11 @@ public class LFNLU2 extends NLU {
 		} else {
 			String lowConfidenceEvent=config.getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				if (result==null) result=new ArrayList<NLUOutput>();
 				result.add(new NLUOutput(text,lowConfidenceEvent,1f,null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		return result;

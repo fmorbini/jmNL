@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.utils;
+package edu.usc.ict.nl.nlu.preprocessing.spellchecker;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -9,26 +9,25 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.usc.ict.nl.config.NLConfig;
 import edu.usc.ict.nl.config.NLConfig.ExecutablePlatform;
-import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.PreprocessingConfig;
+import edu.usc.ict.nl.util.StringUtils;
 
 
-public class SpellCheckProcess {
-	private NLUConfig configuration;
+public class Hunspell extends SpellChecker {
 	private Process p=null;
 	private ProcessBuilder pb;
 	public BufferedReader from;
 	public OutputStream to;
-	public NLUConfig getConfiguration() {return configuration;}
 
-	public SpellCheckProcess(NLUConfig config) throws Exception {
-		this.configuration=config;
+	public Hunspell() throws Exception {
 		new File(getExeName()).setExecutable(true);
 		p=startSpellCheckProcess(getExeName());
 	}
 
 	private String getExeName() {
-		ExecutablePlatform executablePlatform = getConfiguration().getExecutablePlatform();
+		ExecutablePlatform executablePlatform = NLConfig.getExecutablePlatform();
 		String exe="spell-checker/hunspell-"+executablePlatform.toString();
 		if (executablePlatform == ExecutablePlatform.WIN32) exe+=".exe";
 		return exe;
@@ -128,13 +127,26 @@ public class SpellCheckProcess {
 		return ret;
 	}
 	
+	@Override
+	public String correct(String word) {
+		try {
+			if (!StringUtils.isEmptyString(word)) {
+				return sendWordGetFirstChoice(word);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public static void main(String[] args) {
 
 		try {
-			SpellCheckProcess sc = new SpellCheckProcess(NLUConfig.WIN_EXE_CONFIG);
+			Hunspell sc = new Hunspell();
 			System.out.println(sc.sendWordGetFirstChoice("nighmares"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}	
+	}
+
 }

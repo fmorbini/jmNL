@@ -17,23 +17,30 @@ public class TimeDuration extends BasicNE {
 			"Number of days extracted from a answer.time-period speech act.","0",Number.class);
 
 	public TimeDuration() {
+		this(true);
+	}
+	public TimeDuration(boolean generalize) {
 		addSpecialVarToRepository(MonthsVar);
 		addSpecialVarToRepository(daysVar);
+		this.generalize=generalize;
 	}
 
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
+	public boolean isNEAvailableForSpeechAct(NE ne, String speechAct) {
+		return (speechAct!=null && speechAct.equals("answer.time-period"));
+	}
+	
+	@Override
+	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
 		List<NE> payloads = null;
-		if (speechAct!=null && speechAct.equals("answer.time-period")) {
-			TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),text);
-			Long num=ts.getTimePeriodInSeconds();
-			if (num!=null) {
-				int start=ts.getStart(),end=ts.getEnd();
-				logger.info("Extracted time period of "+num+" seconds from the answer '"+text+"'.");
-				if (payloads==null) payloads=new ArrayList<NE>();
-				payloads.add(new NE(MonthsVar.getName(), convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInMonth),this.getClass().getName(),start,end,text.substring(start,end)));
-				payloads.add(new NE(daysVar.getName(), convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInDay),this.getClass().getName(),start,end,text.substring(start,end)));
-			}
+		TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),text);
+		Long num=ts.getTimePeriodInSeconds();
+		if (num!=null) {
+			int start=ts.getStart(),end=ts.getEnd();
+			logger.info("Extracted time period of "+num+" seconds from the answer '"+text+"'.");
+			if (payloads==null) payloads=new ArrayList<NE>();
+			payloads.add(new NE(MonthsVar.getName(), convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInMonth),this.getClass().getName(),start,end,text.substring(start,end),this));
+			payloads.add(new NE(daysVar.getName(), convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInDay),this.getClass().getName(),start,end,text.substring(start,end),this));
 		}
 		return payloads;
 	}

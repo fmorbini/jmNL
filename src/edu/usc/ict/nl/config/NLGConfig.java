@@ -81,6 +81,19 @@ public class NLGConfig extends NLConfig {
 	public String getSystemResources() {return getXLSXContentRoot()+systemResourcesFile;}
 	public void setSystemResources(String file) {this.systemResourcesFile = removeAbsolutePath(file);}
 
+	@Override
+	public NLGConfig getNlgConfigNC() {
+		return this;
+	}
+	@Override
+	public NLUConfig getNluConfigNC() {
+		return getNlBusConfigNC().getNluConfigNC();
+	}
+	@Override
+	public DMConfig getDmConfigNC() {
+		return getNlBusConfigNC().getDmConfigNC();
+	}
+	
 	public NLGConfig cloneObject() {
 		NLGConfig ret=null;
 		try {

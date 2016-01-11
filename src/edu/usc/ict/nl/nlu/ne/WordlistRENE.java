@@ -11,8 +11,10 @@ import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
+import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher.TopicMatcherRE;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 
 public class WordlistRENE extends BasicNE {
 
@@ -20,16 +22,22 @@ public class WordlistRENE extends BasicNE {
 	private KeywordREMatcher matcher=null;
 
 	public WordlistRENE(String file) {
+		this(true,file);
+	}
+	public WordlistRENE(boolean generalize,String file) {
 		this.modelName=file;
+		/*
 		try {
 			File modelFile = new File(modelName);
-			if (modelFile.exists())
+			if (modelFile.exists()) {
 				loadModel(modelFile);
-			else
-				logger.warn("error loading -no config- file");
+			} else {
+				logger.warn("error loading "+this.getClass().getName()+": no config file");
+			}
 		} catch (Exception e) {
-			logger.warn("error loading -no config- file",e);
+			logger.warn("error loading config file.",e);
 		}
+		*/
 	}
 	
 	@Override
@@ -37,7 +45,7 @@ public class WordlistRENE extends BasicNE {
 		super.setConfiguration(configuration);
 		try {
 			File model=new File(configuration.getNLUContentRoot(),modelName);
-			if (!model.exists() && configuration.nlBusConfig!=null) model=new File(configuration.nlBusConfig.getContentRoot(),"common/nlu/"+modelName);
+			if (!model.exists() && configuration.getNlBusConfigNC()!=null) model=new File(configuration.getNlBusConfigNC().getContentRoot(),"common/nlu/"+modelName);
 			if (model.exists())
 				loadModel(model);
 			else throw new IOException("File not found: " + model.getAbsolutePath());
@@ -52,7 +60,12 @@ public class WordlistRENE extends BasicNE {
 	}
 
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text,String speechAct) throws Exception {
+	public boolean isNEAvailableForSpeechAct(NE ne, String sa) {
+		return true;
+	}
+	
+	@Override
+	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
 		List<NE> payload = null;
 		if (text == null) // special events like 'login'
 			return null;
@@ -62,7 +75,7 @@ public class WordlistRENE extends BasicNE {
 					TopicMatcherRE tm = matcher.getLastMatchMatcher();
 					String match=tm.getMatchedString(text);
 					if (payload==null) payload=new ArrayList<NE>();
-					payload.add(new NE(tm.getTopicID(),DialogueKBFormula.generateStringConstantFromContent(match),tm.getTopicID(),tm.getStart(),tm.getEnd(),match));
+					payload.add(new NE(tm.getTopicID(),DialogueKBFormula.generateStringConstantFromContent(match),tm.getTopicID(),tm.getStart(),tm.getEnd(),match,this));
 				} while (matcher.findNext());
 			}
 		}
@@ -74,9 +87,10 @@ public class WordlistRENE extends BasicNE {
 		config.setForcedNLUContentRoot("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\");
 		NLBusConfig busconfig=(NLBusConfig) NLBusConfig.WIN_EXE_CONFIG.clone();
 		busconfig.setNluConfig(config);
-		NLU component=(NLU) NLBusBase.createSubcomponent(config, config.getNluClass()); 
-		String out=component.getBTD().prepareUtteranceForClassification("i want to eat a pig and an apple but also a lot of chickens");
-		System.out.println(out);
+		NLU component=(NLU) NLBusBase.createSubcomponent(config, config.getNluClass());
+		Preprocess preprocess = component.getPreprocess();
+		List<List<Token>> out = preprocess.process("i want to eat a pig and an apple but also a lot of chickens");
+		System.out.println(preprocess.getStrings(out));
 		/*
 		WordlistRENE t = new WordlistRENE("C:\\Users\\morbini\\simcoach2\\svn_dcaps\\trunk\\core\\DM\\resources\\characters\\Ellie_DCAPS_AI\\nlu\\test");
 		List<NE> r = t.extractNamedEntitiesFromText("i want to eat a pig and an apple but also a lot of chickens", null);

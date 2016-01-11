@@ -24,15 +24,17 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ConfusionEntry;
 import edu.usc.ict.nl.nlu.FoldsData;
 import edu.usc.ict.nl.nlu.Model;
 import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
 import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
 import edu.usc.ict.nl.util.StringUtils;
@@ -42,6 +44,7 @@ public abstract class NLU implements NLUInterface {
 
 	private NLUConfig configuration;
 	private BuildTrainingData btd;
+	private Preprocess preprocess;
 	private Map<String, String> hardLinkMap;
 	private Method featuresBuilder,featuresAtPosBuilder;
 	private static NLU _instance;
@@ -57,10 +60,18 @@ public abstract class NLU implements NLUInterface {
 		_instance = this;
 		this.configuration=c;
 		setBTD(new BuildTrainingData(c));
+		setPreprocess(new Preprocess(this));
 		hardLinkMap=getBTD().buildHardLinksMap();
 		featuresBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildfeaturesFromUtterance", String.class);
 		featuresAtPosBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildFeatureForWordAtPosition", String[].class,int.class);
 		configureNamedEntityExtractors();
+	}
+	
+	public Preprocess getPreprocess() {
+		return preprocess;
+	}
+	public void setPreprocess(Preprocess preprocess) {
+		this.preprocess = preprocess;
 	}
 	
 	protected void configureNamedEntityExtractors() {
@@ -83,9 +94,9 @@ public abstract class NLU implements NLUInterface {
 	public NLUOutput getHardLinkMappingOf(String text) throws Exception {
 		String emptyLineEvent=getConfiguration().getEmptyTextEventName();
 		if (StringUtils.isEmptyString(text)) {
-			logger.info("Empty line received.");
+			getLogger().info("Empty line received.");
 			if (!StringUtils.isEmptyString(emptyLineEvent)) {
-				logger.info("Sending special '"+emptyLineEvent+"' event.");
+				getLogger().info("Sending special '"+emptyLineEvent+"' event.");
 				return new NLUOutput(text, emptyLineEvent, 1f, null);
 			}
 		}
@@ -139,7 +150,7 @@ public abstract class NLU implements NLUInterface {
 		if (files!=null && files.length>0) {
 			List<TrainingDataFormat> all=new ArrayList<TrainingDataFormat>();
 			for(File file:files) {
-				List<TrainingDataFormat> td = btd.buildConfiguredTrainingDataFromExcel(file.getAbsolutePath());
+				List<TrainingDataFormat> td = btd.readData(file.getAbsolutePath());
 				if (td!=null) all.addAll(td);
 			}
 			File trainingFile=new File(c.getNluTrainingFile());
@@ -154,7 +165,7 @@ public abstract class NLU implements NLUInterface {
 	public void dumpTrainingDataToFileNLUFormat(File trainingFile,List<TrainingDataFormat> td) throws Exception {
 		btd=getBTD();
 		if (trainingFile.exists()) trainingFile.delete();
-		List<TrainingDataFormat> preparedTrainingData=btd.prepareTrainingDataForClassification(td);
+		List<TrainingDataFormat> preparedTrainingData=prepareTrainingDataForClassification(td);
         BufferedWriter outputStream = new BufferedWriter(new FileWriter(trainingFile));
 		for(TrainingDataFormat row:preparedTrainingData) {
 			outputStream.write(row.toNluformat(this));
@@ -317,12 +328,14 @@ public abstract class NLU implements NLUInterface {
 		return payloads;
 	}
 	@Override
-	public Map<String, Object> getPayload(String sa, String text) throws Exception {
-		List<NamedEntityExtractorI> nes = getNamedEntityExtractors();
+	public Map<String, Object> getPayload(String speechAct, String text) throws Exception {
 		Map<String, Object> totalPayload=null;
-		if (nes!=null) {
-			for(NamedEntityExtractorI ne:nes) {
-				List<NE> foundNEs=ne.extractNamedEntitiesFromText(text, sa);
+		Preprocess pr = getPreprocess();
+		List<List<Token>> options = pr.process(text);
+		if (options!=null) {
+			for(List<Token> option:options) {
+				List<NE> nes = pr.getAssociatedNamedEntities(option);
+				List<NE> foundNEs=BasicNE.filterNESwithSpeechAct(nes, speechAct);
 				if (foundNEs!=null) {
 					Map<String,Object> payload=BasicNE.createPayload(foundNEs);
 					if (totalPayload==null) totalPayload=payload;
@@ -332,11 +345,10 @@ public abstract class NLU implements NLUInterface {
 		}
 		return totalPayload;
 	}
-	
 	protected static String springConfig=null;
 	static protected AbstractApplicationContext context;
 	public static NLUConfig getNLUConfig(String beanName) {
-		System.out.println("Initializing NLU configuration with bean named: '"+beanName+"'");
+		logger.info("Initializing NLU configuration with bean named: '"+beanName+"'");
 		if (springConfig==null)
 			context = new ClassPathXmlApplicationContext(new String[] {"NLUConfigs.xml"});
 		else 
@@ -386,10 +398,6 @@ public abstract class NLU implements NLUInterface {
 		throw new Exception("unhandled");
 	}
 
-	@Override
-	public Map<String, Float> getUtteranceScores(String utt,String modelFileName) throws Exception {
-		throw new Exception("unhandled");
-	}
 	@Override
 	public List<Pair<String, Float>> getTokensScoresForLabel(String utt,String label,String modelFileName) throws Exception {
 		throw new Exception("unhandled");
@@ -446,4 +454,40 @@ public abstract class NLU implements NLUInterface {
 		return payload;
 	}
 
+	@Override
+	public List<List<Token>> preprocess(String text) {
+		try {
+			return getPreprocess().process(text);
+		} catch (Exception e) {
+			getLogger().error(e);
+		}
+		return null;
+	}
+	
+	public List<TrainingDataFormat> prepareTrainingDataForClassification(List<TrainingDataFormat> td) throws Exception {
+		List<TrainingDataFormat> ret=null;
+		Preprocess pr = getPreprocess();
+		for(TrainingDataFormat d:td) {
+			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
+			List<List<Token>> nus = pr.process(d.getUtterance());
+			if (nus!=null) {
+				for(List<Token> nu:nus) {
+					String nt=pr.getString(nu);
+					if (StringUtils.isEmptyString(nt)) {
+						getLogger().error("Empty utterance after filters to prepare it from training: ");
+						getLogger().error("start='"+d.getUtterance()+"'");
+						getLogger().error("end='"+nt+"'");
+					} else {
+						if (ret==null) ret=new ArrayList<TrainingDataFormat>();
+						ret.add(new TrainingDataFormat(nt, d.getLabel()));
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
+	public static Logger getLogger() {
+		return logger;
+	}
 }

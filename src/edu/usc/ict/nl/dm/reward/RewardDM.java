@@ -46,7 +46,6 @@ import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.DMConfig;
-import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction;
 import edu.usc.ict.nl.dm.reward.model.DialogueAction.ActiveStates;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperator;
@@ -1105,7 +1104,7 @@ public class RewardDM extends DM {
 			return speechAct;
 		}
 		else {
-			String lowConfidenceEvent=getConfiguration().nluConfig.getLowConfidenceEvent();
+			String lowConfidenceEvent=getConfiguration().getNluConfigNC().getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
 				logger.warn(" no NLU output and LOW confidence event disabled, returning no NLU results.");
 				return null;

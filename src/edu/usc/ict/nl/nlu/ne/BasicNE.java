@@ -14,7 +14,10 @@ import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.bus.special_variables.SpecialEntitiesRepository;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
@@ -22,6 +25,8 @@ import edu.usc.ict.nl.utils.LogConfig;
 public abstract class BasicNE implements NamedEntityExtractorI {
 	private NLUConfig configuration;
 	
+	protected boolean generalize=true;
+
 	private SpecialEntitiesRepository svs=null;
 	
 	public static final Logger logger = Logger.getLogger(NLU.class.getName());
@@ -56,28 +61,29 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		return null;
 	}
 
-	public static String fromTokensToOriginalString(List<Token> in) {
-		try {
-			return FunctionalLibrary.printCollection(FunctionalLibrary.map(in, Token.class.getMethod("getOriginal")), "", "", " ");
-		} catch (Exception e) {
-			logger.error(e);
+	public static List<Integer> computeTokenStarts(List<Token> inputTokens) {
+		List<Integer> tokenStarts=null;
+		if (inputTokens!=null) {
+			new ArrayList<Integer>();
+			int i=0;
+			for(Token t:inputTokens) {
+				if (tokenStarts==null) tokenStarts=new ArrayList<>();
+				tokenStarts.add(i);
+				i+=1+t.getOriginal().length();
+			}
+			assert(tokenStarts.size()==inputTokens.size());
 		}
-		return null;
+		return tokenStarts;
 	}
 	
 	@Override
-	public boolean generalize(List<Token> inputTokens) {
-		boolean generalized=false;
-		List<Integer> tokenStarts=new ArrayList<Integer>();
-		int i=0;
-		for(Token t:inputTokens) {
-			tokenStarts.add(i);
-			i+=1+t.getOriginal().length();
-		}
-		assert(tokenStarts.size()==inputTokens.size());
-		String input=fromTokensToOriginalString(inputTokens);
+	public List<Token> getModifiedTokens(List<Token> inputTokens) {
+		List<Token> ret=null;
+		List<Integer> tokenStarts=computeTokenStarts(inputTokens);
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		String input=Preprocess.getString(inputTokens, tokenizer);
 		try {
-			List<NE> nes = extractNamedEntitiesFromText(input, null);
+			List<NE> nes = extractNamedEntitiesFromText(input);
 			filterOverlappingNES(nes);
 			if (nes!=null) {
 				for(NE ne:nes) {
@@ -87,34 +93,73 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 					if (isWholeWordsSubstring) {
 						int startToken = getTokenAtPosition(start,tokenStarts);
 						int endToken=getTokenAtPosition(end,tokenStarts);
+						boolean generalize=generalizeText();
 						for(int j=startToken;j<=endToken;j++) {
-							generalized=true;
 							Token newToken=null;
 							if (j==startToken) {
 								Token original=inputTokens.get(j);
 								if (original!=null) {
-									newToken=new Token("<"+ne.getType().toUpperCase()+">", original.getType(), ne.getMatchedString(), start, end);
+									if (generalize) { 
+										newToken=new Token(ne.getType().toUpperCase(), original.getType(), ne.getMatchedString(), start, end);
+									} else {
+										newToken=new Token(original.getName(), original.getType(), original.getOriginal(), original.getStart(), original.getEnd());
+									}
+									newToken.setAssociatedNamedEntity(ne);
+									if (ret==null) ret=new ArrayList<>();
+									ret.add(newToken);
 								} else {
 									logger.error("Trying to generalize null NE ("+ne+"). NE list: "+nes);
 								}
 							}
-							inputTokens.set(j, newToken);
 						}
 					}
-				}
-			}
-			if (generalized) {
-				Iterator<Token> it=inputTokens.iterator();
-				while(it.hasNext()) {
-					Token t=it.next();
-					if (t==null) it.remove();
 				}
 			}
 		} catch (Exception e) {
 			logger.error("error generalizing text", e);
 		}
+		return ret;
+	}
+	
+	@Override
+	public boolean generalize(List<Token> inputTokens) {
+		boolean generalized=false;
+		List<Token> mods = getModifiedTokens(inputTokens);
+		if (mods!=null && !mods.isEmpty()) {
+			applyGeneralizations(mods,inputTokens);
+			generalized=true;
+		}
 		return generalized;
 	}
+	private void applyGeneralizations(List<Token> mods, List<Token> inputTokens) {
+		if (mods!=null && inputTokens!=null) {
+			List<Integer> tokenStarts = computeTokenStarts(inputTokens);
+			for(Token m:mods) {
+				int start=m.getStart();
+				int end=m.getEnd();
+				int startToken = getTokenAtPosition(start,tokenStarts);
+				int endToken=getTokenAtPosition(end,tokenStarts);
+				for(int j=startToken;j<=endToken;j++) {
+					Token newToken=null;
+					if (j==startToken) {
+						Token original=inputTokens.get(j);
+						if (original!=null) {
+							newToken=m;
+						} else {
+							logger.error("Trying to apply generalization to null token. position: "+j);
+						}
+					}
+					inputTokens.set(j, newToken);
+				}
+			}
+			Iterator<Token> it=inputTokens.iterator();
+			while(it.hasNext()) {
+				Token t=it.next();
+				if (t==null) it.remove();
+			}
+		}
+	}
+	
 	private class Interval {
 		int start,end;
 		public Interval(int start,int end) {
@@ -154,7 +199,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 	}
 	
-	private int getTokenAtPosition(int chPos, List<Integer> tokenStarts) {
+	public static int getTokenAtPosition(int chPos, List<Integer> tokenStarts) {
 		int token=0;
 		for(int tokenStartPos:tokenStarts) {
 			if (chPos<tokenStartPos) return token-1;
@@ -184,4 +229,23 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 		return ret;
 	}
+	public static List<NE> filterNESwithSpeechAct(List<NE> nes, String speechAct) {
+		List<NE> ret=null;
+		if (nes!=null && !StringUtils.isEmptyString(speechAct)) {
+			for(NE ne:nes) {
+				NamedEntityExtractorI ext=ne.getExtractor();
+				if (ext==null || ext.isNEAvailableForSpeechAct(ne, speechAct)) {
+					if (ret==null) ret=new ArrayList<>();
+					ret.add(ne);
+				}
+			}
+		}
+		return ret;
+	}
+	
+	@Override
+	public boolean generalizeText() {
+		return generalize;
+	}
+	
 }

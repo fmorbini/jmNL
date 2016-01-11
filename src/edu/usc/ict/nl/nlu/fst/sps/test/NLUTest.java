@@ -11,11 +11,9 @@ import java.util.Set;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.DynamicFoldsData;
 import edu.usc.ict.nl.nlu.FoldsData;
 import edu.usc.ict.nl.nlu.NLUOutput;
-import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.FSTNLU;
 import edu.usc.ict.nl.nlu.fst.FSTNLUOutput;
@@ -23,11 +21,10 @@ import edu.usc.ict.nl.nlu.fst.TraverseFST;
 import edu.usc.ict.nl.nlu.fst.sps.SAMapper;
 import edu.usc.ict.nl.nlu.fst.sps.SPSFSTNLU;
 import edu.usc.ict.nl.nlu.fst.train.Aligner;
-import edu.usc.ict.nl.nlu.fst.train.Alignment;
 import edu.usc.ict.nl.nlu.fst.train.AlignmentSummary;
-import edu.usc.ict.nl.nlu.fst.train.generalizer.GeneralizedAnnotation;
-import edu.usc.ict.nl.nlu.fst.train.generalizer.TDGeneralizerAndLexiconBuilder;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.multi.MultiNLU;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
@@ -79,7 +76,7 @@ public class NLUTest extends FSTNLU {
 				boolean rr=nlu1.nluTest(spsTD,r);
 				p.add(rr);
 				if (!rr && printErrors) {
-					logger.error("'"+td.getUtterance()+"' classified as: "+r+" instead of "+spsTD.getLabel()+"\n"+
+					getLogger().error("'"+td.getUtterance()+"' classified as: "+r+" instead of "+spsTD.getLabel()+"\n"+
 							"   original label: "+td.getLabel()+" returned label: "+rawr
 							);
 				}
@@ -247,7 +244,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 		File model2=new File(config2.getNluModelFile());
 		
 		File u=new File(config.getUserUtterances()); // this file contains both the new nlu annotation and the ontology single label.
-		logger.info("preparing training data for aligner");
+		getLogger().info("preparing training data for aligner");
 		List<TrainingDataFormat> itds = Aligner.extractTrainingDataFromSingleStep1and3GoogleXLSXForSPS(u);
 		Set<String> sas = BuildTrainingData.getAllSpeechActsInTrainingData(itds);
 		System.out.println(itds.size()+" "+sas.size());
@@ -376,9 +373,8 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 		
 		String text="do you have any problems with breathing";
 		text=Aligner.removeSpeechStuff(text);
-		BuildTrainingData btd = nlu.getBTD();
-		List<Token> tokens = btd.applyBasicTransformationsToStringForClassification(text);
-		text=BuildTrainingData.untokenize(tokens);
+		TokenizerI tokenizer=nlu.getConfiguration().getNluTokenizer();
+		text=tokenizer.untokenize(tokenizer.tokenize1(text));
 
 		//List<NLUOutput> r = nlu.getNLUOutput(text, null, null);
 		List<FSTNLUOutput> nlus = ((SPSFSTNLU)nlu).getRawNLUOutput(text, null, 100);

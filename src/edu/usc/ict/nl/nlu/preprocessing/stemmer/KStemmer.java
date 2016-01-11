@@ -1,11 +1,8 @@
-package edu.usc.ict.nl.stemmer;
+package edu.usc.ict.nl.nlu.preprocessing.stemmer;
 
-import edu.usc.ict.nl.config.NLConfig;
-
-
-public class KStemmer implements Stemmer {
+public class KStemmer extends Stemmer {
 	org.apache.lucene.analysis.ICTKStemmer stemmer;
-	public KStemmer(NLConfig config) {
+	public KStemmer() {
 		stemmer=new org.apache.lucene.analysis.ICTKStemmer();
 	}
 	@Override

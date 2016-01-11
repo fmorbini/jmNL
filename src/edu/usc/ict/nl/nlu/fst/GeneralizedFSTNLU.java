@@ -1,30 +1,20 @@
 package edu.usc.ict.nl.nlu.fst;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.NLUOutput;
-import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.train.Aligner;
-import edu.usc.ict.nl.nlu.fst.train.Alignment;
-import edu.usc.ict.nl.nlu.fst.train.AlignmentSummary;
 import edu.usc.ict.nl.nlu.fst.train.generalizer.GeneralizedAnnotation;
 import edu.usc.ict.nl.nlu.fst.train.generalizer.TDGeneralizerAndLexiconBuilder;
-import edu.usc.ict.nl.util.FunctionalLibrary;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.Triple;
 import edu.usc.ict.nl.utils.ExcelUtils;
@@ -44,7 +34,7 @@ public class GeneralizedFSTNLU extends FSTNLU {
 	public GeneralizedFSTNLU(NLUConfig c) throws Exception {
 		super(c);
 		gen = new TDGeneralizerAndLexiconBuilder();
-		a=new Aligner(new File(getConfiguration().getNLUContentRoot()));
+		a=new Aligner(new File(getConfiguration().getNLUContentRoot()),c);
 		loadLexicon(lexicon);
 	}
 
@@ -83,7 +73,7 @@ public class GeneralizedFSTNLU extends FSTNLU {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Error while reading the lexicon: '"+lexiconFile+"'",e);
+			getLogger().error("Error while reading the lexicon: '"+lexiconFile+"'",e);
 		}
 	}
 
@@ -112,9 +102,8 @@ public class GeneralizedFSTNLU extends FSTNLU {
 	public List<NLUOutput> getNLUOutput(String text,
 			Set<String> possibleNLUOutputIDs, Integer nBest) throws Exception {
 		nBest=(nBest==null || nBest<=0)?1:nBest;
-		BuildTrainingData btd = getBTD();
-		List<Token> tokens = btd.applyBasicTransformationsToStringForClassification(text);
-		String input=BuildTrainingData.untokenize(tokens);
+		TokenizerI tokenizer=getConfiguration().getNluTokenizer();
+		String input=tokenizer.untokenize(tokenizer.tokenize1(text));
 		String retFST=tf.getNLUforUtterance(input,nBest);
 		//System.out.println(retFST);
 		List<FSTNLUOutput> ret=tf.getResults(retFST);
@@ -140,11 +129,11 @@ public class GeneralizedFSTNLU extends FSTNLU {
 		if (ret==null || ret.isEmpty()) {
 			String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				if (ret==null) ret=new ArrayList<FSTNLUOutput>();
 				ret.add(new FSTNLUOutput(text, lowConfidenceEvent, 1f, null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 

@@ -9,8 +9,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.parser.ChartParser;
 import edu.usc.ict.nl.parser.ChartParser.Item;
 
@@ -25,17 +25,17 @@ public class NumberSearcher {
 	private List<String> input=new ArrayList<String>();
 	private List<Token> inputTokens=new ArrayList<Token>();
 	public NumberSearcher(NLUConfig nluConfig, String text) {
+		TokenizerI tokenizer=nluConfig.getNluTokenizer();
 		m=p.matcher(text);
-		File grammar=new File(nluConfig.getNLUContentRoot(),"written-numbers-grammar.txt");
-		if (nluConfig.nlBusConfig!=null && !grammar.exists()) grammar=new File(nluConfig.nlBusConfig.getContentRoot(),"common/nlu/written-numbers-grammar.txt");
+		File grammar=new File(new File(nluConfig.getNlBusConfigNC().getContentRoot()).getParent(),"preprocessing/written-numbers-grammar.txt");
 		if (grammar.exists()) {
 			try {
 				parser = ChartParser.getParserForGrammar(grammar);
-				inputTokens = BuildTrainingData.tokenize(text);
+				inputTokens = tokenizer.tokenize1(text);
 				for (Token t:inputTokens) {
 					input.add(t.getName());
 				}
-			} catch (Exception e) {
+			} catch (Exception e) {	
 				e.printStackTrace();
 			}
 		}
@@ -52,9 +52,19 @@ public class NumberSearcher {
 	}
 	public Double getNextNumber() {
 		Double numD=findNumber();
+		if (numD==null) {
+			start=-1;
+		} else {
+			start=nextstart;
+		}
+		return numD;
+	}
+	public Double getNextNumberAlsoWritten() {
+		Double numD=findNumber();
 		int dStart=nextstart;
 		Double numW=findWrittenNumber();
 		int wStart=nextstart;
+		if (numW!=null && wStart<=start) numW=null;
 		Double num=null;
 		if (numD==null) {
 			if (numW!=null) {

@@ -15,11 +15,13 @@ import java.util.Stack;
 import edu.usc.ict.nl.bus.NLBus;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ChartNLUOutput;
 import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
 import edu.usc.ict.nl.util.Rational;
@@ -39,7 +41,9 @@ public class MXChartClassifierNLU extends NLU {
 
 	// additional test to make the approach linear
 	public Collection<PartialClassification> runChartClassifier3(String text,MXClassifierNLU nlu, boolean applyTransformationsToInput,boolean onlyOneSpeechAct) throws Exception {
-		String processedText=(applyTransformationsToInput)?nlu.getBTD().prepareUtteranceForClassification(text):text;
+		Preprocess pr = nlu.getPreprocess();
+		List<List<Token>> options = pr.process(text,true);
+		String processedText=pr.getString(options.get(0));
 		String[] words=processedText.split(" ");
 		int numWords=words.length;
 		Collection<PartialClassification> chart=new ArrayList<PartialClassification>();
@@ -100,7 +104,9 @@ public class MXChartClassifierNLU extends NLU {
 			return ret;
 		}
 		String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
-		String processedText=(applyTransformationsToInput)?getBTD().prepareUtteranceForClassification(text):text;
+		Preprocess pr = internalNLU.getPreprocess();
+		List<List<Token>> options = pr.process(text,true);
+		String processedText=pr.getString(options.get(0));
 		String[] words=processedText.split("[\\s]+");
 		int numWords=words.length;
 		
@@ -208,7 +214,11 @@ public class MXChartClassifierNLU extends NLU {
 	// initial test
 	public Collection<PartialClassification> runChartClassifier(String text,MXClassifierNLU nlu, boolean applyTransformationsToInput) throws Exception {
 		Collection<PartialClassification> chart=new ArrayList<PartialClassification>();
-		String processedText=(applyTransformationsToInput)?nlu.getBTD().prepareUtteranceForClassification(text):text;
+		
+		Preprocess pr = nlu.getPreprocess();
+		List<List<Token>> options = pr.process(text,true);
+		String processedText=pr.getString(options.get(0));
+
 		String[] words=processedText.split(" ");
 		int numWords=words.length;
 		LinkedList<PartialClassification> partials=new LinkedList<PartialClassification>();
@@ -350,8 +360,8 @@ public class MXChartClassifierNLU extends NLU {
 			} else {
 				result.add(false);
 				if (printMistakes) {
-					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
-					else logger.error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
+					if (sortedNLUOutput==null || sortedNLUOutput.isEmpty()) getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") -> NOTHING");
+					else getLogger().error("'"+td.getUtterance()+"' ("+td.getLabel()+") ->"+sortedNLUOutput.get(0));
 				}
 			}
 		}
@@ -536,10 +546,10 @@ public class MXChartClassifierNLU extends NLU {
 		} else {
 			String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
 				ret.add(new NLUOutput(text,lowConfidenceEvent, 1f, null));
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		return ret;

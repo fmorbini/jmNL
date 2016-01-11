@@ -3,11 +3,10 @@ package edu.usc.ict.nl.nlu.mxnlu;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,17 +17,16 @@ import java.util.regex.Pattern;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLConfig.ExecutablePlatform;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.kb.DialogueKBFormula;
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.Model;
 import edu.usc.ict.nl.nlu.Model.FeatureWeight;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.NLUProcess;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
-import edu.usc.ict.nl.nlu.ne.searchers.TimePeriodSearcher;
-import edu.usc.ict.nl.parser.semantics.ParserSemanticRulesTimeAndNumbers;
+import edu.usc.ict.nl.nlu.ne.NE;
+import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
@@ -37,10 +35,10 @@ import edu.usc.ict.nl.util.StringUtils;
 public class MXClassifierNLU extends NLU {
 
 	protected NLUProcess nluP;
-	
+
 	private Float acceptanceThreshold;
 	public void setAcceptanceThreshold(Float t) {this.acceptanceThreshold=t;}
-	
+
 	public MXClassifierNLU() throws Exception {
 		this(NLUConfig.WIN_EXE_CONFIG);
 	}
@@ -51,7 +49,7 @@ public class MXClassifierNLU extends NLU {
 		setAcceptanceThreshold((inAdviserMode!=null && inAdviserMode)?null:config.getAcceptanceThreshold());
 		setNLUProcess(startMXNLUProcessFromConfig(config));
 	}
-	
+
 	private static final Pattern modelLine=Pattern.compile("^([^\\s]+)_\t([^\\s]+)\t([^\\s]+)$");
 	@Override
 	public boolean isPossibleNLUOutput(NLUOutput o) throws Exception {
@@ -66,12 +64,12 @@ public class MXClassifierNLU extends NLU {
 		Set<String> validSAs=null;
 		NLUConfig config=getConfiguration();
 		String modelFileName = config.getNluModelFile();
-		
+
 		Model model=null;
 		try {
 			model=readModelWithCache(modelFileName);
 		} catch (Exception e) {
-			logger.error("Error opening model file: '"+modelFileName+"' while asking for possible NLU speech acts. Returning none.");
+			getLogger().error("Error opening model file: '"+modelFileName+"' while asking for possible NLU speech acts. Returning none.");
 		}
 
 		if (model!=null) {
@@ -81,7 +79,7 @@ public class MXClassifierNLU extends NLU {
 		}
 		return validSAs;
 	}
-	
+
 	@Override
 	public Model readModelFileNoCache(File mf) throws Exception {
 		Model ret=null;
@@ -99,7 +97,7 @@ public class MXClassifierNLU extends NLU {
 		}
 		return ret;
 	}
-	
+
 	@Override
 	public void loadModel(File model) throws Exception {
 		kill();
@@ -108,7 +106,7 @@ public class MXClassifierNLU extends NLU {
 		config.setNluModelFile(modelName);
 		setNLUProcess(startMXNLUProcessFromConfig(config));
 	}
-	
+
 	public NLUProcess startMXNLUProcessWithTheseParams(String model,int nbest) throws Exception {
 		MXClassifierProcess nlup = new MXClassifierProcess(getExeName(getConfiguration()), getConfiguration().getNluExeEnv());
 		if (model!=null) nlup.run(model,nbest);
@@ -118,7 +116,7 @@ public class MXClassifierNLU extends NLU {
 		new File(getExeName(config)).setExecutable(true);
 		File model=new File(config.getNluModelFile());
 		if (!model.exists()) {
-			logger.warn("no model found, retraining...");
+			getLogger().warn("no model found, retraining...");
 			boolean startTrainingNLUP=getNLUProcess()==null;
 			if (startTrainingNLUP) setNLUProcess(startMXNLUProcessWithTheseParams(null,(config.isInAdvicerMode())?-1:config.getnBest()));
 			retrain();
@@ -133,37 +131,133 @@ public class MXClassifierNLU extends NLU {
 		if (executablePlatform == ExecutablePlatform.WIN32) exe+=".exe";
 		return exe;
 	}
-	
+
 	public NLUProcess getNLUProcess() {
 		return nluP;
 	}
 	public void setNLUProcess(NLUProcess nluP) {
 		this.nluP=nluP;
 	}
-	
-	public String getClassifierInputUtteranceBeforeGeneralization(String text) throws Exception {
-		if (StringUtils.isEmptyString(text)) return null;
-		List<Token> tokens = getBTD().applyBasicTransformationsToStringForClassification(text);
-		return BuildTrainingData.untokenize(tokens);
-	}
-	public String doPreprocessingForClassify(String text) throws Exception {
-		String processedText=(getConfiguration().getApplyTransformationsToInputText())?getBTD().prepareUtteranceForClassification(text):text;
-		if (logger.isDebugEnabled()) logger.info("input text: '"+text+"'");
-		String features=FunctionalLibrary.printCollection(getFeaturesFromUtterance(processedText),"",""," ");
-		if (StringUtils.isEmptyString(features)) features=processedText;
-		return features;
-	}
-	public String[] classify(String text,Integer nBest) throws Exception {
+
+	public List<NLUOutput> classify(String text,Set<String> possibleUserEvents, Integer nBest) throws Exception {
+		List<NLUOutput> ret=null;
+
+		if (getLogger().isDebugEnabled()) getLogger().info("input text: '"+text+"'");
+
+		Preprocess pr=getPreprocess();
+		List<List<Token>> options = pr.process(text);
+		sortOptionsByText(options);
+
 		NLUOutput hardLabel=getHardLinkMappingOf(text);
-		if (hardLabel!=null) return new String[]{hardLabel.getId()};
-		String features=doPreprocessingForClassify(text);
-		if (logger.isDebugEnabled()) logger.info("nlu input line: '"+features+"'");
-		return (nBest!=null)?getNLUProcess().classify(features,nBest):getNLUProcess().classify(features);
+		if (hardLabel!=null) {
+			if (options!=null && !options.isEmpty()) {
+				for(List<Token> option:options) {
+					List<NE> nes = pr.getAssociatedNamedEntities(option);
+					List<NE> fnes=BasicNE.filterNESwithSpeechAct(nes,hardLabel.getId());
+					Map<String, Object> payload = BasicNE.createPayload(fnes);
+					hardLabel.setPayload(payload);
+					break;
+				}
+			}
+			if (ret==null) ret=new ArrayList<>();
+			ret.add(hardLabel);
+			return ret;
+		}
+
+		if (options!=null && !options.isEmpty()) {
+			String pt=null;
+			for(List<Token> option:options) {
+				String t=pr.getString(option);
+				String features=null;
+				String[] result=null;
+				if (getLogger().isDebugEnabled()) getLogger().info(" considering preprocessed option: '"+t+"'");
+
+				if (pt==null || !t.equals(pt)) {
+					pt=t;
+					features=FunctionalLibrary.printCollection(getFeaturesFromUtterance(t),"",""," ");
+					if (StringUtils.isEmptyString(features)) features=t;
+					result = (nBest!=null)?getNLUProcess().classify(features,nBest):getNLUProcess().classify(features);
+				}
+
+				List<NLUOutput> userSpeechActsWithProb = processNLUOutputs(result,nBest,possibleUserEvents,null);		
+				if (userSpeechActsWithProb!=null) {
+					List<NE> nes = pr.getAssociatedNamedEntities(option);
+					if (nes!=null && !nes.isEmpty()) {
+						for(NLUOutput o:userSpeechActsWithProb) {
+							o.setText(t);
+							List<NE> fnes=BasicNE.filterNESwithSpeechAct(nes,o.getId());
+							Map<String, Object> payload = BasicNE.createPayload(fnes);
+							o.setPayload(payload);
+						}
+					}
+					if (ret==null) ret=userSpeechActsWithProb;
+					else ret.addAll(userSpeechActsWithProb);
+				}
+			}
+		}
+		if (ret!=null && !ret.isEmpty()) {
+			Collections.sort(ret, new Comparator<NLUOutput>() {
+				@Override
+				public int compare(NLUOutput o1, NLUOutput o2) {
+					return o1.getProb().compareTo(o2.getProb());
+				}
+			});
+		}
+		return ret;
+	}
+
+	/**
+	 * options may differ just because of different named entities recognized altough superficially the text is the same.
+	 * to avoid computing features (for classifiers) over and over for the same text, this sorting routine can be used together
+	 * with some more intelligent code.
+	 * @param options
+	 */
+	private void sortOptionsByText(List<List<Token>> options) {
+		final Preprocess pr = getPreprocess();
+		Collections.sort(options, new Comparator<List<Token>>(){
+			@Override
+			public int compare(List<Token> o1, List<Token> o2) {
+				String t1=pr.getString(o1);
+				String t2=pr.getString(o2);
+				return t1.compareTo(t2);
+			}
+		});
 	}
 
 	@Override
 	public List<NLUOutput> getNLUOutputFake(String[] nluOutputIDs,String inputText) throws Exception {
-		return pickNLUOutput(nluOutputIDs, getConfiguration().getnBest(),inputText, null);
+		List<NLUOutput> ret=new ArrayList<NLUOutput>();
+		Preprocess pr=getPreprocess();
+		List<List<Token>> options = pr.process(inputText);
+		sortOptionsByText(options);
+
+		List<NLUOutput> userSpeechActsWithProb = processNLUOutputs(nluOutputIDs,null,null,null);		
+
+		if (userSpeechActsWithProb!=null && options!=null && !options.isEmpty()) {
+			for(int i=0;i<userSpeechActsWithProb.size();i++) {
+				NLUOutput o=userSpeechActsWithProb.get(0);
+				boolean added=false;
+				for(List<Token> option:options) {
+					List<NE> nes = pr.getAssociatedNamedEntities(option);
+					if (nes!=null && !nes.isEmpty()) {
+						String t=pr.getString(option);
+						o.setText(t);
+						List<NE> fnes=BasicNE.filterNESwithSpeechAct(nes,o.getId());
+						Map<String, Object> payload = BasicNE.createPayload(fnes);
+						o.setPayload(payload);
+						if (ret==null) ret=new ArrayList<>();
+						ret.add(o);
+						userSpeechActsWithProb.set(i, new NLUOutput(o.getText(), o.getId(), o.getProb().floatValue(), null));
+						added=true;
+					}
+				}
+				if (!added) {
+					if (ret==null) ret=new ArrayList<>();
+					ret.add(o);
+				}
+			}
+		}
+		return ret;
 	}
 	@Override
 	public List<NLUOutput> getNLUOutput(String text,Set<String> possibleUserEvents,Integer nBest) throws Exception {
@@ -173,41 +267,22 @@ public class MXClassifierNLU extends NLU {
 			ret.add(new NLUOutput(text, emptyEvent, 1, null));
 			return ret;
 		}
-		String[] rawNLUOutput=classify(text,nBest);
-		//System.out.println(Arrays.toString(rawNLUOutput));
-		return pickNLUOutput(rawNLUOutput, nBest,text, possibleUserEvents);
+		return classify(text, possibleUserEvents,nBest);
 	}
-	private List<NLUOutput> pickNLUOutput(String[] rawNLUOutput,Integer nBest, String inputText,Set<String> possibleUserEvents) throws Exception {
-		ArrayList<String> sortedUserSpeechActs = new ArrayList<String>();
-		Map<String, Float> userSpeechActsWithProb = processNLUOutputs(rawNLUOutput,nBest,possibleUserEvents,sortedUserSpeechActs);		
-		String classifierText = getClassifierInputUtteranceBeforeGeneralization(inputText);
-		List<Pair<String, Map<String, Object>>> speechActsWithPayload = associatePayloadToSpeechActs(sortedUserSpeechActs, classifierText);
-		logger.debug("Extracted payload for each input user speech act: "+speechActsWithPayload);
-		// build output
-		List<NLUOutput> ret=new ArrayList<NLUOutput>();
-		for(Pair<String,Map<String, Object>> usa:speechActsWithPayload) {
-			String usaID=usa.getFirst();
-			Map<String, Object> payload=usa.getSecond();
-			float prob=userSpeechActsWithProb.get(usaID);
-			ret.add(new NLUOutput(inputText,usaID,prob,payload));
-		}
-		return ret;
-	}
-	
-	public static final Pattern nluOutputLineFormat = Pattern.compile("^[\\s]*([\\d\\.]+[eE\\+\\-\\d]*)[\\s]+(.+)[\\s]*$");		
 
-	private Map<String,Float> processNLUOutputs(String[] nlu,Integer nBest, Set<String> possibleUserEvents,ArrayList<String> sortedOutputKeys) throws Exception {
+	public static final Pattern nluOutputLineFormat = Pattern.compile("^[\\s]*([\\d\\.]+[eE\\+\\-\\d]*)[\\s]+(.+)[\\s]*$");		
+	private List<NLUOutput> processNLUOutputs(String[] nlu,Integer nBest, Set<String> possibleUserEvents,ArrayList<String> sortedOutputKeys) throws Exception {
 		Float acceptanceThreshold=this.acceptanceThreshold;
 		NLUConfig config=getConfiguration();
-		logger.debug("PROCESS NLU: input user speechActs: "+((nlu==null)?nlu:Arrays.asList(nlu)));
+		getLogger().debug("PROCESS NLU: input user speechActs: "+((nlu==null)?nlu:Arrays.asList(nlu)));
 		if (sortedOutputKeys!=null) sortedOutputKeys.clear();
 		if (nlu==null) return null;
-				
-		Map<String,Float> userEvents=new HashMap<String,Float>();
+
+		List<NLUOutput> userEvents=new ArrayList<NLUOutput>();
 		// if a particular nBest is given forget about the threshold and return the exact number of results.
 		if (nBest==null) nBest=getConfiguration().getnBest();
 		else acceptanceThreshold=null;
-		
+
 		for(String s:nlu) {
 			Matcher m = nluOutputLineFormat.matcher(s);
 			String prbString,sa;
@@ -215,7 +290,7 @@ public class MXClassifierNLU extends NLU {
 				prbString=m.group(1);
 				sa=StringUtils.removeLeadingAndTrailingSpaces(m.group(2));
 			} else {
-				logger.error("NO MATCH WITH INPUT SPEECHACT AND PROBABILITY. Forcing P=1 and SpeechAct = '"+s+"'");
+				getLogger().error("NO MATCH WITH INPUT SPEECHACT AND PROBABILITY. Forcing P=1 and SpeechAct = '"+s+"'");
 				prbString="1";
 				sa=s;
 			}
@@ -224,9 +299,9 @@ public class MXClassifierNLU extends NLU {
 				if ((acceptanceThreshold==null) || ((prb>=0) && (prb<=1) && (prb>=acceptanceThreshold))) {
 					if ((possibleUserEvents==null) || (possibleUserEvents.contains(sa))) {
 						if (userEvents.size()<=nBest) {
-							userEvents.put(sa,prb);
+							userEvents.add(new NLUOutput(null, sa, prb,null));
 							if (sortedOutputKeys!=null) sortedOutputKeys.add(sa);
-							logger.debug(" user speechAct: "+sa+" with probability "+prb);
+							getLogger().debug(" user speechAct: "+sa+" with probability "+prb);
 							if (possibleUserEvents!=null) {
 								possibleUserEvents.remove(sa);
 								if (possibleUserEvents.size()<=0) break;
@@ -235,7 +310,7 @@ public class MXClassifierNLU extends NLU {
 					}
 				}
 			} catch (NumberFormatException e) {
-				logger.error(" probability associated with '"+s+"' is not a number.");
+				getLogger().error(" probability associated with '"+s+"' is not a number.");
 			}
 		}
 		// if no event is left: update the current state by following all user edges (this is the case
@@ -243,30 +318,18 @@ public class MXClassifierNLU extends NLU {
 		if (userEvents.isEmpty()) {
 			String lowConfidenceEvent=config.getLowConfidenceEvent();
 			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				logger.warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
+				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
 			} else {
-				userEvents.put(lowConfidenceEvent,1f);
+				userEvents.add(new NLUOutput(null, lowConfidenceEvent, 1f, null));
 				if (sortedOutputKeys!=null) sortedOutputKeys.add(lowConfidenceEvent);
-				logger.warn(" no user speech acts left. adding the low confidence event.");
+				getLogger().warn(" no user speech acts left. adding the low confidence event.");
 			}
 		}
 		return userEvents;
 	}
-	
-	public static Collection removeItemsFromTo(Collection c,int from, int to) throws IllegalArgumentException, SecurityException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		Collection ret=c.getClass().getConstructor().newInstance();
-		int i=0;
-		for (Object o:c) {
-			if ((from>i) || (to<i)) {
-				ret.add(o);
-			}
-			i++;
-		}
-		return ret;
-	}
 
 	public void kill() {getNLUProcess().kill();}
-	
+
 	public void trainNLUOnThisData(List<TrainingDataFormat> td,File trainingFile, File modelFile) throws Exception {
 		// dumping training data to file
 		dumpTrainingDataToFileNLUFormat(trainingFile,td);
@@ -285,7 +348,7 @@ public class MXClassifierNLU extends NLU {
 			} else {
 				result.add(false);
 				if (printMistakes) {
-					logger.error(generateErrorString(sortedNLUOutput,td,modelFile));
+					getLogger().error(generateErrorString(sortedNLUOutput,td,modelFile));
 				}
 			}
 		}
@@ -304,10 +367,10 @@ public class MXClassifierNLU extends NLU {
 		String indent="    ";
 		//String label=td.getLabel().replaceAll("[\\s]+", "_");
 		//Map<String, List<FeatureWeight>> features4Labels = getFeatures4Labels(modelFile.getAbsolutePath());
-		
+
 		ret="'"+text+"'\n"+indent+"expected:\n"+indent+expectedLabel+"\n"+indent+"obtained:\n"+indent+obtainedLabel;
 		//ret="'"+text+"'\t"+expectedLabel+"\t"+obtainedLabel;
-		
+
 		return ret;
 	}
 
@@ -317,18 +380,18 @@ public class MXClassifierNLU extends NLU {
 		Integer maximumNumberOfLabels=getConfiguration().getMaximumNumberOfLabels();
 		if (!trainingFile.isAbsolute()) trainingFile=new File(getConfiguration().getNLUContentRoot(),trainingFile.getPath());
 		if (!modelFile.isAbsolute()) modelFile=new File(getConfiguration().getNLUContentRoot(),modelFile.getPath());
-		List<TrainingDataFormat> td =btd.buildTrainingDataFromNLUFormatFile(trainingFile);
+		List<TrainingDataFormat> td =BuildTrainingData.buildTrainingDataFromNLUFormatFile(trainingFile);
 		if (td!=null && !td.isEmpty()) {
 			Set<String> sas = BuildTrainingData.getAllSpeechActsInTrainingData(td);
-			if (maximumNumberOfLabels!=null && sas.size()>maximumNumberOfLabels) logger.error("skipping training because too many labels ("+sas.size()+">"+maximumNumberOfLabels+") in "+trainingFile);
+			if (maximumNumberOfLabels!=null && sas.size()>maximumNumberOfLabels) getLogger().error("skipping training because too many labels ("+sas.size()+">"+maximumNumberOfLabels+") in "+trainingFile);
 			else {
-		
-		        td=btd.cleanTrainingData(td);
-		        
+
+				td=btd.cleanTrainingData(td);
+
 				trainNLUOnThisData(td, trainingFile, modelFile);
 			}
 		} else {
-			logger.warn("couldn't train because didn't find any data: '"+trainingFile+"'");
+			getLogger().warn("couldn't train because didn't find any data: '"+trainingFile+"'");
 		}
 	}
 	@Override
@@ -336,7 +399,7 @@ public class MXClassifierNLU extends NLU {
 			throws Exception {
 		Integer maximumNumberOfLabels=getConfiguration().getMaximumNumberOfLabels();
 		Set<String> sas = BuildTrainingData.getAllSpeechActsInTrainingData(td);
-		if (maximumNumberOfLabels!=null && sas.size()>maximumNumberOfLabels) logger.error("skipping training because too many labels ("+sas.size()+">"+maximumNumberOfLabels+") in training data");
+		if (maximumNumberOfLabels!=null && sas.size()>maximumNumberOfLabels) getLogger().error("skipping training because too many labels ("+sas.size()+">"+maximumNumberOfLabels+") in training data");
 		else {
 			NLUConfig config=getConfiguration();
 			trainNLUOnThisData(td, new File(config.getNluTrainingFile()), model);
@@ -347,8 +410,7 @@ public class MXClassifierNLU extends NLU {
 	public PerformanceResult test(File testingFile, File modelFile,boolean printErrors) throws Exception {
 		if (!testingFile.isAbsolute()) testingFile=new File(getConfiguration().getNLUContentRoot(),testingFile.getPath());
 		if (!modelFile.isAbsolute()) modelFile=new File(getConfiguration().getNLUContentRoot(),modelFile.getPath());
-		BuildTrainingData btd=getBTD();
-		List<TrainingDataFormat> td=btd.buildTrainingDataFromNLUFormatFile(testingFile);
+		List<TrainingDataFormat> td=BuildTrainingData.buildTrainingDataFromNLUFormatFile(testingFile);
 		return testNLUOnThisData(td, modelFile, printErrors);
 	}
 	@Override
@@ -357,43 +419,14 @@ public class MXClassifierNLU extends NLU {
 		return testNLUOnThisData(td, model, printErrors);
 	}
 
-	/**
-	 * 
-	 * @param utt
-	 * @param m
-	 * @return returns a map in which the keys are the output labels and the associated values are the score achieved by the given utteranceas indicator of taht label.
-	 * @throws Exception
-	 */
-	@Override
-	public Map<String,Float> getUtteranceScores(String utt,String modelFileName) throws Exception {
-		Map<String,Float> ret=null;
-		Model m=readModelWithCache(modelFileName);
-		if (m!=null) {
-			String processedText=(getConfiguration().getApplyTransformationsToInputText())?getBTD().prepareUtteranceForClassification(utt):utt;
-			List<String> features = getFeaturesFromUtterance(processedText);
-			if (features!=null && !features.isEmpty()) {
-				for(String f:features) {
-					Map<String,FeatureWeight> weights=m.getWeightsForFeature(f);
-					if (weights!=null) {
-						if (ret==null) ret=new HashMap<String, Float>();
-						for(String l:weights.keySet()) {
-							if (weights.containsKey(l)) {
-								if (ret.containsKey(l)) ret.put(l, ret.get(l)+weights.get(l).getWeight());
-								else ret.put(l, weights.get(l).getWeight());
-							}
-						}
-					}
-				}
-			}
-		}
-		return ret;
-	}
+
 	@Override
 	public List<Pair<String,Float>> getTokensScoresForLabel(String utt,String label,String modelFileName) throws Exception {
 		List<Pair<String,Float>> ret=null;
 		Model m=readModelWithCache(modelFileName);
 		if (m!=null) {
-			String processedText=(getConfiguration().getApplyTransformationsToInputText())?getBTD().prepareUtteranceForClassification(utt):utt;
+			Preprocess pr = getPreprocess();
+			String processedText=pr.getString(pr.process(utt).get(0));
 			if (!StringUtils.isEmptyString(processedText)) {
 				String[] tokens=("<s> "+processedText+" </s>").split("[\\s]+");
 				int l=tokens.length;
@@ -443,11 +476,12 @@ public class MXClassifierNLU extends NLU {
 		}
 		return ret;
 	}
-		
+
 	public static void main(String[] args) throws Exception {
+		/*
 		MXClassifierNLU cl = new MXClassifierNLU();
 		System.out.println(BuildTrainingData.tokenize("<NUM> years"));
-		
+
 		System.out.println(Arrays.asList(cl.classify("he usually pays them on time, so not very often. ",null)));
 		System.exit(1);
 		System.out.println(cl.getBTD().prepareUtteranceForClassification("2 or 3"));
@@ -466,6 +500,7 @@ public class MXClassifierNLU extends NLU {
 		if (num!=null) {
 			System.out.println("num days: "+BasicNE.convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInDay));
 		}
+		 */
 	}
 
 }

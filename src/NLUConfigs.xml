@@ -11,6 +11,8 @@
         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
+	<import resource="classpath:PreprocessingConfigs.xml"/>
+
 	<bean id="MXNLU" class="edu.usc.ict.nl.config.NLUConfig">
 		<!--
 		<property name="nluVhListening" value="true"/>
@@ -20,10 +22,10 @@
 		<property name="emptyTextEventName" value="empty"/>
 		<property name="doSpellchecking" value="false"/>
 		
+		<property name="preprocessingConfig" ref="simcoach"/>
+		
 		<!-- ########################## NLU START ################################### -->
 		<!-- general nlu setup --> 
-		<property name="stemmerClass"><null/></property>
-		<!-- property name="stemmerClass"  value="edu.usc.ict.nl.stemmer.KStemmer"/-->
 		<property name="printNluErrors" value="true"/>
 		<property name="chartNluMaxLength" value="30"/>
 		<property name="nluModelFile" value="classifier-model"/>
@@ -32,15 +34,6 @@
 		<property name="useSystemFormsToTrainNLU" value="true"/>
 		<property name="userUtterances" value="user-utterances.xlsx"/>
 		<property name="nBest" value="2"/>
-		<property name="applyTransformationsToInputText" value="true"/>
-		<property name="generalizeNumbers" value="true"/>
-		<property name="nluNamedEntityExtractors">
-			<list>
-				<ref bean="NumberNE"/>
-				<ref bean="TimeDurationNE"/>
-				<ref bean="TimeFrequencyNE"/>
-			</list>
-		</property>
 		<!-- ** some alternative classifiers available ** -->
 		<!-- setup required for mxnlu to work  -->
 		<property name="nluClass" value="edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU"/>
@@ -202,48 +195,16 @@
 		<property name="nluClass" value="edu.usc.ict.nl.nlu.directablechar.LFNLU2"/>
 	</bean>
 	
-	<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
-		<constructor-arg>
- 			<value type="java.lang.String">test</value>
-		</constructor-arg>
-		<!-- 
- 		<constructor-arg index="0" value=".*number"/>
-		<constructor-arg index="1" value="answer.number"/>
-		<constructor-arg index="2" value="answer.relative-quantity.number"/>
-		<constructor-arg index="3" value="answer.bio-info.user.age"/>
-		-->
+	<bean id="testNLU" parent="openNLU">
+		<property name="preprocessingConfig" ref="test"/>
 	</bean>
-	<bean id="NumberNE" class="edu.usc.ict.nl.nlu.ne.Numbers">
-		<constructor-arg>
- 			<value type="java.lang.String[]">.*number,answer.bio-info.user.age</value>
-		</constructor-arg>
-		<!-- 
- 		<constructor-arg index="0" value=".*number"/>
-		<constructor-arg index="1" value="answer.number"/>
-		<constructor-arg index="2" value="answer.relative-quantity.number"/>
-		<constructor-arg index="3" value="answer.bio-info.user.age"/>
-		-->
-	</bean>
-	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration">
-	</bean>
-	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency">
-	</bean>
+	
 	<bean id="openNLU" parent="MXNLU">
 		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
 		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
 		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
 		<property name="acceptanceThreshold" value="0.0"/>
 		<property name="maximumNumberOfLabels"><null/></property>
-	</bean>
-	<bean id="testNLU" parent="openNLU">
-		<property name="nluNamedEntityExtractors">
-			<list>
-				<ref bean="NumberNE"/>
-				<ref bean="TimeDurationNE"/>
-				<ref bean="TimeFrequencyNE"/>
-				<ref bean="KeywordNE"/>
-			</list>
-		</property>
 	</bean>
 	
 	<bean id="CascadeMerger" class="edu.usc.ict.nl.nlu.multi.merger.Cascade">
@@ -304,4 +265,21 @@
 	</bean>
 	<bean id="SPSStep1and3UserXLSXFile" class="edu.usc.ict.nl.nlu.trainingFileReaders.SPSFSTXlsxTrainingFile">
 	</bean>
+	
+	<!-- 
+		text=text.toLowerCase();
+		List<Token> tokens=tokenize(text,tokenTypes);		
+		if (sc!=null) tokens=doSpellCheck(tokens);
+		tokens=uk2us(tokens);
+		tokens=filterPunctuation(tokens);
+		tokens=normalizeTokens(tokens);
+		if (chattify) tokens=chattify(tokens,tokenTypes,chattify,config);
+		tokens=contractEnglish(tokens,tokenTypes,chattify,config);
+		if (stemmer!=null) tokens=stemm(tokens);
+		try {
+			tokens=EnglishWrittenNumbers2Digits.parseWrittenNumbers(config,tokens);
+		} catch (Exception e) {
+			logger.warn("Error converting written numbers to value.",e);
+		}
+	 -->
 </beans>

@@ -52,8 +52,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
-import edu.usc.ict.nl.nlu.BuildTrainingData;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.util.AhoCorasick;
 import edu.usc.ict.nl.util.AhoCorasick.LazyArray;
 import edu.usc.ict.nl.util.AhoCorasick.Match;
