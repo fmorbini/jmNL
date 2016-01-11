@@ -25,6 +25,8 @@ import edu.usc.ict.nl.utils.LogConfig;
 public abstract class BasicNE implements NamedEntityExtractorI {
 	private NLUConfig configuration;
 	
+	protected boolean generalize=true;
+
 	private SpecialEntitiesRepository svs=null;
 	
 	public static final Logger logger = Logger.getLogger(NLU.class.getName());
@@ -91,12 +93,17 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 					if (isWholeWordsSubstring) {
 						int startToken = getTokenAtPosition(start,tokenStarts);
 						int endToken=getTokenAtPosition(end,tokenStarts);
+						boolean generalize=generalizeText();
 						for(int j=startToken;j<=endToken;j++) {
 							Token newToken=null;
 							if (j==startToken) {
 								Token original=inputTokens.get(j);
 								if (original!=null) {
-									newToken=new Token(ne.getType().toUpperCase(), original.getType(), ne.getMatchedString(), start, end);
+									if (generalize) { 
+										newToken=new Token(ne.getType().toUpperCase(), original.getType(), ne.getMatchedString(), start, end);
+									} else {
+										newToken=new Token(original.getName(), original.getType(), original.getOriginal(), original.getStart(), original.getEnd());
+									}
 									newToken.setAssociatedNamedEntity(ne);
 									if (ret==null) ret=new ArrayList<>();
 									ret.add(newToken);
@@ -235,4 +242,10 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 		return ret;
 	}
+	
+	@Override
+	public boolean generalizeText() {
+		return generalize;
+	}
+	
 }

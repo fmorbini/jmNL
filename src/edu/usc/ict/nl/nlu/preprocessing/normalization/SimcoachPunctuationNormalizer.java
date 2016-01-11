@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.nlu.preprocessing.normalization;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,11 +13,15 @@ public class SimcoachPunctuationNormalizer extends Normalizer {
 	
 	@Override
 	public List<Token> normalize(List<Token> input) {
-		for(Token t:input) {
+		Iterator<Token> it=input.iterator();
+		while(it.hasNext()) {
+			Token t=it.next();
 			if (t!=null && t.getType().equals(TokenTypes.OTHER)) {
 				Matcher m=puntToKeep.matcher(t.getName());
 				if (m.matches()) {
 					t.setName(t.getName().substring(0, 1));
+				} else {
+					it.remove();
 				}
 			}
 		}

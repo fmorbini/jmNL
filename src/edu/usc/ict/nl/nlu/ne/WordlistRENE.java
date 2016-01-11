@@ -22,6 +22,9 @@ public class WordlistRENE extends BasicNE {
 	private KeywordREMatcher matcher=null;
 
 	public WordlistRENE(String file) {
+		this(true,file);
+	}
+	public WordlistRENE(boolean generalize,String file) {
 		this.modelName=file;
 		/*
 		try {

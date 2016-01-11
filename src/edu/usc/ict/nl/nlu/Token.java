@@ -58,7 +58,7 @@ public class Token implements Comparable<Token> {
 	
 	@Override
 	public String toString() {
-		return "<"+getName()+"("+getOriginal()+"): "+getType()+">";
+		return "<"+getName()+"("+getOriginal()+"): "+getType()+(getAssociatedNamedEntity()!=null?", NE: "+getAssociatedNamedEntity():"")+">";
 	}
 	@Override
 	public int compareTo(Token o) {

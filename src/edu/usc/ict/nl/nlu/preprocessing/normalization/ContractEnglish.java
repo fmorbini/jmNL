@@ -15,22 +15,27 @@ public class ContractEnglish extends Normalizer {
 			PreprocessingConfig config = getConfiguration();
 			Token pp=tokens.get(0);
 			String pWord=pp.getName();
-			for(int i=1;i<tokens.size();) {
+			int s=tokens.size();
+			for(int i=1;i<s;) {
 				int size=1;
 				Token cp=tokens.get(i);
+				Token nt=(i+1<s)?tokens.get(i+1):null;
 				String word=cp.getName();
-				String c=EnglishUtils.getContractionFor(pWord,word);
-				if (c!=null) {
-					TokenizerI tokenizer=config.getNluTokenizer();
-					List<Token> tmpTs = tokenizer.tokenize1(c);
-					if (tmpTs!=null && !tmpTs.isEmpty()) {
-						size=tmpTs.size();
-						tokens.remove(i-1);
-						tokens.remove(i-1);
-						for(int j=0;j<size;j++) {
-							tokens.add(i-1+j, tmpTs.get(j));
+				boolean waitForNext=nt!=null && EnglishUtils.getContractionFor(word,nt.getName())!=null;
+				if (!waitForNext) {
+					String c=EnglishUtils.getContractionFor(pWord,word);
+					if (c!=null) {
+						TokenizerI tokenizer=config.getNluTokenizer();
+						List<Token> tmpTs = tokenizer.tokenize1(c);
+						if (tmpTs!=null && !tmpTs.isEmpty()) {
+							size=tmpTs.size();
+							tokens.remove(i-1);
+							tokens.remove(i-1);
+							for(int j=0;j<size;j++) {
+								tokens.add(i-1+j, tmpTs.get(j));
+							}
+							size-=1;
 						}
-						size-=1;
 					}
 				}
 				pp=cp;

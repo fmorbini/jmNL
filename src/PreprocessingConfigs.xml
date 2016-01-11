@@ -93,8 +93,16 @@
 		<constructor-arg index="3" value="answer.bio-info.user.age"/>
 		-->
 	</bean>
-	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration"/>
-	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency"/>
+	<bean id="TimeDurationNE" class="edu.usc.ict.nl.nlu.ne.TimeDuration">
+		<constructor-arg>
+ 			<value type="java.lang.Boolean">false</value>
+		</constructor-arg>
+	</bean>
+	<bean id="TimeFrequencyNE" class="edu.usc.ict.nl.nlu.ne.TimeFrequency">
+		<constructor-arg>
+ 			<value type="java.lang.Boolean">false</value>
+		</constructor-arg>
+	</bean>
 	<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
 		<constructor-arg>
  			<value type="java.lang.String">nere</value>

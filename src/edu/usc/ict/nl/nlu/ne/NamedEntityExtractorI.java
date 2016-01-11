@@ -13,4 +13,10 @@ public interface NamedEntityExtractorI {
 	public List<SpecialVar> getSpecialVariables() throws Exception;
 	public boolean generalize(List<Token> tokens);
 	public List<Token> getModifiedTokens(List<Token> tokens);
+	
+	/**
+	 * is the generalize flag is set to true then this ne will be used to generalize text, otherwise only to extract variables.
+	 * @return
+	 */
+	public boolean generalizeText();
 }

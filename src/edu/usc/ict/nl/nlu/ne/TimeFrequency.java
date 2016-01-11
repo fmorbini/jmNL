@@ -8,6 +8,10 @@ import edu.usc.ict.nl.nlu.ne.searchers.TimePeriodSearcher;
 public class TimeFrequency extends Numbers {
 
 	public TimeFrequency() {
+		this(true);
+	}
+	public TimeFrequency(boolean generalize) {
+		super(generalize,(String[])null);
 	}
 
 	@Override

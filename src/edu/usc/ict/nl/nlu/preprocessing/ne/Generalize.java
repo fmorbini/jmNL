@@ -79,17 +79,17 @@ public class Generalize extends Preprocesser {
 		return null;
 	}
 
-	private List<List<Token>> mergeTokensWithGeneralizedTokens(List<List<Token>> sols, List<Token> tokens) {
+	private List<List<Token>> mergeTokensWithGeneralizedTokens(List<List<Token>> generalizedTokens, List<Token> tokens) {
 		List<Integer> tokenStarts=BasicNE.computeTokenStarts(tokens);
 		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
 		String input=Preprocess.getString(tokens, tokenizer);
 		try {
-			if (sols!=null) {
-				for(List<Token> sol:sols) {
+			if (generalizedTokens!=null) {
+				for(List<Token> gt:generalizedTokens) {
 					int position=0;
 					int pend=0;
-					while(position<sol.size()) {
-						Token current=sol.get(position);
+					while(position<gt.size()) {
+						Token current=gt.get(position);
 						int start=current.getStart();
 						int end=current.getEnd();
 						boolean isWholeWordsSubstring=StringUtils.isWholeWordSubstring(start,end,input);
@@ -97,7 +97,7 @@ public class Generalize extends Preprocesser {
 							int startToken = BasicNE.getTokenAtPosition(start,tokenStarts);
 							int endToken=BasicNE.getTokenAtPosition(end,tokenStarts);
 							for (int j=pend;j<startToken;j++) {
-								sol.add(position+j-pend, tokens.get(j));
+								gt.add(position+j-pend, tokens.get(j));
 							}
 							position+=startToken-pend;
 							pend=endToken+1;
@@ -105,14 +105,14 @@ public class Generalize extends Preprocesser {
 						position++;
 					}
 					for (int j=pend;j<tokens.size();j++) {
-						sol.add(tokens.get(j));
+						gt.add(tokens.get(j));
 					}
 				}
 			}
 		} catch (Exception e) {
 			logger.error("error generalizing text", e);
 		}
-		return sols;
+		return generalizedTokens;
 	}
 
 	/** input: t initial token (first generalized token (by start position)) 

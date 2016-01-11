@@ -18,13 +18,20 @@ public class Numbers extends BasicNE {
 			"Number extracted from a answer.number or answer.number-in-period speech acts.","0",Number.class);
 	public static final SpecialVar allNumVar=new SpecialVar(null,"ALLNUMS",
 			"Numbers extracted from a answer.number or answer.number-in-period speech acts.","0",List.class);
+	
 	public Numbers(String... sas) {
+		this(true,sas);
+	}
+	public Numbers(boolean generalize,String... sas) {
 		addSpecialVarToRepository(firstNumVar);
 		addSpecialVarToRepository(allNumVar);
-		this.sas=new Pattern[sas.length];
-		for (int i=0;i<sas.length;i++) {
-			this.sas[i]=Pattern.compile(sas[i]);
+		if (sas!=null) {
+			this.sas=new Pattern[sas.length];
+			for (int i=0;i<sas.length;i++) {
+				this.sas[i]=Pattern.compile(sas[i]);
+			}
 		}
+		this.generalize=generalize;
 	}
 	
 	@Override

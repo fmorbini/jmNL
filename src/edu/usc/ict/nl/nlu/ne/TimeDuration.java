@@ -17,8 +17,12 @@ public class TimeDuration extends BasicNE {
 			"Number of days extracted from a answer.time-period speech act.","0",Number.class);
 
 	public TimeDuration() {
+		this(true);
+	}
+	public TimeDuration(boolean generalize) {
 		addSpecialVarToRepository(MonthsVar);
 		addSpecialVarToRepository(daysVar);
+		this.generalize=generalize;
 	}
 
 	@Override
