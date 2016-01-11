@@ -230,6 +230,7 @@ public class NLUConfig extends NLConfig {
 	public static final NLUConfig WIN_EXE_CONFIG=new NLUConfig();
 	static{
 		WIN_EXE_CONFIG.setnBest(2);
+		WIN_EXE_CONFIG.setNlBusConfig(NLBusConfig.WIN_EXE_CONFIG);
 		WIN_EXE_CONFIG.setAcceptanceThreshold(0.4f);
 		WIN_EXE_CONFIG.setLowConfidenceEvent("internal.low-confidence");
 		WIN_EXE_CONFIG.setNluModelFile("classifier-model");

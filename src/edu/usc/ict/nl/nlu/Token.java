@@ -62,7 +62,7 @@ public class Token implements Comparable<Token> {
 	}
 	@Override
 	public int compareTo(Token o) {
-		return o.start-start;
+		return start-o.start;
 	}
 	
 	@Override

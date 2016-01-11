@@ -57,14 +57,8 @@ public class Generalize extends Preprocesser {
 		for(NamedEntityExtractorI ne:nes) {
 			List<Token> modified=ne.getModifiedTokens(tokens);
 			if (modified!=null) {
-				if (overlappingTokens==null || overlappingTokens.isEmpty()) {
-					if (overlappingTokens==null) overlappingTokens=new HashMap<>();
-					for(Token m:modified) overlappingTokens.put(m,null);
-				} else {
-					for(Token m:modified) {
-						updateOverlappingTokens(m,overlappingTokens);
-					}
-				}
+				if (overlappingTokens==null) overlappingTokens=new HashMap<>();
+				for(Token m:modified) updateOverlappingTokens(m,overlappingTokens);
 			}
 		}
 		
@@ -136,11 +130,6 @@ public class Generalize extends Preprocesser {
 	private void getNESoptions(Token current, List<Token> sortedTokens,List<Token> sol, List<List<Token>> sols, Map<Token, Set<Token>> overlappingTokens) {
 		Set<Token> ots = overlappingTokens.get(current);
 		
-		if (sol==null) sol=new ArrayList<>();
-		else sol=new ArrayList<>(sol);
-		sols.add(sol);
-		sol.add(current);
-
 		if (ots!=null) {
 			boolean usedCurrentSolution=false;
 			for(Token ot:ots) {
@@ -208,7 +197,7 @@ public class Generalize extends Preprocesser {
 	 */
 	private void updateOverlappingTokens(Token tobeadded, Map<Token, Set<Token>> overlappingTokens,Set<Token> visited) {
 		//if overlappingtokens already contains tobeadded, terminate doing nothing
-		//adds to be added as a key of overlappingTokens
+		//adds tobeadded as a key of overlappingTokens
 		//gets the set of tokens (the keys of overlappingtokens
 		// for t in tokens
 		//  if t overlaps with tobeadded,
@@ -217,11 +206,9 @@ public class Generalize extends Preprocesser {
 		if (!overlappingTokens.containsKey(tobeadded)) {
 			overlappingTokens.put(tobeadded, null);
 			for(Token t:overlappingTokens.keySet()) {
-				if (!(t==tobeadded)) {
-					if (t.overlaps(tobeadded)) {
-						addOverlapping(t,tobeadded,overlappingTokens);
-						addOverlapping(tobeadded,t,overlappingTokens);
-					}
+				if (t.overlaps(tobeadded)) {
+					addOverlapping(t,tobeadded,overlappingTokens);
+					addOverlapping(tobeadded,t,overlappingTokens);
 				}
 			}
 		}

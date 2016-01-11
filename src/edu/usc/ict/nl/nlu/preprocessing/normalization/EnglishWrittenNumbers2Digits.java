@@ -60,7 +60,7 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 			for (int i=lastInsertedToken;i<it.getStart();i++) {
 				out.add(tokens.get(i));
 			}
-			out.add(new Token(it.getSemantics().toString(), TokenTypes.NUM,Preprocess.getStringOfTokensSpan(tokens, it.getStart(), it.getEnd()+1)));
+			out.add(new Token(it.getSemantics().toString(), TokenTypes.NUM,Preprocess.getStringOfTokensSpan(tokens, it.getStart(), it.getEnd())));
 			lastInsertedToken=it.getEnd();
 		}
 		for (int i=lastInsertedToken;i<tokens.size();i++) out.add(tokens.get(i));
@@ -75,7 +75,7 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 		// thirteen
 		// for every word in input string, find the nearest
 		TokenizerI tokenizer=new Tokenizer();
-		String s="one hundred twenty five";
+		String s="i smoke twenty three packets of cigarettes per day";
 		s=s.toLowerCase();
 		List<Token> tokens = tokenizer.tokenize1(s);
 		tokens=parseWrittenNumbers(NLUConfig.WIN_EXE_CONFIG,tokens);
