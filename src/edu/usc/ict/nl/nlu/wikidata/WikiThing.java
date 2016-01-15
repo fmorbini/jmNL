@@ -2,8 +2,6 @@ package edu.usc.ict.nl.nlu.wikidata;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -121,9 +119,14 @@ public class WikiThing extends Node implements Comparable<WikiThing> {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj!=null && obj instanceof WikiThing) {
-			return ((WikiThing)obj).getName().equals(getName()); 
-		} else return super.equals(obj);
+		if (obj!=null) {
+			if (obj instanceof WikiThing) {
+				return ((WikiThing)obj).getName().equals(getName()); 
+			} else if (obj instanceof String) {
+				return ((String) obj).equalsIgnoreCase(getName());
+			}
+		}
+		return super.equals(obj);
 	}
 	
 	@Override

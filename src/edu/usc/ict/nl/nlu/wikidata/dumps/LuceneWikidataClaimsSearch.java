@@ -37,8 +37,15 @@ public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 	public List find(String query,int n) throws Exception {
 		Query q = queryParser.parse(query);
 		//System.out.println("query: "+q.getClass()+" "+q);
-		TopDocs result = searcher.search(q,n);
-		ScoreDoc[] hits = result.scoreDocs;
+		int ln=Math.round((float)Math.log10(n));
+		ScoreDoc[] hits=null;
+		int sn=1;
+		for(int i=1;i<=ln;i++) {
+			sn=(i==ln)?n:sn*10;
+			TopDocs result = searcher.search(q,sn);
+			hits = result.scoreDocs;
+			if (hits.length<sn) break;
+		}
 		List<WikiClaim> ret=null;
 		for (int i = 0; i < hits.length; i++) {
 			Document doc = searcher.getIndexReader().document(hits[i].doc);
@@ -81,9 +88,25 @@ public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 		try {
 			List<WikiClaim> rs = find("pred:"+property.toLowerCase()+" AND subject:"+subject.toLowerCase(), n);
 			if (rs!=null && !rs.isEmpty()) {
-				WikiClaim result=rs.get(0);
-				if (ret==null) ret=new ArrayList<String>();
-				ret.add(result.getObject());
+				for(WikiClaim result:rs) {
+					if (ret==null) ret=new ArrayList<String>();
+					ret.add(result.getObject());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	public List<String> getSubjectOfThisClaim(String object,String property,int n) {
+		List<String> ret=null;
+		try {
+			List<WikiClaim> rs = find("pred:"+property.toLowerCase()+" AND object:"+object.toLowerCase(), n);
+			if (rs!=null && !rs.isEmpty()) {
+				for(WikiClaim result:rs) {
+					if (ret==null) ret=new ArrayList<String>();
+					ret.add(result.getSubject());
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -107,6 +130,16 @@ public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 	}
 	public List<String> getOfWhatItIsASubclass(String thing,int n) {
 		List<String> rs = getObjectOfThisClaim(thing, "p279",n);
+		if (rs!=null && !rs.isEmpty()) return rs;
+		return null;
+	}
+	public List<String> getThingsThatAreInstancesOf(String thing,int n) {
+		List<String> rs = getSubjectOfThisClaim(thing, "p31",n);
+		if (rs!=null && !rs.isEmpty()) return rs;
+		return null;
+	}
+	public List<String> getThingsThatAreSubclassesOf(String thing,int n) {
+		List<String> rs = getSubjectOfThisClaim(thing, "p279",n);
 		if (rs!=null && !rs.isEmpty()) return rs;
 		return null;
 	}

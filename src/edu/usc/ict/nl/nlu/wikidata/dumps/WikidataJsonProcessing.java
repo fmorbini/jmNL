@@ -36,9 +36,9 @@ import edu.usc.ict.nl.util.ProgressTracker;
 
 public class WikidataJsonProcessing {
 	
-	public static final String CLAIMS="claims.txt";
-	public static final String PROPERTIES="properties-strings.txt";
-	public static final String ITEMS="items-strings.txt";
+	public static final File CLAIMS=new File("claims.txt");
+	public static final File PROPERTIES=new File("properties-strings.txt");
+	public static final File ITEMS=new File("items-strings.txt");
 	// dumps are here: http://dumps.wikimedia.org/other/wikidata/
 	
 	public static List<String> getAllPhrasesInWikidataForEntity(String id,WikiLanguage lang) {
@@ -66,7 +66,7 @@ public class WikidataJsonProcessing {
 		try {
 			fileStream = new GZIPInputStream(fileStream);
 		} catch (ZipException e) {
-			e.printStackTrace();
+			System.err.println("failed opening as zipped stream. continuing as normal file.");
 		}
 		Reader decoder = new InputStreamReader(fileStream, "UTF-8");
 		BufferedReader buffered = new BufferedReader(decoder);
@@ -175,8 +175,8 @@ public class WikidataJsonProcessing {
 		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
 		LinkedBlockingQueue<WikiThing> is2 = new LinkedBlockingQueue<WikiThing>(2);
 		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.ITEM).start();
-		new WriteStringsToFile("writer",is, is2,new File(ITEMS),30,false).start();
-		new WriteClaimsToFile("property writer",is2, null,new File(CLAIMS),30,false).start();
+		new WriteStringsToFile("writer",is, is2,ITEMS,30,false).start();
+		new WriteClaimsToFile("property writer",is2, null,CLAIMS,30,false).start();
 		getObjectsIntoProcessingQueue(wikidataJsonFile, queue);
 	}
 	public static void createPropertiesFile(int workers,File wikidataJsonFile) throws IOException, InterruptedException {
@@ -184,13 +184,13 @@ public class WikidataJsonProcessing {
 		LinkedBlockingQueue<WikiThing> is = new LinkedBlockingQueue<WikiThing>(10);
 		LinkedBlockingQueue<WikiThing> is2 = new LinkedBlockingQueue<WikiThing>(2);
 		for(int i=0;i<workers;i++) new GetWikithings("object getter "+i,queue, is,TYPE.PROPERTY).start();
-		new WriteStringsToFile("writer",is, is2,new File(PROPERTIES),120,false).start();
-		new WriteClaimsToFile("property writer",is2, null,new File(CLAIMS),120,true).start();
+		new WriteStringsToFile("writer",is, is2,PROPERTIES,240,false).start();
+		new WriteClaimsToFile("property writer",is2, null,CLAIMS,240,true).start();
 		getObjectsIntoProcessingQueue(wikidataJsonFile, queue);
 	}
 	
 	public static void main(String[] args) throws Exception {
-		createItemsFile(8, new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"));
-		createPropertiesFile(8, new File("C:\\Users\\morbini\\Downloads\\20150810.json.gz"));
+		//createItemsFile(8, new File("C:\\Users\\morbini\\Downloads\\20160111.json.gz"));
+		createPropertiesFile(8, new File("C:\\Users\\morbini\\Downloads\\20160111.json.gz"));
 	}
 }
