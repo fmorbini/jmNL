@@ -161,7 +161,7 @@ public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 		LuceneWikidataClaimsSearch rc = new LuceneWikidataClaimsSearch(new File("items-claims.txt"));
 		List<Document> rs2 = ri.find("search:\"^america$\"", 10);
 		for(Document d:rs2) {
-			System.out.println(d.get(LuceneQueryConstants.ID)+" "+d.get(LuceneQueryConstants.ALIAS));
+			System.out.println(d.get(LuceneQueryConstants.ID)+" "+removeLuceneMarkers(d.get(LuceneQueryConstants.SEARCH)));
 		}
 		List<WikiClaim> rs = rc.find("pred:P31 AND subject:q2842807", 10);
 		for(WikiClaim cl:rs) {

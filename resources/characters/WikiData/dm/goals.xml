@@ -1,5 +1,0 @@
-<goals>
-	<goal id="simple" desc="nothing really" value= "10"/>
-	<goal id="quick" desc="nothing really" value= "30"/>
-	<goal id="exitGoal" desc="goal to exit the system" value= "20"/>
-</goals>

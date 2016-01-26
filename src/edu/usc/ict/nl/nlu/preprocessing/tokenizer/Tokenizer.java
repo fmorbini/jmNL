@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;

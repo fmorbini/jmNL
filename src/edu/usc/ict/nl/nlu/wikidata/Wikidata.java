@@ -331,7 +331,7 @@ public class Wikidata {
 					BufferedWriter out=new BufferedWriter(new FileWriter(file));
 					List<String> sortedThings=new ArrayList<String>(things);
 					Collections.sort(sortedThings);
-					for(String l:things) {
+					for(String l:sortedThings) {
 						out.write(l+"\n");
 						out.flush();
 					}

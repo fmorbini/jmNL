@@ -112,6 +112,9 @@ public class SpecialVar {
 	public String getValue() {return value;}
 	public String getDescription() {return description;}
 	public String getName() {return name;}
+	public void setName(String name) {
+		this.name = name;
+	}
 	public Class getType() {return type;}
 	public Boolean isHidden() {return hidden;}
 	public Boolean isReadOnly() {return readOnly;}

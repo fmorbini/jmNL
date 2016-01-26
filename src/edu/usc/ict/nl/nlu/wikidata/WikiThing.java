@@ -32,7 +32,7 @@ public class WikiThing extends Node implements Comparable<WikiThing> {
 		return type;
 	}
 	
-	public WikiThing(String string) throws Exception {
+	public WikiThing(String string) {
 		Matcher m=thingName.matcher(string);
 		if (m.matches()) {
 			this.id=Long.parseLong(m.group(2));

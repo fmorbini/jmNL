@@ -1,5 +1,7 @@
 package edu.usc.ict.nl.nlu.wikidata.dumps;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,12 +9,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexableField;
 
 import edu.usc.ict.nl.nlu.wikidata.WikiThing;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
-import edu.usc.ict.nl.util.ProgressTracker;
+import edu.usc.ict.nl.util.FileUtils;
 
 public class Queries {
 	private static final int MAXITEMS=12000000;
@@ -37,7 +41,7 @@ public class Queries {
 			if (parents!=null) {
 				for(String p:parents) {
 					WikiThing np=new WikiThing(p);
-					np.addLabel(getLabelForId(np));
+					fillWikiThing(np);
 					nodes.addLast(np);
 					t.addEdgeTo(np, true, true);
 				}
@@ -58,7 +62,7 @@ public class Queries {
 			if (parents!=null) {
 				for(String p:parents) {
 					WikiThing np=new WikiThing(p);
-					np.addLabel(getLabelForId(np));
+					fillWikiThing(np);
 					nodes.addLast(np);
 					t.addEdgeTo(np, true, true);
 				}
@@ -94,7 +98,7 @@ public class Queries {
 				if (np==null) {
 					np=new WikiThing(p);
 					alreadyVisited.put(p,np);
-					np.addLabel(getLabelForId(np));
+					fillWikiThing(np);
 					nodes.addLast(np);
 				}
 				t.addEdgeTo(np, false, false,"ISA");
@@ -102,14 +106,11 @@ public class Queries {
 		}
 	}
 
-	public String getLabelForId(WikiThing thing) {
+	public WikiThing fillWikiThing(WikiThing thing) {
 		try {
 			LuceneWikidataSearch rt = (thing.getType()==TYPE.PROPERTY)?rp:ri;
-			List<Document> rs = rt.find(LuceneQueryConstants.ID+":"+thing.getName().toLowerCase(), 1);
-			if (rs!=null && !rs.isEmpty()) {
-				Document result=rs.get(0);
-				return result.get(LuceneQueryConstants.ALIAS);
-			}
+			rt.buildThing(thing);
+			return thing;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -123,7 +124,11 @@ public class Queries {
 		for(Document d:rs) {
 			if (ret==null) ret=new ArrayList<>();
 			String id = d.get(LuceneQueryConstants.ID);
-			String label=d.get(LuceneQueryConstants.ALIAS);
+			String label=LuceneWikidataSearch.removeLuceneMarkers(d.get(LuceneQueryConstants.SEARCH));
+			List<IndexableField> fields = d.getFields();
+			for(IndexableField f:fields) {
+				System.out.println(LuceneWikidataSearch.removeLuceneMarkers(f.stringValue()));
+			}
 			WikiThing path = getInstancePathFor(id, n);
 			path.addLabel(label);
 			ret.add(path);
@@ -156,23 +161,32 @@ public class Queries {
 	public List<String> getRelationsBetween(String item1Search,String item2search) {
 		return null;
 	}
-	public boolean isInstanceOrSubclassOf(String item,String parent) throws Exception {
+	public boolean isInstanceOrSubclassOf(String item,String parent,int maxDepth) throws Exception {
+		parent=parent.toUpperCase();
+		item=item.toUpperCase();
 		long start=System.currentTimeMillis();
-		LinkedList<String> nodes=new LinkedList<>();
+		int cd=0;
+		LinkedList<String> currentDepth=new LinkedList<>();
+		LinkedList<String> nextDepth=new LinkedList<>();
 		Set<String> alreadyVisited=new HashSet<>();
-		nodes.push(item.toUpperCase());
+		currentDepth.push(item);
 		boolean found=false;
-		while(!nodes.isEmpty()) {
+		while(!currentDepth.isEmpty() && cd<maxDepth) {
 			//System.out.println(nodes.size());
-			String t=nodes.pop();
+			String t=currentDepth.pop();
 			if (t.equals(parent)) {
 				found=true;
 				break;
 			}
 			List<String> parents=rc.getOfWhatItIsAnInstance(t, MAXITEMS);
-			addTheseChildren(t,parents,nodes,alreadyVisited);
+			addTheseChildren(t,parents,nextDepth,alreadyVisited);
 			parents=rc.getOfWhatItIsASubclass(t, MAXITEMS);
-			addTheseChildren(t,parents,nodes,alreadyVisited);
+			addTheseChildren(t,parents,nextDepth,alreadyVisited);
+			if (currentDepth.isEmpty()) {
+				currentDepth.addAll(nextDepth);
+				nextDepth.clear();
+				if (maxDepth>0) cd++;
+			}
 		}
 		System.out.println("searched for parent done in: "+(System.currentTimeMillis()-start));
 		return found;
@@ -189,20 +203,42 @@ public class Queries {
 		}
 	}
 
-	public Set<String> getAllSubclassesAndInstancesOf(String parent,int n) throws Exception {
+	public Set<String> getAllSubclassesAndInstancesOf(String parent,int n,int maxDepth) throws Exception {
+		return getAllSubclassesAndInstancesOf(parent, n, maxDepth, true, true);
+	}
+	/**
+	 * 
+	 * @param parent the parent of which we want to find all subclasses/instances
+	 * @param n the maximum number of items to be returned by each query to the lucene index
+	 * @param maxDepth the maximum depth the hierarchy should be searched
+	 * @param includeSubclass follow subclass edges
+	 * @param includeInstance follow instance (isa) edges
+	 * @return
+	 * @throws Exception
+	 */
+	public Set<String> getAllSubclassesAndInstancesOf(String parent,int n,int maxDepth,boolean includeSubclass, boolean includeInstance) throws Exception {
 		long start=System.currentTimeMillis();
-		ProgressTracker pt=new ProgressTracker(1000, System.out);
-		LinkedList<String> nodes=new LinkedList<>();
+		int cd=0;
+		LinkedList<String> currentDepth=new LinkedList<>();
+		LinkedList<String> nextDepth=new LinkedList<>();
 		Set<String> alreadyVisited=new HashSet<>();
-		nodes.push(parent);
-		while(!nodes.isEmpty()) {
-			System.out.println(nodes.size());
-			String t=nodes.pop();
-			List<String> children=rc.getThingsThatAreInstancesOf(t, n);
-			addTheseChildren(t,children,nodes,alreadyVisited);
-			children=rc.getThingsThatAreSubclassesOf(t, n);
-			addTheseChildren(t,children,nodes,alreadyVisited);
-			pt.update(alreadyVisited.size());
+		currentDepth.push(parent);
+		while(!currentDepth.isEmpty() && cd<maxDepth) {
+			String t=currentDepth.pop();
+			List<String> children=null;
+			if (includeInstance) {
+				children=rc.getThingsThatAreInstancesOf(t, n);
+				addTheseChildren(t,children,nextDepth,alreadyVisited);
+			}
+			if (includeSubclass) {
+				children=rc.getThingsThatAreSubclassesOf(t, n);
+				addTheseChildren(t,children,nextDepth,alreadyVisited);
+			}
+			if (currentDepth.isEmpty()) {
+				currentDepth.addAll(nextDepth);
+				nextDepth.clear();
+				if (maxDepth>0) cd++;
+			}
 		}
 		System.out.println("hierarchy finished in: "+(System.currentTimeMillis()-start));
 		return alreadyVisited;
@@ -216,7 +252,7 @@ public class Queries {
 	*/
 	public boolean isAbstractObject(String thing) {
 		try {
-			return isInstanceOrSubclassOf(thing, "Q7184903");
+			return isInstanceOrSubclassOf(thing, "Q7184903",-1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -225,10 +261,31 @@ public class Queries {
 	
 	public static void main(String[] args) throws Exception {
 		Queries qs = new Queries();
+		//List<WikiThing> things = qs.getIdsForString("The Big Apple", TYPE.ITEM, MAXITEMS);
+		//System.out.println(things);
+		Set<String> r=qs.getAllSubclassesAndInstancesOf("q6256", MAXITEMS, 1,false,true);
+		BufferedWriter x=new BufferedWriter(new FileWriter("q6256"));
+		for(String t:r) {
+			WikiThing thing=new WikiThing(t);
+			qs.fillWikiThing(thing);
+			x.write(thing.getName());
+			for(String l:thing.getLabels()) {
+				x.write("\t"+l);
+			}
+			x.write("\n");
+		}
+		x.close();
+		//FileUtils.dumpToFile(r, "q6256", false, true);
+		/*
+		qs.getInstanceAndOrSubclassGraphFor("Q51624", MAXITEMS).toGDLGraph();
+		System.out.println(qs.getLabelForId(new WikiThing("q8171")));
+		System.out.println(qs.getLabelForId(new WikiThing("Q21121474")));
 		WikiThing thing=new WikiThing("Q21121474");
-		System.out.println(qs.isInstanceOrSubclassOf(thing.getName(), "Q7184903"));
-		Set<String> r=qs.getAllSubclassesAndInstancesOf("Q7184903", MAXITEMS);
+		System.out.println(qs.isInstanceOrSubclassOf(thing.getName(), "q8171",-1));
+		Set<String> r=qs.getAllSubclassesAndInstancesOf("q8171", MAXITEMS,4);
 		System.out.println(r.size());
+		FileUtils.dumpToFile(r, "q8171", false, true);
+		*/
 		/*
 		List<WikiThing> r = qs.getIdsForString("pizza", TYPE.ITEM,10);
 		if (r!=null) {

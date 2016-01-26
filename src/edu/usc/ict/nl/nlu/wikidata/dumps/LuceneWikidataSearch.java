@@ -17,6 +17,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexNotFoundException;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -24,6 +25,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 
+import edu.usc.ict.nl.nlu.wikidata.WikiThing;
 import edu.usc.ict.nl.util.StringUtils;
 
 public class LuceneWikidataSearch {
@@ -81,12 +83,24 @@ public class LuceneWikidataSearch {
 		initSearch();
 	}
 
+	public static String addLuceneMarkers(String input) {
+		return LuceneQueryConstants.START+" "+input+" "+LuceneQueryConstants.END;
+	}
+	public static String removeLuceneMarkers(String input) {
+		if (input.startsWith(LuceneQueryConstants.START)) {
+			input=input.substring(LuceneQueryConstants.START.length()+1);
+			int l=input.length();
+			return input.substring(0, l-(LuceneQueryConstants.END.length()+1));
+		} else {
+			return input;
+		}
+	}
+	
 	protected Document createDoc(String[] parts) {
 		Document doc = new Document();
 		doc.add(new StringField(LuceneQueryConstants.ID, parts[0].toLowerCase(), Store.YES));
 		for(int i=1;i<parts.length;i++) {
-			if (i==1) doc.add(new TextField(LuceneQueryConstants.ALIAS, parts[i].toLowerCase(), Store.YES));
-			doc.add(new TextField(LuceneQueryConstants.SEARCH, LuceneQueryConstants.START+" "+parts[i].toLowerCase()+" "+LuceneQueryConstants.END, Store.NO));
+			doc.add(new TextField(LuceneQueryConstants.SEARCH, addLuceneMarkers(parts[i].toLowerCase()), Store.YES));
 		}
 		return doc;
 	}
@@ -107,22 +121,57 @@ public class LuceneWikidataSearch {
 		return ret;
 	}
 
+	public WikiThing buildThing(WikiThing thing) throws Exception {
+		List<String> strings=getSearchStringsId(thing.getName());
+		if (strings!=null) {
+			for(String s:strings) {
+				thing.addLabel(s);
+			}
+		}
+		return thing;
+	}
+	public WikiThing buildThing(String id) throws Exception {
+		return buildThing(new WikiThing(id));
+	}
+	
 	public String getLabelForId(String id) {
 		try {
 			List<Document> rs = find(LuceneQueryConstants.ID+":"+id.toLowerCase(), 1);
 			if (rs!=null && !rs.isEmpty()) {
 				Document result=rs.get(0);
-				return result.get(LuceneQueryConstants.ALIAS);
+				return removeLuceneMarkers(result.get(LuceneQueryConstants.SEARCH));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
+	public List<String> getSearchStringsId(String id) {
+		List<String> ret=null;
+		try {
+			List<Document> rs = find(LuceneQueryConstants.ID+":"+id.toLowerCase(), 1);
+			if (rs!=null && !rs.isEmpty()) {
+				Document result=rs.get(0);
+				IndexableField[] searchFields = result.getFields(LuceneQueryConstants.SEARCH);
+				if (searchFields!=null) {
+					for(IndexableField f:searchFields) {
+						String t=f.stringValue();
+						if (!StringUtils.isEmptyString(t)) {
+							if (ret==null) ret=new ArrayList<>();
+							ret.add(removeLuceneMarkers(t));
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
 	
 	public static void main(String[] args) throws Exception {
 		LuceneWikidataSearch r = new LuceneWikidataSearch(new File("properties-strings.txt"));
-		System.out.println(r.getLabelForId("p35"));
+		System.out.println(r.getSearchStringsId("p35"));
 	}
 
 }

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -18,6 +19,7 @@ import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
@@ -62,18 +64,8 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 	}
 
 	public static List<Integer> computeTokenStarts(List<Token> inputTokens) {
-		List<Integer> tokenStarts=null;
-		if (inputTokens!=null) {
-			new ArrayList<Integer>();
-			int i=0;
-			for(Token t:inputTokens) {
-				if (tokenStarts==null) tokenStarts=new ArrayList<>();
-				tokenStarts.add(i);
-				i+=1+t.getOriginal().length();
-			}
-			assert(tokenStarts.size()==inputTokens.size());
-		}
-		return tokenStarts;
+		if (inputTokens==null) return null;
+		else return inputTokens.stream().map(s->s.getStart()).collect(Collectors.toList());
 	}
 	
 	@Override
@@ -247,5 +239,4 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 	public boolean generalizeText() {
 		return generalize;
 	}
-	
 }

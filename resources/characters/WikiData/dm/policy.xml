@@ -1,8 +1,0 @@
-<policy xmlns:xi="http://www.w3.org/2001/XInclude">
- <xi:include href="initKB.xml"/>
- <xi:include href="goals.xml"/>
- <stepDiscount value="0.9"/>
- 
- <include href="textFormat/policy.txt"/>
- 
-</policy>
