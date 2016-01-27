@@ -12,8 +12,6 @@ import edu.usc.ict.nl.nlu.ne.searchers.NumberSearcher;
 
 public class Numbers extends BasicNE {
 	
-	private Pattern[] sas=null;
-	
 	public static final SpecialVar firstNumVar=new SpecialVar(null,TokenTypes.NUM.toString(),
 			"Number extracted from a answer.number or answer.number-in-period speech acts.","0",Number.class);
 	public static final SpecialVar allNumVar=new SpecialVar(null,"ALLNUMS",
@@ -23,29 +21,12 @@ public class Numbers extends BasicNE {
 		this(true,sas);
 	}
 	public Numbers(boolean generalize,String... sas) {
+		super(sas);
 		addSpecialVarToRepository(firstNumVar);
 		addSpecialVarToRepository(allNumVar);
-		if (sas!=null) {
-			this.sas=new Pattern[sas.length];
-			for (int i=0;i<sas.length;i++) {
-				this.sas[i]=Pattern.compile(sas[i]);
-			}
-		}
 		this.generalize=generalize;
 	}
 	
-	@Override
-	public boolean isNEAvailableForSpeechAct(NE ne, String speechAct) {
-		boolean match=true;
-		if (speechAct!=null && sas!=null) {
-			match=false;
-			for(int i=0;i<sas.length;i++) {
-				Matcher m=sas[i].matcher(speechAct);
-				if (match=m.matches()) break;
-			}
-		}
-		return match;
-	}
 	
 	@Override
 	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {

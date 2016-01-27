@@ -7,6 +7,6 @@ import edu.usc.ict.nl.nlu.Token;
 public interface TokenizerI {
 	public List<List<Token>> tokenize(String text);
 	public List<Token> tokenize1(String text);
-	public String untokenize(List<Token> input);
+	public String untokenize(List<Token> input,String sa);
 	public String tokAnduntok(String input);
 }

@@ -25,7 +25,8 @@ public class WikidataNE extends BasicNE {
 	private AhoCorasickList searcher=null;
 	private String neName=null;
 	
-	public WikidataNE(String neName,String varName,String searchStringsForEntities) throws Exception {
+	public WikidataNE(String neName,String varName,String searchStringsForEntities,String... sas) throws Exception {
+		super(sas);
 		this.neName=neName;
 		wikiThingVar.setName(varName);
 		addSpecialVarToRepository(wikiThingVar);
@@ -74,11 +75,6 @@ public class WikidataNE extends BasicNE {
 			payloads.add(new NE(wikiThingVar.getName(),m.payload,neName,start,end,text.substring(start, end),this));
 		}
 		return payloads;
-	}
-
-	@Override
-	public boolean isNEAvailableForSpeechAct(NE ne, String sa) {
-		return true;
 	}
 
 	public static void main(String[] args) throws Exception {

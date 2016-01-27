@@ -166,7 +166,7 @@ public class TargetDialogEntry {
 				if (isChartNlu) {
 					List<Token> tokens = tokenizer.tokenize1(tde.getText());
 					List<Token> subTokens = tokens.subList(start, end);
-					String subText=tokenizer.untokenize(subTokens);
+					String subText=tokenizer.untokenize(subTokens,null);
 					chartNlu.addPortion(start, end, new NLUOutput(subText, speechActText, p, null));
 				} else {
 					if (chartNlu!=null) throw new Exception("mix between normal and chart nlu.");

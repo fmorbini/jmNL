@@ -103,7 +103,7 @@ public class GeneralizedFSTNLU extends FSTNLU {
 			Set<String> possibleNLUOutputIDs, Integer nBest) throws Exception {
 		nBest=(nBest==null || nBest<=0)?1:nBest;
 		TokenizerI tokenizer=getConfiguration().getNluTokenizer();
-		String input=tokenizer.untokenize(tokenizer.tokenize1(text));
+		String input=tokenizer.tokAnduntok(text);
 		String retFST=tf.getNLUforUtterance(input,nBest);
 		//System.out.println(retFST);
 		List<FSTNLUOutput> ret=tf.getResults(retFST);

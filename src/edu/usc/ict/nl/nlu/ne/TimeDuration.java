@@ -20,16 +20,15 @@ public class TimeDuration extends BasicNE {
 		this(true);
 	}
 	public TimeDuration(boolean generalize) {
+		this(generalize,"answer.time-period");
+	}
+	public TimeDuration(boolean generalize,String... sas) {
+		super(sas);
 		addSpecialVarToRepository(MonthsVar);
 		addSpecialVarToRepository(daysVar);
 		this.generalize=generalize;
 	}
 
-	@Override
-	public boolean isNEAvailableForSpeechAct(NE ne, String speechAct) {
-		return (speechAct!=null && speechAct.equals("answer.time-period"));
-	}
-	
 	@Override
 	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
 		List<NE> payloads = null;

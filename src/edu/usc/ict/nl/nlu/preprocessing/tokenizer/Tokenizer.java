@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
+import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.StringUtils;
 
@@ -71,15 +70,24 @@ public class Tokenizer implements TokenizerI {
 	}
 
 	@Override
-	public String untokenize(List<Token> tokens) {
+	public String untokenize(List<Token> tokens,String sa) {
 		StringBuffer ret=null;
 		if (tokens!=null) {
 			boolean first=true;
 			for (Token m:tokens) {
+				if (ret==null) ret=new StringBuffer();
+
 				if (first) first=false;
 				else ret.append(" ");
-				if (ret==null) ret=new StringBuffer();
-				ret.append(m.getName());
+				
+				String thingToAppend=m.getName();
+				NE ne=m.getAssociatedNamedEntity();
+				if (ne!=null) {
+					boolean leave = (sa!=null)?ne.getExtractor().isNEAvailableForSpeechAct(ne, sa):true;
+					if (leave) thingToAppend=m.getName();
+					else thingToAppend=ne.getMatchedString();
+				}
+				ret.append(thingToAppend);
 			}
 		}
 		return (ret!=null)?ret.toString():null;
@@ -87,6 +95,6 @@ public class Tokenizer implements TokenizerI {
 	
 	@Override
 	public String tokAnduntok(String input) {
-		return untokenize(tokenize1(input));
+		return untokenize(tokenize1(input),null);
 	}
 }

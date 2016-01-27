@@ -222,7 +222,7 @@ public class TraverseFST {
 	public String getNLUforUtterance(String input,int nBest) throws Exception {
 		if (nBest<1) nBest=1;
 		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
-		input=tokenizer.untokenize(tokenizer.tokenize1(input));
+		input=tokenizer.tokAnduntok(input);
 		for (int i=0;i<fstCmd.length;i++) {
 			fstCmd[i] = fstCmd[i].replaceAll("%NBEST%",nBest+"");
 		}

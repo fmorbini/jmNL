@@ -374,7 +374,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 		String text="do you have any problems with breathing";
 		text=Aligner.removeSpeechStuff(text);
 		TokenizerI tokenizer=nlu.getConfiguration().getNluTokenizer();
-		text=tokenizer.untokenize(tokenizer.tokenize1(text));
+		text=tokenizer.untokenize(tokenizer.tokenize1(text),null);
 
 		//List<NLUOutput> r = nlu.getNLUOutput(text, null, null);
 		List<FSTNLUOutput> nlus = ((SPSFSTNLU)nlu).getRawNLUOutput(text, null, 100);

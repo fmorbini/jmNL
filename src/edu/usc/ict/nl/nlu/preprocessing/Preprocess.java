@@ -93,8 +93,11 @@ public class Preprocess {
 		return getString(ts, getConfiguration().getNluTokenizer());
 	}
 	public static String getString(List<Token> ts,TokenizerI tokenizer) {
+		return getString(ts, tokenizer, null);
+	}
+	public static String getString(List<Token> ts,TokenizerI tokenizer,String sa) {
 		if (ts!=null) {
-			String s=tokenizer.untokenize(ts);
+			String s=tokenizer.untokenize(ts,sa);
 			if (!StringUtils.isEmptyString(s)) {
 				return s;
 			}

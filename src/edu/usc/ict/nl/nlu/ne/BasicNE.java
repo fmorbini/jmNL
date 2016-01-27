@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -26,7 +28,8 @@ import edu.usc.ict.nl.utils.LogConfig;
 
 public abstract class BasicNE implements NamedEntityExtractorI {
 	private NLUConfig configuration;
-	
+	protected Pattern[] sas=null;
+
 	protected boolean generalize=true;
 
 	private SpecialEntitiesRepository svs=null;
@@ -36,6 +39,15 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		URL log4Jresource=LogConfig.findLogConfig("src","log4j.properties", false);
 		if (log4Jresource != null)
 			PropertyConfigurator.configure( log4Jresource );
+	}
+	
+	public BasicNE(String... sas) {
+		if (sas!=null) {
+			this.sas=new Pattern[sas.length];
+			for (int i=0;i<sas.length;i++) {
+				this.sas[i]=Pattern.compile(sas[i]);
+			}
+		}
 	}
 	
 	public NLUConfig getConfiguration() {
@@ -221,6 +233,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 		return ret;
 	}
+	
 	public static List<NE> filterNESwithSpeechAct(List<NE> nes, String speechAct) {
 		List<NE> ret=null;
 		if (nes!=null && !StringUtils.isEmptyString(speechAct)) {
@@ -235,6 +248,18 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		return ret;
 	}
 	
+	@Override
+	public boolean isNEAvailableForSpeechAct(NE ne, String speechAct) {
+		boolean match=true;
+		if (speechAct!=null && sas!=null) {
+			match=false;
+			for(int i=0;i<sas.length;i++) {
+				Matcher m=sas[i].matcher(speechAct);
+				if (match=m.matches()) break;
+			}
+		}
+		return match;
+	}
 	@Override
 	public boolean generalizeText() {
 		return generalize;

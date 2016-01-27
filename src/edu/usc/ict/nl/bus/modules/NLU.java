@@ -468,18 +468,19 @@ public abstract class NLU implements NLUInterface {
 		List<TrainingDataFormat> ret=null;
 		Preprocess pr = getPreprocess();
 		for(TrainingDataFormat d:td) {
+			String sa=d.getLabel();
 			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
 			List<List<Token>> nus = pr.process(d.getUtterance());
 			if (nus!=null) {
 				for(List<Token> nu:nus) {
-					String nt=pr.getString(nu);
+					String nt=Preprocess.getString(nu,getConfiguration().getNluTokenizer(),sa);
 					if (StringUtils.isEmptyString(nt)) {
 						getLogger().error("Empty utterance after filters to prepare it from training: ");
 						getLogger().error("start='"+d.getUtterance()+"'");
 						getLogger().error("end='"+nt+"'");
 					} else {
 						if (ret==null) ret=new ArrayList<TrainingDataFormat>();
-						ret.add(new TrainingDataFormat(nt, d.getLabel()));
+						ret.add(new TrainingDataFormat(nt, sa));
 					}
 				}
 			}

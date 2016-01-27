@@ -11,12 +11,7 @@ public class TimeFrequency extends Numbers {
 		this(true);
 	}
 	public TimeFrequency(boolean generalize) {
-		super(generalize,(String[])null);
-	}
-
-	@Override
-	public boolean isNEAvailableForSpeechAct(NE ne, String speechAct) {
-		return (speechAct!=null && speechAct.equals("answer.number-in-period"));
+		super(generalize,"answer.number-in-period");
 	}
 	
 	@Override

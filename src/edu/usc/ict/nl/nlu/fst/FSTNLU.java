@@ -58,7 +58,7 @@ public class FSTNLU extends NLU {
 			Set<String> possibleNLUOutputIDs, Integer nBest) throws Exception {
 		nBest=(nBest==null || nBest<=0)?1:nBest;
 		TokenizerI tokenizer=getConfiguration().getNluTokenizer();
-		String input=tokenizer.untokenize(tokenizer.tokenize1(text));
+		String input=tokenizer.tokAnduntok(text);
 		String retFST=tf.getNLUforUtterance(input,nBest);
 		//System.out.println(retFST);
 		List<NLUOutput> ret=(List)tf.getResults(retFST);
