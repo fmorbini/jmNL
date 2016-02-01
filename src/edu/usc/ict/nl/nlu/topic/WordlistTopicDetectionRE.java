@@ -15,7 +15,7 @@ import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
-import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher.TopicMatcherRE;
+import edu.usc.ict.nl.nlu.keyword.TopicMatcherRE;
 import edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.FunctionalLibrary;
@@ -28,7 +28,6 @@ public class WordlistTopicDetectionRE extends NLU {
 	
 	public WordlistTopicDetectionRE(NLUConfig c) throws Exception {
 		super(c);
-		
 		String nluModel=c.getNluModelFile();
 		loadModel(new File(nluModel));
 		
@@ -36,7 +35,12 @@ public class WordlistTopicDetectionRE extends NLU {
 	
 	@Override
 	public void loadModel(File nluModel) throws Exception {
-		this.matcher=new KeywordREMatcher(nluModel);
+		try {
+			List<TrainingDataFormat> tds = getConfiguration().getTrainingDataReader().getTrainingInstances(nluModel);
+			this.matcher=new KeywordREMatcher(tds);
+		} catch (Exception e) {
+			this.matcher=new KeywordREMatcher(nluModel);
+		}
 	};
 	
 	public List<String> getTokensStrings(String line) throws Exception {

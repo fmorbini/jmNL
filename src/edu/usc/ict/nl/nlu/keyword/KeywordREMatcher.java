@@ -6,14 +6,17 @@ import java.io.FileReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import edu.usc.ict.nl.bus.modules.NLU;
+import edu.usc.ict.nl.nlu.TrainingDataFormat;
+import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.utils.LogConfig;
 
 public class KeywordREMatcher {
@@ -28,108 +31,18 @@ public class KeywordREMatcher {
 			PropertyConfigurator.configure( log4Jresource );
 	}
 
-	public class TopicMatcherRE implements Comparable<TopicMatcherRE> {
-		private Pattern p=null;
-		private final String topicID; 
-		private Matcher m=null;
-		private String text;
-		public TopicMatcherRE(String topicIdentifier, File patternFile) {
-			topicID=topicIdentifier;
-			p=loadPatternsFromFile(patternFile.getAbsolutePath());
-		}
-
-		private void reset() {
-			if (m!=null) {
-				m.reset();
-			}
-			text=null;
-		}
-		
-		public Pattern loadPatternsFromFile(String patternFile) {
-			try {
-				String line;
-				BufferedReader in=new BufferedReader(new FileReader(patternFile));
-				StringBuffer patternString=new StringBuffer();
-				int lineNumber=1;
-				while((line=in.readLine())!=null) {
-					try {
-						Pattern.compile(line);
-						if (patternString.length()>0) patternString.append("|");
-						patternString.append("(?:"+line+")");
-					} catch (PatternSyntaxException e) {
-						logger.error("skipping pattern on line "+lineNumber+" in file "+patternFile,e);
-					}
-					lineNumber++;
+	public KeywordREMatcher(List<TrainingDataFormat> data) {
+		if (data!=null) {
+			Map<String, List<TrainingDataFormat>> sas = BuildTrainingData.getAllSpeechActsWithTrainingData(data);
+			for(String sa:sas.keySet()) {
+				if (topics==null) topics=new ArrayList<TopicMatcherRE>();
+				List<TrainingDataFormat> saPatterns = sas.get(sa);
+				if (saPatterns!=null && !saPatterns.isEmpty()) {
+					List<String> patterns=saPatterns.stream().map(s->s.getUtterance()).collect(Collectors.toList());
+					topics.add(new TopicMatcherRE(sa,patterns));
 				}
-				in.close();
-				if (patternString.length()>0) return Pattern.compile(patternString.toString());
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
-			return null;
 		}
-
-		public void set(String text) {
-			if (p!=null) {
-				this.m=p.matcher(text);
-				this.text=text;
-			} else m=null;
-		}
-		
-		public boolean matches(String text) {
-			set(text);
-			return matches();
-		}
-		public boolean matches() {
-			return (m!=null)?m.matches():false;
-		}
-		public boolean find(String text) {
-			set(text);
-			return find();
-		}
-		public boolean find() {
-			return (m!=null)?m.find():false;
-		}
-		public boolean find(int start) {
-			return (m!=null)?m.find(start):false;
-		}
-		
-		public String getMatchedString() {
-			return getMatchedString(this.text);
-		}
-		public String getMatchedString(String text) {
-			if (m!=null) {
-				try {
-					return text.substring(m.start(), m.end());
-				} catch (Exception e) {}
-			}
-			return null;
-		}
-		public int getStart() {
-			if (m!=null) return m.start();
-			return -1;
-		}
-		public int getEnd() {
-			if (m!=null) return m.end();
-			return -1;
-		}
-
-		public String getTopicID() {
-			return topicID;
-		}
-
-		@Override
-		public int compareTo(TopicMatcherRE o) {
-			if (o!=null) return o.topicID.compareTo(topicID);
-			return -1;
-		}
-		@Override
-		public boolean equals(Object obj) {
-			if (obj!=null && obj instanceof TopicMatcherRE) {
-				return ((TopicMatcherRE) obj).topicID.equals(topicID);
-			} else return false;
-		}
-
 	}
 
 	public KeywordREMatcher(File modelFile) throws Exception {

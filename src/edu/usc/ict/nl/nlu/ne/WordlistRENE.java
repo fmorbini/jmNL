@@ -13,7 +13,7 @@ import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
-import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher.TopicMatcherRE;
+import edu.usc.ict.nl.nlu.keyword.TopicMatcherRE;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 
 public class WordlistRENE extends BasicNE {
