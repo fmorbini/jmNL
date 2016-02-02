@@ -15,7 +15,7 @@ import edu.usc.ict.nl.util.StringUtils;
 
 public class Tokenizer implements TokenizerI {
 
-	public static final LinkedHashMap<TokenTypes, Pattern> defaultTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(){
+	protected static LinkedHashMap<TokenTypes, Pattern> defaultTokenTypes=new LinkedHashMap<TokenTypes, Pattern>(){
 		private static final long serialVersionUID = 1L;
 		{
 			put(TokenTypes.NUM, Pattern.compile("([0-9]*\\.[\\d]+)|([\\d]+)|(<"+TokenTypes.NUM.toString()+">)|(<"+TokenTypes.NUM.toString().toLowerCase()+">)"));

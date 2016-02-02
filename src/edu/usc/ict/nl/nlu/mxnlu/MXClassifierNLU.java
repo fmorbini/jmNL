@@ -199,7 +199,7 @@ public class MXClassifierNLU extends NLU {
 			Collections.sort(ret, new Comparator<NLUOutput>() {
 				@Override
 				public int compare(NLUOutput o1, NLUOutput o2) {
-					return o1.getProb().compareTo(o2.getProb());
+					return o2.getProb().compareTo(o1.getProb());
 				}
 			});
 		}

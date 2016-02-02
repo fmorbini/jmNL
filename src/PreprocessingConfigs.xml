@@ -64,6 +64,7 @@
 	</bean>
 	
 	<bean id="SpaceTokenizer" class="edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer"/>
+	<bean id="NoTokenizer" class="edu.usc.ict.nl.nlu.preprocessing.tokenizer.NoTokenizer"/>
 	
 	<bean id="NEextractor" class="edu.usc.ict.nl.nlu.preprocessing.ne.Generalize"/>
 	

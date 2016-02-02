@@ -19,8 +19,10 @@ public class Preprocess {
 	public Preprocess(NLU nlu) {
 		this.nlu=nlu;
 		PreprocessingConfig config=getConfiguration();
-		List<PreprocesserI> prs = config.getNluPreprocessers();
-		if (prs!=null) for(PreprocesserI pr:prs) pr.setNlu(nlu);
+		if (config!=null){
+			List<PreprocesserI> prs = config.getNluPreprocessers();
+			if (prs!=null) for(PreprocesserI pr:prs) pr.setNlu(nlu);
+		}
 	}
 	
 	public PreprocessingConfig getConfiguration() {

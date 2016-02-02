@@ -17,23 +17,12 @@ public class TopicMatcherRE implements Comparable<TopicMatcherRE> {
 	
 	public TopicMatcherRE(String topicIdentifier,List<String> patterns) {
 		topicID=topicIdentifier;
+		p=loadPatterns(patterns);
 	}
 	public TopicMatcherRE(String topicIdentifier, File patternFile) {
 		this(topicIdentifier,loadPatternsFromFile(patternFile));
 	}
 	
-	public void addPattern(String line) {
-		Pattern.compile(line);
-		String sp="";
-		if (p!=null) {
-			sp=p.toString();
-			sp+=("|");
-		}
-		sp+="(?:"+line+")";
-		p=Pattern.compile(sp);
-	}
-	
-
 	private void reset() {
 		if (m!=null) {
 			m.reset();
@@ -64,23 +53,18 @@ public class TopicMatcherRE implements Comparable<TopicMatcherRE> {
 		}
 		return ret;
 	}
-	public Pattern loadPatternsFromFile(String patternFile) {
+	public Pattern loadPatterns(List<String> patterns) {
 		try {
-			String line;
-			BufferedReader in=new BufferedReader(new FileReader(patternFile));
 			StringBuffer patternString=new StringBuffer();
-			int lineNumber=1;
-			while((line=in.readLine())!=null) {
+			for(String line:patterns) {
 				try {
 					Pattern.compile(line);
 					if (patternString.length()>0) patternString.append("|");
 					patternString.append("(?:"+line+")");
 				} catch (PatternSyntaxException e) {
-					KeywordREMatcher.logger.error("skipping pattern on line "+lineNumber+" in file "+patternFile,e);
+					KeywordREMatcher.logger.error("skipping pattern '"+line+"'.",e);
 				}
-				lineNumber++;
 			}
-			in.close();
 			if (patternString.length()>0) return Pattern.compile(patternString.toString());
 		} catch (Exception e) {
 			e.printStackTrace();

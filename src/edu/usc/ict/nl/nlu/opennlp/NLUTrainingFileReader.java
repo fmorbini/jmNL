@@ -23,6 +23,10 @@ public class NLUTrainingFileReader implements DataStream {
 
 	@Override
 	public Object nextToken() {
+		return convertToString(nextTrainingData());
+	}
+	
+	public TrainingDataFormat nextTrainingData() {
 		TrainingDataFormat current=next;
 		try {
 			next=dataReader.getNextTrainingInstance();
@@ -30,9 +34,9 @@ public class NLUTrainingFileReader implements DataStream {
 			next=null;
 			e.printStackTrace();
 		}
-		return convertToString(current);
+		return current;
 	}
-
+	
 	@Override
 	public boolean hasNext() {
 		return next!=null;
@@ -46,5 +50,7 @@ public class NLUTrainingFileReader implements DataStream {
 		}
 		return null;
 	}
+	
+	
 
 }

@@ -67,12 +67,14 @@ public class WikidataNE extends BasicNE {
 		List<String> words = tokens.stream().map(s->s.getOriginal()).collect(Collectors.toList());
 		List<Match> match = searcher.findBestMatchInStringOfWords(words);
 		List<NE> payloads = null;
-		for(Match m:match) {
-			int l=m.match.size();
-			int start=tokens.get(m.pos-l+1).getStart();
-			int end=tokens.get(m.pos).getEnd();
-			if (payloads==null) payloads=new ArrayList<NE>();
-			payloads.add(new NE(wikiThingVar.getName(),m.payload,neName,start,end,text.substring(start, end),this));
+		if (match!=null) {
+			for(Match m:match) {
+				int l=m.match.size();
+				int start=tokens.get(m.pos-l+1).getStart();
+				int end=tokens.get(m.pos).getEnd();
+				if (payloads==null) payloads=new ArrayList<NE>();
+				payloads.add(new NE(wikiThingVar.getName(),m.payload,neName,start,end,text.substring(start, end),this));
+			}
 		}
 		return payloads;
 	}
