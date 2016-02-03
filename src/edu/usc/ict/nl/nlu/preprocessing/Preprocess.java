@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import edu.usc.ict.nl.bus.modules.NLU;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.ne.NE;
@@ -15,10 +16,12 @@ public class Preprocess {
 	
 	
 	private NLU nlu;
+	private PreprocessingConfig config=null;
+	private PreprocessingType type;
 
-	public Preprocess(NLU nlu) {
-		this.nlu=nlu;
-		PreprocessingConfig config=getConfiguration();
+	public Preprocess(PreprocessingConfig config,PreprocessingType type) {
+		this.config=config;
+		this.type=type;
 		if (config!=null){
 			List<PreprocesserI> prs = config.getNluPreprocessers();
 			if (prs!=null) for(PreprocesserI pr:prs) pr.setNlu(nlu);
@@ -26,7 +29,7 @@ public class Preprocess {
 	}
 	
 	public PreprocessingConfig getConfiguration() {
-		return nlu.getConfiguration().getPreprocessingConfig();
+		return config;
 	}
 
 	public static String getStringOfTokensSpan(List<Token> tokens,int start, int end) {
@@ -68,7 +71,7 @@ public class Preprocess {
 		if (prs!=null) {
 			for(PreprocesserI pr:prs) {
 				if (acceptOnlyUnambigous && tokens!=null && tokens.size()>1) throw new Exception("more than one option created during processing and option for just 1 set.");
-				pr.run(tokens);
+				pr.run(tokens,type);
 			}
 		}
 		if (acceptOnlyUnambigous && tokens!=null && tokens.size()>1) throw new Exception("more than one option created during processing and option for just 1 set.");
@@ -107,7 +110,7 @@ public class Preprocess {
 		return null;
 	}
 	
-	public List<NE> getAssociatedNamedEntities(List<Token> input) {
+	public static List<NE> getAssociatedNamedEntities(List<Token> input) {
 		Set<NE> ret=null;
 		if (input!=null && !input.isEmpty()) {
 			for(Token t:input) {

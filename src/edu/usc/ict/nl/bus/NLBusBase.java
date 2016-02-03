@@ -42,6 +42,7 @@ import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLConfig;
 import edu.usc.ict.nl.config.NLGConfig;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
@@ -829,7 +830,7 @@ public abstract class NLBusBase implements NLBusInterface {
 
 		try {
 			NLUConfig config=getNLUConfigurationForCharacter(characterName);
-			List<NamedEntityExtractorI> nes = config.getNluNamedEntityExtractors();
+			List<NamedEntityExtractorI> nes = config.getNluNamedEntityExtractors(PreprocessingType.RUN);
 			if(nes!=null) {
 				for(NamedEntityExtractorI ne:nes) {
 					List<SpecialVar> vs = ne.getSpecialVariables();

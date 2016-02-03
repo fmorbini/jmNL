@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.parser.ChartParser;
@@ -24,8 +25,8 @@ public class NumberSearcher {
 	private ChartParser parser=null;
 	private List<String> input=new ArrayList<String>();
 	private List<Token> inputTokens=new ArrayList<Token>();
-	public NumberSearcher(NLUConfig nluConfig, String text) {
-		TokenizerI tokenizer=nluConfig.getNluTokenizer();
+	public NumberSearcher(NLUConfig nluConfig, PreprocessingType type,String text) {
+		TokenizerI tokenizer=nluConfig.getNluTokenizer(type);
 		m=p.matcher(text);
 		File grammar=new File(new File(nluConfig.getNlBusConfigNC().getContentRoot()).getParent(),"preprocessing/written-numbers-grammar.txt");
 		if (grammar.exists()) {

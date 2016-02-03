@@ -7,6 +7,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.utils.LogConfig;
 
@@ -25,8 +26,8 @@ public abstract class Preprocesser implements PreprocesserI {
 		this.nlu=nlu;
 	}
 	
-	public PreprocessingConfig getConfiguration() {
-		return nlu.getConfiguration().getPreprocessingConfig();
+	public PreprocessingConfig getConfiguration(PreprocessingType type) {
+		return nlu.getConfiguration().getPreprocessingConfig(type);
 	}
 	
 	public NLUConfig getNluConfiguration() {return nlu.getConfiguration();}

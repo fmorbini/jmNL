@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.ne.searchers.NumberSearcher;
 
@@ -29,9 +30,9 @@ public class Numbers extends BasicNE {
 	
 	
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
+	public List<NE> extractNamedEntitiesFromText(String text,PreprocessingType type) throws Exception {
 		List<NE> payloads = null;
-		NumberSearcher ns = new NumberSearcher(getConfiguration(), text);
+		NumberSearcher ns = new NumberSearcher(getConfiguration(), type,text);
 		boolean first=true;
 		while(ns.possiblyContainingNumber()) {
 			Double num=ns.getNextNumber();
@@ -53,7 +54,7 @@ public class Numbers extends BasicNE {
 		nlu.getConfiguration().setForcedNLUContentRoot("C:\\simcoach_svn\\trunk\\core\\NLModule\\resources\\characters\\common\\nlu");
 		Numbers ne = new Numbers("test");
 		ne.setConfiguration(nlu.getConfiguration());
-		List<NE> x = ne.extractNamedEntitiesFromText("i want 18 and twenty four bananas with 4 more and thirty.");
+		List<NE> x = ne.extractNamedEntitiesFromText("i want 18 and twenty four bananas with 4 more and thirty.",PreprocessingType.RUN);
 		System.out.println(x);
 		System.out.println(BasicNE.createPayload(x));
 	}

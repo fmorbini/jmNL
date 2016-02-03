@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLConfig.ExecutablePlatform;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Model;
 import edu.usc.ict.nl.nlu.Model.FeatureWeight;
 import edu.usc.ict.nl.nlu.NLUOutput;
@@ -144,9 +145,9 @@ public class MXClassifierNLU extends NLU {
 
 		if (getLogger().isDebugEnabled()) getLogger().info("input text: '"+text+"'");
 
-		Preprocess pr=getPreprocess();
+		Preprocess pr=getPreprocess(PreprocessingType.RUN);
 		List<List<Token>> options = pr.process(text);
-		sortOptionsByText(options);
+		sortOptionsByText(options,pr);
 
 		NLUOutput hardLabel=getHardLinkMappingOf(text);
 		if (hardLabel!=null) {
@@ -212,8 +213,7 @@ public class MXClassifierNLU extends NLU {
 	 * with some more intelligent code.
 	 * @param options
 	 */
-	private void sortOptionsByText(List<List<Token>> options) {
-		final Preprocess pr = getPreprocess();
+	private void sortOptionsByText(List<List<Token>> options,final Preprocess pr) {
 		Collections.sort(options, new Comparator<List<Token>>(){
 			@Override
 			public int compare(List<Token> o1, List<Token> o2) {
@@ -227,9 +227,9 @@ public class MXClassifierNLU extends NLU {
 	@Override
 	public List<NLUOutput> getNLUOutputFake(String[] nluOutputIDs,String inputText) throws Exception {
 		List<NLUOutput> ret=new ArrayList<NLUOutput>();
-		Preprocess pr=getPreprocess();
+		Preprocess pr=getPreprocess(PreprocessingType.RUN);
 		List<List<Token>> options = pr.process(inputText);
-		sortOptionsByText(options);
+		sortOptionsByText(options,pr);
 
 		List<NLUOutput> userSpeechActsWithProb = processNLUOutputs(nluOutputIDs,null,null,null);		
 
@@ -425,7 +425,7 @@ public class MXClassifierNLU extends NLU {
 		List<Pair<String,Float>> ret=null;
 		Model m=readModelWithCache(modelFileName);
 		if (m!=null) {
-			Preprocess pr = getPreprocess();
+			Preprocess pr = getPreprocess(PreprocessingType.RUN);
 			String processedText=pr.getString(pr.process(utt).get(0));
 			if (!StringUtils.isEmptyString(processedText)) {
 				String[] tokens=("<s> "+processedText+" </s>").split("[\\s]+");

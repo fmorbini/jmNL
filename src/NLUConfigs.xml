@@ -22,7 +22,8 @@
 		<property name="emptyTextEventName" value="empty"/>
 		<property name="doSpellchecking" value="false"/>
 		
-		<property name="preprocessingConfig" ref="simcoach"/>
+		<property name="preprocessingTrainingConfig" ref="simcoach"/>
+		<property name="preprocessingRunningConfig" ref="simcoach"/>
 		
 		<!-- ########################## NLU START ################################### -->
 		<!-- general nlu setup --> 
@@ -196,7 +197,8 @@
 	</bean>
 	
 	<bean id="testNLU" parent="openNLU">
-		<property name="preprocessingConfig" ref="test"/>
+		<property name="preprocessingTrainingConfig" ref="test"/>
+		<property name="preprocessingRunningConfig" ref="test"/>
 	</bean>
 	
 	<bean id="openNLU" parent="MXNLU">

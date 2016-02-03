@@ -3,6 +3,7 @@ package edu.usc.ict.nl.nlu.ne;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.ne.searchers.TimePeriodSearcher;
 
 public class TimeFrequency extends Numbers {
@@ -15,9 +16,9 @@ public class TimeFrequency extends Numbers {
 	}
 	
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
+	public List<NE> extractNamedEntitiesFromText(String text,PreprocessingType type) throws Exception {
 		List<NE> payloads = null;
-		TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),text);
+		TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),type,text);
 		Double num=ts.getTimesEachDay();
 		if (num!=null) {
 			logger.info("Extracted "+num+" times per day from the answer '"+text+"'.");

@@ -7,6 +7,7 @@ import java.util.List;
 
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
@@ -20,7 +21,7 @@ import edu.usc.ict.nl.util.Pair;
 public class EnglishWrittenNumbers2Digits extends Normalizer {
 
 	@Override
-	public List<Token> normalize(List<Token> tokens) {
+	public List<Token> normalize(List<Token> tokens,PreprocessingType type) {
 		return parseWrittenNumbers(getNluConfiguration(), tokens);
 	}
 

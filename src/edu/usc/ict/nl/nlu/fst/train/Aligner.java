@@ -19,6 +19,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.FSTNLUOutput;
 import edu.usc.ict.nl.nlu.fst.TraverseFST;
@@ -111,7 +112,7 @@ public class Aligner {
 				String l=td.getLabel();
 				//s=BuildTrainingData.untokenize(BuildTrainingData.removeStopWords(BuildTrainingData.tokenize(s)));
 				s=s.replaceAll("[-:]", "");
-				s=getConfiguration().getNluTokenizer().tokAnduntok(s);
+				s=getConfiguration().getNluTokenizer(PreprocessingType.RUN).tokAnduntok(s);
 				l=StringUtils.cleanupSpaces(l);
 				s=s.toLowerCase();
 				l=l.toLowerCase();

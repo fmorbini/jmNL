@@ -19,6 +19,8 @@ import edu.usc.ict.nl.util.StringUtils;
 
 public class NLUConfig extends NLConfig {
 	
+	public enum PreprocessingType {TRAINING,RUN};
+	
 	private String nluExeRoot="mxnlu"; //base file directory where nlu exe can be found if applicable. default set for legacy support
 	private Map<String,String> nluExeEnv = new HashMap<String, String>(); // environment variables for the nlu process
 
@@ -43,7 +45,7 @@ public class NLUConfig extends NLConfig {
 	private Float acceptanceThreshold,regularization;
 	private String lowConfidenceEvent,emptyTextEventName;
 	
-	private PreprocessingConfig prConfig=null;
+	private PreprocessingConfig trainingConfig=null,runningConfig=null;
 	
 	// fst specific
 	private String fstInputSymbols=null,fstOutputSymbols=null;
@@ -211,17 +213,28 @@ public class NLUConfig extends NLConfig {
 	
 	public Boolean isInAdvicerMode() {return (nlBusConfig!=null)?nlBusConfig.isInAdvicerMode():false;}  
 	
-	public PreprocessingConfig getPreprocessingConfig() {return prConfig;}
-	public void setPreprocessingConfig(PreprocessingConfig prConfig) {this.prConfig = prConfig;}
-	public List<NamedEntityExtractorI> getNluNamedEntityExtractors() {
-		if (getPreprocessingConfig()!=null) {
-			return getPreprocessingConfig().getNluNamedEntityExtractors();
+	public PreprocessingConfig getPreprocessingTrainingConfig() {return trainingConfig;}
+	public void setPreprocessingTrainingConfig(PreprocessingConfig prConfig) {this.trainingConfig = prConfig;}
+	public PreprocessingConfig getPreprocessingRunningConfig() {return runningConfig;}
+	public void setPreprocessingRunningConfig(PreprocessingConfig prConfig) {this.runningConfig = prConfig;}
+	
+	public PreprocessingConfig getPreprocessingConfig(PreprocessingType type) {
+		switch (type) {
+		case RUN: return runningConfig;
+		case TRAINING: return trainingConfig;
 		}
 		return null;
 	}
-	public TokenizerI getNluTokenizer() {
-		if (getPreprocessingConfig()!=null) {
-			return getPreprocessingConfig().getNluTokenizer();
+	
+	public List<NamedEntityExtractorI> getNluNamedEntityExtractors(PreprocessingType type) {
+		if (getPreprocessingConfig(type)!=null) {
+			return getPreprocessingConfig(type).getNluNamedEntityExtractors();
+		}
+		return null;
+	}
+	public TokenizerI getNluTokenizer(PreprocessingType type) {
+		if (getPreprocessingConfig(type)!=null) {
+			return getPreprocessingConfig(type).getNluTokenizer();
 		}
 		return null;
 	}

@@ -118,9 +118,4 @@ public class NoNLU implements NLUInterface {
 		return null;
 	}
 
-	@Override
-	public List<List<Token>> preprocess(String text) {
-		return null;
-	}
-
 }

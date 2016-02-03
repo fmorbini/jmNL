@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.ne.searchers.TimePeriodSearcher;
 import edu.usc.ict.nl.parser.semantics.ParserSemanticRulesTimeAndNumbers;
 
@@ -30,9 +31,9 @@ public class TimeDuration extends BasicNE {
 	}
 
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
+	public List<NE> extractNamedEntitiesFromText(String text,PreprocessingType type) throws Exception {
 		List<NE> payloads = null;
-		TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),text);
+		TimePeriodSearcher ts = new TimePeriodSearcher(getConfiguration(),type,text);
 		Long num=ts.getTimePeriodInSeconds();
 		if (num!=null) {
 			int start=ts.getStart(),end=ts.getEnd();

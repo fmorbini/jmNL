@@ -17,6 +17,7 @@ import java.util.Vector;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
@@ -187,7 +188,7 @@ public class SVMModelAndDictionaries {
 					outputClassDictionary.put(sa, outputClassCounter);
 					outputClassCounter++;
 				}
-				Preprocess pr = getNlu().getPreprocess();
+				Preprocess pr = getNlu().getPreprocess(PreprocessingType.TRAINING);
 				List<List<Token>> options = pr.process(td.getUtterance());
 				List<String> tdOptions=pr.getStrings(options);
 				if (tdOptions!=null) {
@@ -211,7 +212,7 @@ public class SVMModelAndDictionaries {
 			BufferedWriter out=new BufferedWriter(new FileWriter(output));
 			for(TrainingDataFormat td:tds) {
 				String sa=td.getLabel();
-				Preprocess pr = getNlu().getPreprocess();
+				Preprocess pr = getNlu().getPreprocess(PreprocessingType.TRAINING);
 				List<List<Token>> options = pr.process(td.getUtterance());
 				List<String> tdOptions=pr.getStrings(options);
 				if (tdOptions!=null) {

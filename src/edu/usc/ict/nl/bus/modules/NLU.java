@@ -24,6 +24,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.ConfusionEntry;
 import edu.usc.ict.nl.nlu.FoldsData;
 import edu.usc.ict.nl.nlu.Model;
@@ -44,7 +45,7 @@ public abstract class NLU implements NLUInterface {
 
 	private NLUConfig configuration;
 	private BuildTrainingData btd;
-	private Preprocess preprocess;
+	private Preprocess trainingPreprocess,runningPreprocess;
 	private Map<String, String> hardLinkMap;
 	private Method featuresBuilder,featuresAtPosBuilder;
 	private static NLU _instance;
@@ -60,23 +61,35 @@ public abstract class NLU implements NLUInterface {
 		_instance = this;
 		this.configuration=c;
 		setBTD(new BuildTrainingData(c));
-		setPreprocess(new Preprocess(this));
+		setTrainingPreprocess(new Preprocess(c.getPreprocessingConfig(PreprocessingType.TRAINING)));
+		setRunningPreprocess(new Preprocess(c.getPreprocessingConfig(PreprocessingType.RUN)));
 		hardLinkMap=getBTD().buildHardLinksMap();
 		featuresBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildfeaturesFromUtterance", String.class);
 		featuresAtPosBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildFeatureForWordAtPosition", String[].class,int.class);
 		configureNamedEntityExtractors();
 	}
 	
-	public Preprocess getPreprocess() {
-		return preprocess;
+	public Preprocess getPreprocess(PreprocessingType type) {
+		switch (type) {
+		case RUN: return runningPreprocess;
+		case TRAINING: return trainingPreprocess;
+		}
+		return null;
 	}
-	public void setPreprocess(Preprocess preprocess) {
-		this.preprocess = preprocess;
+	public void setTrainingPreprocess(Preprocess trainingPreprocess) {
+		this.trainingPreprocess = trainingPreprocess;
+	}
+	public void setRunningPreprocess(Preprocess runningPreprocess) {
+		this.runningPreprocess = runningPreprocess;
 	}
 	
-	protected void configureNamedEntityExtractors() {
+	private void configureNamedEntityExtractors() {
+		configureNamedEntityExtractors(PreprocessingType.RUN);	
+		configureNamedEntityExtractors(PreprocessingType.TRAINING);	
+	}
+	private void configureNamedEntityExtractors(PreprocessingType type) {
 		NLUConfig config=getConfiguration();
-		List<NamedEntityExtractorI> nes=config.getNluNamedEntityExtractors();
+		List<NamedEntityExtractorI> nes=config.getNluNamedEntityExtractors(type);
 		if (nes!=null) {
 			for(NamedEntityExtractorI ne:nes)  {
 				ne.setConfiguration(config);
@@ -313,10 +326,7 @@ public abstract class NLU implements NLUInterface {
 		}
 		return null;
 	}
-
-	public List<NamedEntityExtractorI> getNamedEntityExtractors() {
-		return getConfiguration().getNluNamedEntityExtractors();
-	}
+/*
 	public List<Pair<String, Map<String, Object>>> associatePayloadToSpeechActs(List<String> speechActs, String userText) throws Exception {
 		List<Pair<String, Map<String, Object>>> payloads = new ArrayList<Pair<String, Map<String, Object>>>();
 		if (speechActs != null) {
@@ -326,7 +336,7 @@ public abstract class NLU implements NLUInterface {
 			}
 		}
 		return payloads;
-	}
+	}*/
 	@Override
 	public Map<String, Object> getPayload(String speechAct, String text) throws Exception {
 		Map<String, Object> totalPayload=null;
@@ -334,7 +344,7 @@ public abstract class NLU implements NLUInterface {
 		List<List<Token>> options = pr.process(text);
 		if (options!=null) {
 			for(List<Token> option:options) {
-				List<NE> nes = pr.getAssociatedNamedEntities(option);
+				List<NE> nes = Preprocess.getAssociatedNamedEntities(option);
 				List<NE> foundNEs=BasicNE.filterNESwithSpeechAct(nes, speechAct);
 				if (foundNEs!=null) {
 					Map<String,Object> payload=BasicNE.createPayload(foundNEs);
@@ -454,26 +464,16 @@ public abstract class NLU implements NLUInterface {
 		return payload;
 	}
 
-	@Override
-	public List<List<Token>> preprocess(String text) {
-		try {
-			return getPreprocess().process(text);
-		} catch (Exception e) {
-			getLogger().error(e);
-		}
-		return null;
-	}
-	
 	public List<TrainingDataFormat> prepareTrainingDataForClassification(List<TrainingDataFormat> td) throws Exception {
 		List<TrainingDataFormat> ret=null;
-		Preprocess pr = getPreprocess();
+		Preprocess pr = getPreprocess(PreprocessingType.TRAINING);
 		for(TrainingDataFormat d:td) {
 			String sa=d.getLabel();
 			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
 			List<List<Token>> nus = pr.process(d.getUtterance());
 			if (nus!=null) {
 				for(List<Token> nu:nus) {
-					String nt=Preprocess.getString(nu,getConfiguration().getNluTokenizer(),sa);
+					String nt=Preprocess.getString(nu,getConfiguration().getNluTokenizer(PreprocessingType.TRAINING),sa);
 					if (StringUtils.isEmptyString(nt)) {
 						getLogger().error("Empty utterance after filters to prepare it from training: ");
 						getLogger().error("start='"+d.getUtterance()+"'");

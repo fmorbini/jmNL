@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
@@ -23,9 +24,9 @@ public class TimePeriodSearcher {
 	private int start;
 	private ChartParser parser;
 
-	public TimePeriodSearcher(NLUConfig config,String input) {
+	public TimePeriodSearcher(NLUConfig config,PreprocessingType type,String input) {
 		try {
-			TokenizerI tokenizer=config.getNluTokenizer();
+			TokenizerI tokenizer=config.getNluTokenizer(type);
 			this.text=input;
 			this.tokens=tokenizer.tokenize1(input);
 			File grammar=new File(new File(config.getNlBusConfigNC().getContentRoot()).getParent(),"preprocessing/time-period-grammar.txt");

@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
@@ -193,7 +194,7 @@ public class TraverseFST {
 			Map<Integer, String> syms = openSymbols(iSymbols);
 			knownWords=new HashSet<String>(syms.values());
 		}
-		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer(PreprocessingType.RUN);
 		List<Token> tokens = tokenizer.tokenize1(input);
 		Iterator<Token> it=tokens.iterator();
 		while(it.hasNext()) {
@@ -221,7 +222,7 @@ public class TraverseFST {
 	
 	public String getNLUforUtterance(String input,int nBest) throws Exception {
 		if (nBest<1) nBest=1;
-		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer(PreprocessingType.RUN);
 		input=tokenizer.tokAnduntok(input);
 		for (int i=0;i<fstCmd.length;i++) {
 			fstCmd[i] = fstCmd[i].replaceAll("%NBEST%",nBest+"");

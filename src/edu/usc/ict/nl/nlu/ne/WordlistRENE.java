@@ -10,6 +10,7 @@ import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
@@ -65,7 +66,7 @@ public class WordlistRENE extends BasicNE {
 	}
 	
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text) throws Exception {
+	public List<NE> extractNamedEntitiesFromText(String text,PreprocessingType type) throws Exception {
 		List<NE> payload = null;
 		if (text == null) // special events like 'login'
 			return null;
@@ -88,7 +89,7 @@ public class WordlistRENE extends BasicNE {
 		NLBusConfig busconfig=(NLBusConfig) NLBusConfig.WIN_EXE_CONFIG.clone();
 		busconfig.setNluConfig(config);
 		NLU component=(NLU) NLBusBase.createSubcomponent(config, config.getNluClass());
-		Preprocess preprocess = component.getPreprocess();
+		Preprocess preprocess = component.getPreprocess(PreprocessingType.RUN);
 		List<List<Token>> out = preprocess.process("i want to eat a pig and an apple but also a lot of chickens");
 		System.out.println(preprocess.getStrings(out));
 		/*

@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
-import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocesser;
@@ -20,13 +20,13 @@ import edu.usc.ict.nl.util.StringUtils;
 public class Generalize extends Preprocesser {
 
 	@Override
-	public void run(List<List<Token>> input) {
+	public void run(List<List<Token>> input,PreprocessingType type) {
 		if (input!=null) {
 			int position=0;
 			while(position<input.size()) {
 				int size=1;
 				List<Token> tokens=input.get(position);
-				List<List<Token>> tmp = generalize(tokens);
+				List<List<Token>> tmp = generalize(tokens,type);
 				if (tmp!=null && !tmp.isEmpty()) {
 					size=tmp.size();
 					input.remove(position);
@@ -50,12 +50,12 @@ public class Generalize extends Preprocesser {
 	 * @return 
 	 *
 	 */
-	public List<List<Token>> generalize(List<Token> tokens) {
-		List<NamedEntityExtractorI> nes = getConfiguration().getNluNamedEntityExtractors();
+	public List<List<Token>> generalize(List<Token> tokens,PreprocessingType type) {
+		List<NamedEntityExtractorI> nes = getConfiguration(type).getNluNamedEntityExtractors();
 		
 		Map<Token,Set<Token>> overlappingTokens=null; // for a given token, returns the set of other tokens that overlap with it.
 		for(NamedEntityExtractorI ne:nes) {
-			List<Token> modified=ne.getModifiedTokens(tokens);
+			List<Token> modified=ne.getModifiedTokens(tokens,type);
 			if (modified!=null) {
 				if (overlappingTokens==null) overlappingTokens=new HashMap<>();
 				for(Token m:modified) updateOverlappingTokens(m,overlappingTokens);
@@ -67,15 +67,15 @@ public class Generalize extends Preprocesser {
 			Collections.sort(sortedModifiedTokens);
 			List<List<Token>> sols=new ArrayList<>();
 			getNESoptions(sortedModifiedTokens.get(0),sortedModifiedTokens,null,sols,overlappingTokens);
-			List<List<Token>> newTokens=mergeTokensWithGeneralizedTokens(sols,tokens);
+			List<List<Token>> newTokens=mergeTokensWithGeneralizedTokens(sols,tokens,type);
 			return newTokens;
 		}
 		return null;
 	}
 
-	private List<List<Token>> mergeTokensWithGeneralizedTokens(List<List<Token>> generalizedTokens, List<Token> tokens) {
+	private List<List<Token>> mergeTokensWithGeneralizedTokens(List<List<Token>> generalizedTokens, List<Token> tokens, PreprocessingType type) {
 		List<Integer> tokenStarts=BasicNE.computeTokenStarts(tokens);
-		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		TokenizerI tokenizer = getConfiguration(type).getNluTokenizer();
 		String input=Preprocess.getString(tokens, tokenizer);
 		try {
 			if (generalizedTokens!=null) {

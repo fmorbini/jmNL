@@ -11,6 +11,7 @@ import java.util.Set;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.DynamicFoldsData;
 import edu.usc.ict.nl.nlu.FoldsData;
 import edu.usc.ict.nl.nlu.NLUOutput;
@@ -373,7 +374,7 @@ ERROR 15:29:07.574 [main           ] [NLU                      ] 'do you have ni
 		
 		String text="do you have any problems with breathing";
 		text=Aligner.removeSpeechStuff(text);
-		TokenizerI tokenizer=nlu.getConfiguration().getNluTokenizer();
+		TokenizerI tokenizer=nlu.getConfiguration().getNluTokenizer(PreprocessingType.RUN);
 		text=tokenizer.untokenize(tokenizer.tokenize1(text),null);
 
 		//List<NLUOutput> r = nlu.getNLUOutput(text, null, null);

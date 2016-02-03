@@ -15,6 +15,7 @@ import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
 import edu.usc.ict.nl.nlu.keyword.TopicMatcherRE;
 import edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierProcess;
 import edu.usc.ict.nl.nlu.opennlp.NLUTrainingFileReader;
+import edu.usc.ict.nl.util.FileUtils;
 import edu.usc.ict.nl.util.StringUtils;
 
 public class WordlistTopicDetectionREProcess extends MaxEntOpenNLPClassifierProcess {
@@ -44,34 +45,10 @@ public class WordlistTopicDetectionREProcess extends MaxEntOpenNLPClassifierProc
 		return new KeywordREMatcher(tds);
 	}
 
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
-	    if(!destFile.exists()) {
-	        destFile.createNewFile();
-	    }
-
-	    FileChannel source = null;
-	    FileChannel destination = null;
-
-	    try {
-	        source = new FileInputStream(sourceFile).getChannel();
-	        destination = new FileOutputStream(destFile).getChannel();
-	        destination.transferFrom(source, 0, source.size());
-	    }
-	    finally {
-	        if(source != null) {
-	            source.close();
-	        }
-	        if(destination != null) {
-	            destination.close();
-	        }
-	    }
-	}
-	
 	@Override
 	public void train(String model, String trainingFile) throws Exception {
-		File modelFile=new File(model);
-		copyFile(new File(trainingFile), modelFile);
-		loadMatcher(modelFile);
+		FileUtils.dumpToFile(FileUtils.readFromFile(trainingFile).toString(),model);
+		loadMatcher(new File(model));
 	}
 	
 	@Override

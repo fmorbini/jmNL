@@ -16,7 +16,6 @@ import edu.usc.ict.nl.util.PerformanceResult;
 
 public interface NLUInterface {
 	
-	public List<List<Token>> preprocess(String text);
 	public List<NLUOutput> getNLUOutput(String text,Set<String> possibleNLUOutputIDs,Integer nBest) throws Exception;
 	public List<NLUOutput> getNLUOutputFake(String[] NLUOutputIDs,String text) throws Exception;
 	public Map<String, Object> getPayload(String sa,String text) throws Exception;

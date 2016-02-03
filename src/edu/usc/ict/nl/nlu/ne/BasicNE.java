@@ -17,12 +17,10 @@ import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.bus.special_variables.SpecialEntitiesRepository;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLUConfig;
-import edu.usc.ict.nl.nlu.NLUOutput;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
-import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
-import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
 
@@ -50,13 +48,13 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 	}
 	
-	public NLUConfig getConfiguration() {
+	protected NLUConfig getConfiguration() {
 		return configuration;
 	}
+	@Override
 	public void setConfiguration(NLUConfig configuration) {
 		this.configuration = configuration;
 	}
-	
 	
 	@Override
 	public List<SpecialVar> getSpecialVariables() throws Exception {
@@ -81,13 +79,13 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 	}
 	
 	@Override
-	public List<Token> getModifiedTokens(List<Token> inputTokens) {
+	public List<Token> getModifiedTokens(List<Token> inputTokens,PreprocessingType type) {
 		List<Token> ret=null;
 		List<Integer> tokenStarts=computeTokenStarts(inputTokens);
-		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer(type);
 		String input=Preprocess.getString(inputTokens, tokenizer);
 		try {
-			List<NE> nes = extractNamedEntitiesFromText(input);
+			List<NE> nes = extractNamedEntitiesFromText(input,type);
 			filterOverlappingNES(nes);
 			if (nes!=null) {
 				for(NE ne:nes) {
@@ -126,9 +124,9 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 	}
 	
 	@Override
-	public boolean generalize(List<Token> inputTokens) {
+	public boolean generalize(List<Token> inputTokens,PreprocessingType type) {
 		boolean generalized=false;
-		List<Token> mods = getModifiedTokens(inputTokens);
+		List<Token> mods = getModifiedTokens(inputTokens,type);
 		if (mods!=null && !mods.isEmpty()) {
 			applyGeneralizations(mods,inputTokens);
 			generalized=true;

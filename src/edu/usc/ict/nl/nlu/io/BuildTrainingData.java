@@ -45,6 +45,7 @@ import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.sps.SAMapper;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.MXNLUTrainingFile;
 import edu.usc.ict.nl.nlu.trainingFileReaders.NLUTrainingFileI;
 import edu.usc.ict.nl.nlu.trainingFileReaders.SimcoachUserXLSXFile;
@@ -135,14 +136,14 @@ public class BuildTrainingData {
 		return ret;
 	}
 
-	public Set<String> getAllWordsInTrainingData(List<Pair<String, String>> td) throws Exception {
+	public Set<String> getAllWordsInTrainingData(List<Pair<String, String>> td,TokenizerI tokenizer) throws Exception {
 		if (td==null || td.isEmpty()) return null;
 		else {
 			HashSet<String> ret=new HashSet<String>();
 			for (Pair<String,String> d:td) {
 				String line=d.getFirst();
 				line=line.toLowerCase();
-				List<Token> tokens = getConfiguration().getNluTokenizer().tokenize1(line);
+				List<Token> tokens = tokenizer.tokenize1(line);
 				List<String> words=getAllWords(tokens);
 				if (words!=null) {
 					ret.addAll(words);

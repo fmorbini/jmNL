@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
@@ -75,7 +76,7 @@ public class WordlistTopicDetection extends NLU {
 			try {
 				BufferedReader in=new BufferedReader(new FileReader(patternFile));
 				while((line=in.readLine())!=null) {
-					List<String> ts = getTokensStrings(line);
+					List<String> ts = getTokensStrings(line,PreprocessingType.TRAINING);
 					m.addPattern(ts, topicID);
 				}
 			} catch (Exception e) {
@@ -84,8 +85,8 @@ public class WordlistTopicDetection extends NLU {
 		}
 	}
 
-	public List<String> getTokensStrings(String line) throws Exception {
-		TokenizerI tokenizer = getConfiguration().getNluTokenizer();
+	public List<String> getTokensStrings(String line,PreprocessingType type) throws Exception {
+		TokenizerI tokenizer = getConfiguration().getNluTokenizer(type);
 		List<Token> tokens = tokenizer.tokenize1(line);
 		List<String> ts=(List<String>) FunctionalLibrary.map(tokens, Token.class.getMethod("getName"));
 		return ts;
@@ -95,7 +96,7 @@ public class WordlistTopicDetection extends NLU {
 	public List<NLUOutput> getNLUOutput(String text,Set<String> possibleNLUOutputIDs,Integer nBest) throws Exception {
 		List<NLUOutput> nluResult = null;
 		if (topics!=null) {
-			List<String> sList = getTokensStrings(text);
+			List<String> sList = getTokensStrings(text,PreprocessingType.RUN);
 			for(TopicMatcher tm:topics) {
 				MatchList[] chart = tm.m.findMatches(sList);
 				List<Match> result = tm.m.getOptimalMatchSequence(chart, 0, new HashMap<Integer, List<Match>>());

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.config.PreprocessingConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
 import edu.usc.ict.nl.nlu.ne.NE;
@@ -62,8 +63,8 @@ public class WikidataNE extends BasicNE {
 
 	
 	@Override
-	public List<NE> extractNamedEntitiesFromText(String text) {
-		List<Token> tokens = getConfiguration().getNluTokenizer().tokenize1(text);
+	public List<NE> extractNamedEntitiesFromText(String text,PreprocessingType type) {
+		List<Token> tokens = getConfiguration().getNluTokenizer(type).tokenize1(text);
 		List<String> words = tokens.stream().map(s->s.getOriginal()).collect(Collectors.toList());
 		List<Match> match = searcher.findBestMatchInStringOfWords(words);
 		List<NE> payloads = null;
@@ -82,8 +83,9 @@ public class WikidataNE extends BasicNE {
 	public static void main(String[] args) throws Exception {
 		WikidataNE ne = new WikidataNE("COUNTRY", "C", "q6256");
 		ne.setConfiguration(NLUConfig.WIN_EXE_CONFIG);
-		ne.getConfiguration().setPreprocessingConfig(PreprocessingConfig.WIN_EXE_CONFIG);
-		List<NE> r = ne.extractNamedEntitiesFromText("what is the capital of france?");
+		ne.getConfiguration().setPreprocessingRunningConfig(PreprocessingConfig.WIN_EXE_CONFIG);
+		ne.getConfiguration().setPreprocessingTrainingConfig(PreprocessingConfig.WIN_EXE_CONFIG);
+		List<NE> r = ne.extractNamedEntitiesFromText("what is the capital of france?",PreprocessingType.RUN);
 		System.out.println(r);
 	}
 }

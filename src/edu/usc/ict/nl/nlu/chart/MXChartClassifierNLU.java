@@ -15,6 +15,7 @@ import java.util.Stack;
 import edu.usc.ict.nl.bus.NLBus;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.ChartNLUOutput;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
@@ -41,7 +42,7 @@ public class MXChartClassifierNLU extends NLU {
 
 	// additional test to make the approach linear
 	public Collection<PartialClassification> runChartClassifier3(String text,MXClassifierNLU nlu, boolean applyTransformationsToInput,boolean onlyOneSpeechAct) throws Exception {
-		Preprocess pr = nlu.getPreprocess();
+		Preprocess pr = nlu.getPreprocess(PreprocessingType.RUN);
 		List<List<Token>> options = pr.process(text,true);
 		String processedText=pr.getString(options.get(0));
 		String[] words=processedText.split(" ");
@@ -104,7 +105,7 @@ public class MXChartClassifierNLU extends NLU {
 			return ret;
 		}
 		String lowConfidenceEvent=getConfiguration().getLowConfidenceEvent();
-		Preprocess pr = internalNLU.getPreprocess();
+		Preprocess pr = internalNLU.getPreprocess(PreprocessingType.RUN);
 		List<List<Token>> options = pr.process(text,true);
 		String processedText=pr.getString(options.get(0));
 		String[] words=processedText.split("[\\s]+");
@@ -215,7 +216,7 @@ public class MXChartClassifierNLU extends NLU {
 	public Collection<PartialClassification> runChartClassifier(String text,MXClassifierNLU nlu, boolean applyTransformationsToInput) throws Exception {
 		Collection<PartialClassification> chart=new ArrayList<PartialClassification>();
 		
-		Preprocess pr = nlu.getPreprocess();
+		Preprocess pr = nlu.getPreprocess(PreprocessingType.RUN);
 		List<List<Token>> options = pr.process(text,true);
 		String processedText=pr.getString(options.get(0));
 

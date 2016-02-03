@@ -12,6 +12,7 @@ import java.util.Set;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.train.Aligner;
@@ -57,7 +58,7 @@ public class FSTNLU extends NLU {
 	public List<NLUOutput> getNLUOutput(String text,
 			Set<String> possibleNLUOutputIDs, Integer nBest) throws Exception {
 		nBest=(nBest==null || nBest<=0)?1:nBest;
-		TokenizerI tokenizer=getConfiguration().getNluTokenizer();
+		TokenizerI tokenizer=getConfiguration().getNluTokenizer(PreprocessingType.RUN);
 		String input=tokenizer.tokAnduntok(text);
 		String retFST=tf.getNLUforUtterance(input,nBest);
 		//System.out.println(retFST);
