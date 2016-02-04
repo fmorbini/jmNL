@@ -276,43 +276,45 @@ public class MXClassifierNLU extends NLU {
 		NLUConfig config=getConfiguration();
 		getLogger().debug("PROCESS NLU: input user speechActs: "+((nlu==null)?nlu:Arrays.asList(nlu)));
 		if (sortedOutputKeys!=null) sortedOutputKeys.clear();
-		if (nlu==null) return null;
 
 		List<NLUOutput> userEvents=new ArrayList<NLUOutput>();
 		// if a particular nBest is given forget about the threshold and return the exact number of results.
 		if (nBest==null) nBest=getConfiguration().getnBest();
 		else acceptanceThreshold=null;
 
-		for(String s:nlu) {
-			Matcher m = nluOutputLineFormat.matcher(s);
-			String prbString,sa;
-			if (m.matches() && (m.groupCount()==2)) {
-				prbString=m.group(1);
-				sa=StringUtils.removeLeadingAndTrailingSpaces(m.group(2));
-			} else {
-				getLogger().error("NO MATCH WITH INPUT SPEECHACT AND PROBABILITY. Forcing P=1 and SpeechAct = '"+s+"'");
-				prbString="1";
-				sa=s;
-			}
-			try {
-				float prb = Float.parseFloat(prbString);
-				if ((acceptanceThreshold==null) || ((prb>=0) && (prb<=1) && (prb>=acceptanceThreshold))) {
-					if ((possibleUserEvents==null) || (possibleUserEvents.contains(sa))) {
-						if (userEvents.size()<=nBest) {
-							userEvents.add(new NLUOutput(null, sa, prb,null));
-							if (sortedOutputKeys!=null) sortedOutputKeys.add(sa);
-							getLogger().debug(" user speechAct: "+sa+" with probability "+prb);
-							if (possibleUserEvents!=null) {
-								possibleUserEvents.remove(sa);
-								if (possibleUserEvents.size()<=0) break;
+		if (nlu!=null) {
+			for(String s:nlu) {
+				Matcher m = nluOutputLineFormat.matcher(s);
+				String prbString,sa;
+				if (m.matches() && (m.groupCount()==2)) {
+					prbString=m.group(1);
+					sa=StringUtils.removeLeadingAndTrailingSpaces(m.group(2));
+				} else {
+					getLogger().error("NO MATCH WITH INPUT SPEECHACT AND PROBABILITY. Forcing P=1 and SpeechAct = '"+s+"'");
+					prbString="1";
+					sa=s;
+				}
+				try {
+					float prb = Float.parseFloat(prbString);
+					if ((acceptanceThreshold==null) || ((prb>=0) && (prb<=1) && (prb>=acceptanceThreshold))) {
+						if ((possibleUserEvents==null) || (possibleUserEvents.contains(sa))) {
+							if (userEvents.size()<=nBest) {
+								userEvents.add(new NLUOutput(null, sa, prb,null));
+								if (sortedOutputKeys!=null) sortedOutputKeys.add(sa);
+								getLogger().debug(" user speechAct: "+sa+" with probability "+prb);
+								if (possibleUserEvents!=null) {
+									possibleUserEvents.remove(sa);
+									if (possibleUserEvents.size()<=0) break;
+								}
 							}
 						}
 					}
+				} catch (NumberFormatException e) {
+					getLogger().error(" probability associated with '"+s+"' is not a number.");
 				}
-			} catch (NumberFormatException e) {
-				getLogger().error(" probability associated with '"+s+"' is not a number.");
 			}
 		}
+		
 		// if no event is left: update the current state by following all user edges (this is the case
 		//  representing low certainty with the classification))
 		if (userEvents.isEmpty()) {

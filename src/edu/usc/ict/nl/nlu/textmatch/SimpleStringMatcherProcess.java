@@ -101,7 +101,7 @@ public class SimpleStringMatcherProcess extends MaxEntOpenNLPClassifierProcess {
 	@Override
 	public void train(String model, String trainingFile) throws Exception {
 		FileUtils.dumpToFile(FileUtils.readFromFile(trainingFile).toString(),model);
-		loadMatcher(new File(model));
+		topics=loadMatcher(new File(model));
 	}
 	
 	@Override

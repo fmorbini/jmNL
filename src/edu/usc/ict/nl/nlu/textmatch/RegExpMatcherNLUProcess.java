@@ -1,18 +1,15 @@
 package edu.usc.ict.nl.nlu.textmatch;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
-import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
 import edu.usc.ict.nl.nlu.keyword.ActualMultiREMatcher;
+import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
 import edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierProcess;
 import edu.usc.ict.nl.nlu.opennlp.NLUTrainingFileReader;
 import edu.usc.ict.nl.util.FileUtils;
@@ -48,7 +45,7 @@ public class RegExpMatcherNLUProcess extends MaxEntOpenNLPClassifierProcess {
 	@Override
 	public void train(String model, String trainingFile) throws Exception {
 		FileUtils.dumpToFile(FileUtils.readFromFile(trainingFile).toString(),model);
-		loadMatcher(new File(model));
+		matcher=loadMatcher(new File(model));
 	}
 	
 	@Override
