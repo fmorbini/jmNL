@@ -104,7 +104,7 @@
  			<value type="java.lang.Boolean">false</value>
 		</constructor-arg>
 	</bean>
-	<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.WordlistRENE">
+	<bean id="KeywordNE" class="edu.usc.ict.nl.nlu.ne.RegExpNE">
 		<constructor-arg>
  			<value type="java.lang.String">nere</value>
 		</constructor-arg>
