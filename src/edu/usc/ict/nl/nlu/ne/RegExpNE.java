@@ -14,18 +14,18 @@ import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
-import edu.usc.ict.nl.nlu.keyword.TopicMatcherRE;
+import edu.usc.ict.nl.nlu.keyword.ActualMultiREMatcher;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 
-public class WordlistRENE extends BasicNE {
+public class RegExpNE extends BasicNE {
 
 	private String modelName=null;
 	private KeywordREMatcher matcher=null;
 
-	public WordlistRENE(String file) {
+	public RegExpNE(String file) {
 		this(true,file);
 	}
-	public WordlistRENE(boolean generalize,String file) {
+	public RegExpNE(boolean generalize,String file) {
 		this.modelName=file;
 		/*
 		try {
@@ -55,7 +55,6 @@ public class WordlistRENE extends BasicNE {
 		}
 	}
 	
-	private static final Pattern hierModelLine=Pattern.compile("^([^\\s]+)[\\s]+(.+)$");
 	private void loadModel(File modelFile) throws Exception {
 		this.matcher=new KeywordREMatcher(modelFile);
 	}
@@ -73,7 +72,7 @@ public class WordlistRENE extends BasicNE {
 		if (matcher!=null) {
 			if (matcher.findIn(text)) {
 				do {
-					TopicMatcherRE tm = matcher.getLastMatchMatcher();
+					ActualMultiREMatcher tm = matcher.getLastMatchMatcher();
 					String match=tm.getMatchedString(text);
 					if (payload==null) payload=new ArrayList<NE>();
 					payload.add(new NE(tm.getTopicID(),DialogueKBFormula.generateStringConstantFromContent(match),tm.getTopicID(),tm.getStart(),tm.getEnd(),match,this));

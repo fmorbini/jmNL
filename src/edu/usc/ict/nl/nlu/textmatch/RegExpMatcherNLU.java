@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.topic;
+package edu.usc.ict.nl.nlu.textmatch;
 
 import java.util.Set;
 
@@ -7,15 +7,15 @@ import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.NLUProcess;
 import edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU;
 
-public class WordlistTopicDetectionRE extends MXClassifierNLU {
+public class RegExpMatcherNLU extends MXClassifierNLU {
 
-	public WordlistTopicDetectionRE(NLUConfig c) throws Exception {
+	public RegExpMatcherNLU(NLUConfig c) throws Exception {
 		super(c);
 	}
 
 	@Override
 	public NLUProcess startMXNLUProcessWithTheseParams(String model, int nbest) throws Exception {
-		WordlistTopicDetectionREProcess process = new WordlistTopicDetectionREProcess(null);
+		RegExpMatcherNLUProcess process = new RegExpMatcherNLUProcess(null);
 		process.run(model, nbest);
 		return process;
 	}
@@ -29,7 +29,7 @@ public class WordlistTopicDetectionRE extends MXClassifierNLU {
 
 	@Override
 	public Set<String> getAllSimplifiedPossibleOutputs() throws Exception {
-		WordlistTopicDetectionREProcess p=(WordlistTopicDetectionREProcess) getNLUProcess();
+		RegExpMatcherNLUProcess p=(RegExpMatcherNLUProcess) getNLUProcess();
 		return p.getAllSimplifiedPossibleOutputs();
 	}
 

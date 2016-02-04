@@ -13,23 +13,30 @@ import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.util.StringUtils;
 
 public class Preprocess {
-	
-	
+
+
 	private NLU nlu;
-	private PreprocessingConfig config=null;
+	private PreprocessingConfig config;
 	private PreprocessingType type;
 
-	public Preprocess(PreprocessingConfig config,PreprocessingType type) {
-		this.config=config;
+	public Preprocess(NLU nlu,PreprocessingType type) {
+		this.nlu=nlu;
 		this.type=type;
-		if (config!=null){
-			List<PreprocesserI> prs = config.getNluPreprocessers();
-			if (prs!=null) for(PreprocesserI pr:prs) pr.setNlu(nlu);
+		if (nlu!=null) {
+			this.config=nlu.getConfiguration().getPreprocessingConfig(type);
+			if (config!=null){
+				List<PreprocesserI> prs = config.getNluPreprocessers();
+				if (prs!=null) for(PreprocesserI pr:prs) pr.setNlu(nlu);
+			}
 		}
 	}
-	
+
 	public PreprocessingConfig getConfiguration() {
 		return config;
+	}
+
+	public PreprocessingType getType() {
+		return type;
 	}
 
 	public static String getStringOfTokensSpan(List<Token> tokens,int start, int end) {
@@ -77,7 +84,7 @@ public class Preprocess {
 		if (acceptOnlyUnambigous && tokens!=null && tokens.size()>1) throw new Exception("more than one option created during processing and option for just 1 set.");
 		return tokens;
 	}
-	
+
 	public List<String> getStrings(List<List<Token>> input) {
 		List<String> ret=null;
 		if (input!=null) {
@@ -109,7 +116,7 @@ public class Preprocess {
 		}
 		return null;
 	}
-	
+
 	public static List<NE> getAssociatedNamedEntities(List<Token> input) {
 		Set<NE> ret=null;
 		if (input!=null && !input.isEmpty()) {
@@ -125,5 +132,6 @@ public class Preprocess {
 		}
 		return ret!=null?new ArrayList<>(ret):null;
 	}
+
 
 }

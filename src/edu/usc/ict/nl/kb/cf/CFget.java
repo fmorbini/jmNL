@@ -7,6 +7,7 @@ import java.util.Map;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.DMConfig;
+import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.EvalContext;
@@ -57,7 +58,7 @@ public class CFget implements CustomFunctionInterface {
 		Numbers ne = new Numbers("test");
 		ne.setConfiguration(nlu.getConfiguration());
 		String string="i want 18 and twenty four bananas with 4 more and thirty.";
-		List<NE> nes = ne.extractNamedEntitiesFromText(string);
+		List<NE> nes = ne.extractNamedEntitiesFromText(string,PreprocessingType.RUN);
 		Map<String, Object> x = BasicNE.createPayload(nes);
 		dm.updateISwithNLUvariablesFromEvent(dm.getRootInformationState(),new NLUEvent(new NLUOutput(string, "test", 1, x), 0));
 		Object r=dm.getInformationState().evaluate(DialogueKBFormula.parse("==("+getName()+"(allnums,1),24)"),null);

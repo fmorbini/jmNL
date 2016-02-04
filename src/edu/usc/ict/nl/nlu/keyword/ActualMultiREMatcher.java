@@ -9,17 +9,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class TopicMatcherRE implements Comparable<TopicMatcherRE> {
+public class ActualMultiREMatcher implements Comparable<ActualMultiREMatcher> {
 	private Pattern p=null;
 	private final String topicID; 
 	private Matcher m=null;
 	String text;
 	
-	public TopicMatcherRE(String topicIdentifier,List<String> patterns) {
+	public ActualMultiREMatcher(String topicIdentifier,List<String> patterns) {
 		topicID=topicIdentifier;
 		p=loadPatterns(patterns);
 	}
-	public TopicMatcherRE(String topicIdentifier, File patternFile) {
+	public ActualMultiREMatcher(String topicIdentifier, File patternFile) {
 		this(topicIdentifier,loadPatternsFromFile(patternFile));
 	}
 	
@@ -122,14 +122,14 @@ public class TopicMatcherRE implements Comparable<TopicMatcherRE> {
 	}
 
 	@Override
-	public int compareTo(TopicMatcherRE o) {
+	public int compareTo(ActualMultiREMatcher o) {
 		if (o!=null) return o.topicID.compareTo(topicID);
 		return -1;
 	}
 	@Override
 	public boolean equals(Object obj) {
-		if (obj!=null && obj instanceof TopicMatcherRE) {
-			return ((TopicMatcherRE) obj).topicID.equals(topicID);
+		if (obj!=null && obj instanceof ActualMultiREMatcher) {
+			return ((ActualMultiREMatcher) obj).topicID.equals(topicID);
 		} else return false;
 	}
 

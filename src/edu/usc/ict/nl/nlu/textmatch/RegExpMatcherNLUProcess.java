@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.topic;
+package edu.usc.ict.nl.nlu.textmatch;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,15 +12,15 @@ import java.util.Set;
 
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.keyword.KeywordREMatcher;
-import edu.usc.ict.nl.nlu.keyword.TopicMatcherRE;
+import edu.usc.ict.nl.nlu.keyword.ActualMultiREMatcher;
 import edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierProcess;
 import edu.usc.ict.nl.nlu.opennlp.NLUTrainingFileReader;
 import edu.usc.ict.nl.util.FileUtils;
 import edu.usc.ict.nl.util.StringUtils;
 
-public class WordlistTopicDetectionREProcess extends MaxEntOpenNLPClassifierProcess {
+public class RegExpMatcherNLUProcess extends MaxEntOpenNLPClassifierProcess {
 
-	public WordlistTopicDetectionREProcess(String exe) {
+	public RegExpMatcherNLUProcess(String exe) {
 		super(exe);
 	}
 
@@ -57,7 +57,7 @@ public class WordlistTopicDetectionREProcess extends MaxEntOpenNLPClassifierProc
 	@Override
 	public String[] classify(String u,int nBest) throws IOException, InterruptedException {
 		if (matcher!=null && matcher.matches(u)) {
-			TopicMatcherRE tm = matcher.getLastMatchMatcher();
+			ActualMultiREMatcher tm = matcher.getLastMatchMatcher();
 			String match=tm.getMatchedString(u);
 			return new String[]{"1.0 "+tm.getTopicID()};
 		}
@@ -68,7 +68,7 @@ public class WordlistTopicDetectionREProcess extends MaxEntOpenNLPClassifierProc
 	public Set<String> getAllSimplifiedPossibleOutputs() {
 		HashSet<String> ret = null;
 		if (matcher!=null) {
-			for(TopicMatcherRE tm:matcher.getTopics()) {
+			for(ActualMultiREMatcher tm:matcher.getTopics()) {
 				if (!StringUtils.isEmptyString(tm.getTopicID())) {
 					if (ret==null) ret=new HashSet<String>();
 					ret.add(tm.getTopicID());

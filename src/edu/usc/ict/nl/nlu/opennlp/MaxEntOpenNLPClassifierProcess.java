@@ -2,28 +2,24 @@ package edu.usc.ict.nl.nlu.opennlp;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.usc.ict.nl.nlu.mxnlu.MXClassifierProcess;
+import edu.usc.ict.nl.util.StringUtils;
 import opennlp.maxent.BasicEventStream;
 import opennlp.maxent.DoubleStringPair;
 import opennlp.maxent.GIS;
 import opennlp.maxent.ModelTrainer;
-import opennlp.maxent.PlainTextByLineDataStream;
 import opennlp.maxent.io.SuffixSensitiveGISModelWriter;
-import opennlp.maxent.quasinewton.QNTrainer;
 import opennlp.model.AbstractModel;
 import opennlp.model.AbstractModelWriter;
-import opennlp.model.Event;
 import opennlp.model.EventStream;
 import opennlp.model.GenericModelReader;
 import opennlp.model.MaxentModel;
 import opennlp.model.OnePassDataIndexer;
-import edu.usc.ict.nl.nlu.mxnlu.MXClassifierProcess;
-import edu.usc.ict.nl.util.StringUtils;
 
 public class MaxEntOpenNLPClassifierProcess extends MXClassifierProcess {
 
@@ -90,7 +86,7 @@ public class MaxEntOpenNLPClassifierProcess extends MXClassifierProcess {
 	public void kill() {}
 	
 	@Override
-	public String[] classify(String u,int nBest) throws IOException, InterruptedException {
+	public String[] classify(String u,int nBest) throws Exception {
 		MaxentModel classifier=getClassifier();
 		double[] ocs = classifier.eval(u.split(" "));
 		int numOutcomes = ocs.length;

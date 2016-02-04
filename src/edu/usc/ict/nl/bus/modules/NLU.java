@@ -61,8 +61,8 @@ public abstract class NLU implements NLUInterface {
 		_instance = this;
 		this.configuration=c;
 		setBTD(new BuildTrainingData(c));
-		setTrainingPreprocess(new Preprocess(c.getPreprocessingConfig(PreprocessingType.TRAINING)));
-		setRunningPreprocess(new Preprocess(c.getPreprocessingConfig(PreprocessingType.RUN)));
+		setPreprocess(new Preprocess(this,PreprocessingType.TRAINING));
+		setPreprocess(new Preprocess(this,PreprocessingType.RUN));
 		hardLinkMap=getBTD().buildHardLinksMap();
 		featuresBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildfeaturesFromUtterance", String.class);
 		featuresAtPosBuilder=Class.forName(c.getNluFeaturesBuilderClass()).getMethod("buildFeatureForWordAtPosition", String[].class,int.class);
@@ -76,8 +76,16 @@ public abstract class NLU implements NLUInterface {
 		}
 		return null;
 	}
-	public void setTrainingPreprocess(Preprocess trainingPreprocess) {
-		this.trainingPreprocess = trainingPreprocess;
+	public void setPreprocess(Preprocess preprocess) {
+		PreprocessingType type=preprocess.getType();
+		switch (type) {
+		case RUN:
+			this.runningPreprocess=preprocess;
+			break;
+		case TRAINING:
+			this.trainingPreprocess=preprocess;
+			break;
+		}
 	}
 	public void setRunningPreprocess(Preprocess runningPreprocess) {
 		this.runningPreprocess = runningPreprocess;
@@ -340,7 +348,7 @@ public abstract class NLU implements NLUInterface {
 	@Override
 	public Map<String, Object> getPayload(String speechAct, String text) throws Exception {
 		Map<String, Object> totalPayload=null;
-		Preprocess pr = getPreprocess();
+		Preprocess pr = getPreprocess(PreprocessingType.RUN);
 		List<List<Token>> options = pr.process(text);
 		if (options!=null) {
 			for(List<Token> option:options) {
