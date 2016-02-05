@@ -153,8 +153,7 @@ public class MXClassifierNLU extends NLU {
 		if (hardLabel!=null) {
 			if (options!=null && !options.isEmpty()) {
 				for(List<Token> option:options) {
-					List<NE> nes = pr.getAssociatedNamedEntities(option);
-					List<NE> fnes=BasicNE.filterNESwithSpeechAct(nes,hardLabel.getId());
+					List<NE> fnes=BasicNE.filterNESwithSpeechAct(option,hardLabel.getId(),pr.getTokenizer());
 					Map<String, Object> payload = BasicNE.createPayload(fnes);
 					hardLabel.setPayload(payload);
 					break;
@@ -182,11 +181,10 @@ public class MXClassifierNLU extends NLU {
 
 				List<NLUOutput> userSpeechActsWithProb = processNLUOutputs(result,nBest,possibleUserEvents,null);		
 				if (userSpeechActsWithProb!=null) {
-					List<NE> nes = pr.getAssociatedNamedEntities(option);
-					if (nes!=null && !nes.isEmpty()) {
+					if (Preprocess.hasAssociatedNamedEntities(option)) {
 						for(NLUOutput o:userSpeechActsWithProb) {
 							o.setText(t);
-							List<NE> fnes=BasicNE.filterNESwithSpeechAct(nes,o.getId());
+							List<NE> fnes=BasicNE.filterNESwithSpeechAct(option,o.getId(),pr.getTokenizer(),o.getRanges());
 							Map<String, Object> payload = BasicNE.createPayload(fnes);
 							o.setPayload(payload);
 						}
@@ -238,11 +236,10 @@ public class MXClassifierNLU extends NLU {
 				NLUOutput o=userSpeechActsWithProb.get(0);
 				boolean added=false;
 				for(List<Token> option:options) {
-					List<NE> nes = pr.getAssociatedNamedEntities(option);
-					if (nes!=null && !nes.isEmpty()) {
+					if (Preprocess.hasAssociatedNamedEntities(option)) {
 						String t=pr.getString(option);
 						o.setText(t);
-						List<NE> fnes=BasicNE.filterNESwithSpeechAct(nes,o.getId());
+						List<NE> fnes=BasicNE.filterNESwithSpeechAct(option,o.getId(),pr.getTokenizer());
 						Map<String, Object> payload = BasicNE.createPayload(fnes);
 						o.setPayload(payload);
 						if (ret==null) ret=new ArrayList<>();
@@ -270,7 +267,9 @@ public class MXClassifierNLU extends NLU {
 		return classify(text, possibleUserEvents,nBest);
 	}
 
-	public static final Pattern nluOutputLineFormat = Pattern.compile("^[\\s]*([\\d\\.]+[eE\\+\\-\\d]*)[\\s]+(.+)[\\s]*$");		
+	public static final Pattern nluOutputLineFormat = Pattern.compile("^[\\s]*([\\d\\.]+[eE\\+\\-\\d]*)[\\s]+(.+)[\\s]*$");
+	public static final Pattern rangePattern=Pattern.compile("([\\d]+)-([\\d]+)");
+	public static final Pattern nluNERangesFormat = Pattern.compile("<("+rangePattern.toString()+"(,"+rangePattern.toString()+")*)>");
 	private List<NLUOutput> processNLUOutputs(String[] nlu,Integer nBest, Set<String> possibleUserEvents,ArrayList<String> sortedOutputKeys) throws Exception {
 		Float acceptanceThreshold=this.acceptanceThreshold;
 		NLUConfig config=getConfiguration();
@@ -286,9 +285,24 @@ public class MXClassifierNLU extends NLU {
 			for(String s:nlu) {
 				Matcher m = nluOutputLineFormat.matcher(s);
 				String prbString,sa;
+				List<Pair<Integer,Integer>> ranges=null;
 				if (m.matches() && (m.groupCount()==2)) {
 					prbString=m.group(1);
 					sa=StringUtils.removeLeadingAndTrailingSpaces(m.group(2));
+					Matcher rm=nluNERangesFormat.matcher(sa);
+					if (rm.find()) {
+						sa=StringUtils.removeLeadingAndTrailingSpaces(sa.substring(0, rm.start()));
+						String rangess=rm.group(1);
+						rm=rangePattern.matcher(rangess);
+						while(rm.find()) {
+							try {
+								Integer start=Integer.parseInt(rm.group(1));
+								Integer end=Integer.parseInt(rm.group(2));
+								if (ranges==null) ranges=new ArrayList<>();
+								ranges.add(new Pair<Integer, Integer>(start, end));
+							} catch (Exception e) {}
+						}
+					}
 				} else {
 					getLogger().error("NO MATCH WITH INPUT SPEECHACT AND PROBABILITY. Forcing P=1 and SpeechAct = '"+s+"'");
 					prbString="1";
@@ -299,7 +313,9 @@ public class MXClassifierNLU extends NLU {
 					if ((acceptanceThreshold==null) || ((prb>=0) && (prb<=1) && (prb>=acceptanceThreshold))) {
 						if ((possibleUserEvents==null) || (possibleUserEvents.contains(sa))) {
 							if (userEvents.size()<=nBest) {
-								userEvents.add(new NLUOutput(null, sa, prb,null));
+								NLUOutput o=new NLUOutput(null, sa, prb,null);
+								o.setRanges(ranges);
+								userEvents.add(o);
 								if (sortedOutputKeys!=null) sortedOutputKeys.add(sa);
 								getLogger().debug(" user speechAct: "+sa+" with probability "+prb);
 								if (possibleUserEvents!=null) {

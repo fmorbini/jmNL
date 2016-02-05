@@ -117,6 +117,19 @@ public class ActualMultiREMatcher implements Comparable<ActualMultiREMatcher> {
 		return -1;
 	}
 
+	public int getGroupStart(int p) {
+		if (m!=null) return m.start(p);
+		return -1;
+	}
+	public int getGroupEnd(int p) {
+		if (m!=null) return m.end(p);
+		return -1;
+	}
+	public int getGroupCount() {
+		if (m!=null) return m.groupCount();
+		return -1;
+	}
+	
 	public String getTopicID() {
 		return topicID;
 	}

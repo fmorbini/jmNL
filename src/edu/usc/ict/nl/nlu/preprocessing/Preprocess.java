@@ -39,6 +39,12 @@ public class Preprocess {
 		return type;
 	}
 
+	public TokenizerI getTokenizer() {
+		PreprocessingConfig config=getConfiguration();
+		TokenizerI tokenizer = config.getNluTokenizer();
+		return tokenizer;
+	}
+	
 	public static String getStringOfTokensSpan(List<Token> tokens,int start, int end) {
 		StringBuffer ret=null;
 		if (tokens!=null) {
@@ -117,6 +123,19 @@ public class Preprocess {
 		return null;
 	}
 
+	public static boolean hasAssociatedNamedEntities(List<Token> input) {
+		if (input!=null && !input.isEmpty()) {
+			for(Token t:input) {
+				if (t!=null) {
+					NE ne=t.getAssociatedNamedEntity();
+					if (ne!=null) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
 	public static List<NE> getAssociatedNamedEntities(List<Token> input) {
 		Set<NE> ret=null;
 		if (input!=null && !input.isEmpty()) {

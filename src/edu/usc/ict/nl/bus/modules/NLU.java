@@ -352,8 +352,7 @@ public abstract class NLU implements NLUInterface {
 		List<List<Token>> options = pr.process(text);
 		if (options!=null) {
 			for(List<Token> option:options) {
-				List<NE> nes = Preprocess.getAssociatedNamedEntities(option);
-				List<NE> foundNEs=BasicNE.filterNESwithSpeechAct(nes, speechAct);
+				List<NE> foundNEs=BasicNE.filterNESwithSpeechAct(option, speechAct,pr.getTokenizer());
 				if (foundNEs!=null) {
 					Map<String,Object> payload=BasicNE.createPayload(foundNEs);
 					if (totalPayload==null) totalPayload=payload;

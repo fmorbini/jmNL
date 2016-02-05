@@ -55,8 +55,17 @@ public class RegExpMatcherNLUProcess extends MaxEntOpenNLPClassifierProcess {
 	public String[] classify(String u,int nBest) throws IOException, InterruptedException {
 		if (matcher!=null && matcher.matches(u)) {
 			ActualMultiREMatcher tm = matcher.getLastMatchMatcher();
-			String match=tm.getMatchedString(u);
-			return new String[]{"1.0 "+tm.getTopicID()};
+			String ranges="";
+			for(int i=0;i<tm.getGroupCount();i++) {
+				int start=tm.getGroupStart(i+1);
+				int end=tm.getGroupEnd(i+1);
+				if (start>=0 && end>start) {
+					if (ranges.length()>0) ranges+=",";
+					ranges+=start+"-"+end;
+				}
+				if (ranges.length()>0) ranges=" <"+ranges+">";
+			}
+			return new String[]{"1.0 "+tm.getTopicID()+ranges};
 		}
 		return null;
 	}

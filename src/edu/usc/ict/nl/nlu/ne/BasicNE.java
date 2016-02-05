@@ -21,6 +21,7 @@ import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
 
@@ -162,16 +163,6 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		}
 	}
 	
-	private class Interval {
-		int start,end;
-		public Interval(int start,int end) {
-			this.start=start;
-			this.end=end;
-		}
-		public boolean inside(int point) {
-			return (point>=start && point<=end);
-		}
-	}
 	/**
 	 * processes the list from first to last. If a later NE overlaps an earlier NE it'll be discarded.
 	 * The order of NE recognizers is important.
@@ -195,7 +186,7 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 						continue;
 					}
 				}
-				if (intervals==null) intervals=new ArrayList<BasicNE.Interval>();
+				if (intervals==null) intervals=new ArrayList<Interval>();
 				intervals.add(new Interval(start, ne.getEnd()));
 			}
 		}
@@ -232,20 +223,45 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		return ret;
 	}
 	
-	public static List<NE> filterNESwithSpeechAct(List<NE> nes, String speechAct) {
+	public static List<NE> filterNESwithSpeechAct(List<Token> option, String speechAct,TokenizerI tokenizer) {
+		return filterNESwithSpeechAct(option, speechAct, tokenizer,null);
+	}
+	public static List<NE> filterNESwithSpeechAct(List<Token> option, String speechAct,TokenizerI tokenizer,List<Pair<Integer,Integer>> ranges) {
 		List<NE> ret=null;
-		if (nes!=null && !StringUtils.isEmptyString(speechAct)) {
-			for(NE ne:nes) {
-				NamedEntityExtractorI ext=ne.getExtractor();
-				if (ext==null || ext.isNEAvailableForSpeechAct(ne, speechAct)) {
-					if (ret==null) ret=new ArrayList<>();
-					ret.add(ne);
+		if (!StringUtils.isEmptyString(speechAct)) {
+			int i=0;
+			for(Token t:option) {
+				NE ne=t.getAssociatedNamedEntity();
+				if (ne!=null) {
+					int start=tokenizer.getStart(option, speechAct, i+1);
+					int end=tokenizer.getEnd(option, speechAct, i+1);
+					if (isNEinRange(start,end,ranges)) {
+						NamedEntityExtractorI ext=ne.getExtractor();
+						if (ext==null || ext.isNEAvailableForSpeechAct(ne, speechAct)) {
+							if (ret==null) ret=new ArrayList<>();
+							ret.add(ne);
+						}
+					}
 				}
+				i++;
 			}
 		}
 		return ret;
 	}
 	
+	private static boolean isNEinRange(NE ne, List<Pair<Integer, Integer>> ranges) {
+		return isNEinRange(ne.getStart(), ne.getEnd(), ranges);
+	}
+	private static boolean isNEinRange(int neStart,int neEnd, List<Pair<Integer, Integer>> ranges) {
+		if (ranges!=null && !ranges.isEmpty()) {
+			for(Pair<Integer,Integer> r:ranges) {
+				if (Interval.inside(r.getFirst(), r.getSecond(), neStart, neEnd)) return true;
+			}
+			return false;
+		}
+		return true;
+	}
+
 	@Override
 	public boolean isNEAvailableForSpeechAct(NE ne, String speechAct) {
 		boolean match=true;

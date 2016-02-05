@@ -76,30 +76,59 @@ public class Tokenizer implements TokenizerI {
 
 	@Override
 	public String untokenize(List<Token> tokens,String sa) {
+		if (tokens!=null) {
+			return untokenize(tokens, sa, tokens.size());
+		}
+		return null;
+	}
+	public String untokenize(List<Token> tokens,String sa,int stop) {
 		StringBuffer ret=null;
 		if (tokens!=null) {
 			boolean first=true;
-			for (Token m:tokens) {
+			int l=Math.min(stop,tokens.size());
+			for(int i=0;i<l;i++) {
 				if (ret==null) ret=new StringBuffer();
-
 				if (first) first=false;
 				else ret.append(" ");
 				
-				String thingToAppend=m.getName();
-				NE ne=m.getAssociatedNamedEntity();
-				if (ne!=null) {
-					boolean leave = (sa!=null)?ne.getExtractor().isNEAvailableForSpeechAct(ne, sa):true;
-					if (leave) thingToAppend=m.getName();
-					else thingToAppend=ne.getMatchedString();
-				}
-				ret.append(thingToAppend);
+				String s=toString(tokens, sa, i);
+				ret.append(s);
 			}
 		}
 		return (ret!=null)?ret.toString():null;
 	}
 	
+	private String toString(List<Token> tokens,String sa,int pos) {
+		if (tokens!=null && pos<tokens.size()) {
+			Token m=tokens.get(pos);
+			
+			String thingToAppend=m.getName();
+			NE ne=m.getAssociatedNamedEntity();
+			if (ne!=null) {
+				boolean leave = (sa!=null)?ne.getExtractor().isNEAvailableForSpeechAct(ne, sa):true;
+				if (leave) thingToAppend=m.getName();
+				else thingToAppend=ne.getMatchedString();
+			}
+			return thingToAppend;
+		}
+		return null;
+	}
+	
 	@Override
 	public String tokAnduntok(String input) {
 		return untokenize(tokenize1(input),null);
+	}
+
+	@Override
+	public int getStart(List<Token> tokens,String sa,int pos) {
+		String entire=untokenize(tokens, sa,pos);
+		String token=toString(tokens, sa, pos-1);
+		return entire.length()-token.length();
+	}
+
+	@Override
+	public int getEnd(List<Token> tokens,String sa,int pos) {
+		String entire=untokenize(tokens, sa,pos);
+		return entire.length();
 	}
 }
