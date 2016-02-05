@@ -17,15 +17,29 @@ import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.nlg.echo.EchoNLG;
+import edu.usc.ict.nl.nlu.wikidata.WikiThing;
+import edu.usc.ict.nl.nlu.wikidata.dumps.Queries;
 import edu.usc.ict.nl.util.StringUtils;
+import simplenlg.features.Feature;
+import simplenlg.features.Form;
+import simplenlg.framework.DocumentElement;
+import simplenlg.framework.NLGElement;
+import simplenlg.phrasespec.SPhraseSpec;
+import simplenlg.phrasespec.VPPhraseSpec;
 
 public class TemplatedNLG extends EchoNLG {
 
 	private Map<String,Method> methodMap;
 	private static final Pattern methodNamePattern=Pattern.compile("function([A-Z][\\S]*)");
+	private Queries qs=null;
 	
 	public TemplatedNLG(NLGConfig c) {
 		this(c,true);
+		try {
+			qs=new Queries();
+		} catch (Exception e) {
+			logger.error(e);
+		}
 	}
 
 	public TemplatedNLG(NLGConfig c, boolean loadData) {
@@ -64,6 +78,40 @@ public class TemplatedNLG extends EchoNLG {
 				return output.getName();
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	public Object functionWikiLabel(FunctionArguments args) {
+		if (!args.simulate) {
+			String v=args.stringArg;
+			try {v=DialogueKBFormula.getStringValue(v);} catch (Exception e) {}
+			WikiThing thing = new WikiThing(v);
+			qs.fillWikiThing(thing);
+			List<String> labels = thing.getLabels();
+			if (labels!=null && !labels.isEmpty()) return labels.get(0);
+		}
+		return null;
+	}
+	public Object functionWikiQuery(FunctionArguments args) {
+		if (!args.simulate) {
+			String sep=args.stringArg.substring(0, 1);
+			String[] parts=args.stringArg.split(sep);
+			if (parts==null || parts.length<3) return null;
+			else {
+				String subject=parts[1];
+				try {subject=DialogueKBFormula.getStringValue(subject);} catch (Exception e) {}
+				String property=parts[2];
+				try {property=DialogueKBFormula.getStringValue(property);} catch (Exception e) {}
+				String object=parts[3];
+				try {object=DialogueKBFormula.getStringValue(object);} catch (Exception e) {}
+				List<String> results=null;
+				if (object.equals("*")) {
+					results = qs.getObjectsOfThisClaim(new WikiThing(subject), new WikiThing(property));
+				} else if (subject.equals("*")) {
+					results = qs.getSubjectsOfThisClaim(new WikiThing(object), new WikiThing(property));
+				}
+				if (results!=null && !results.isEmpty()) return results.get(0);
 			}
 		}
 		return null;

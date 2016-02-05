@@ -83,7 +83,7 @@ public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 		return ret;
 	}
 
-	public List<String> getObjectOfThisClaim(String subject,String property,int n) {
+	public List<String> getObjectsOfThisClaim(String subject,String property,int n) {
 		List<String> ret=null;
 		try {
 			List<WikiClaim> rs = find("pred:"+property.toLowerCase()+" AND subject:"+subject.toLowerCase(), n);
@@ -98,7 +98,7 @@ public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 		}
 		return ret;
 	}
-	public List<String> getSubjectOfThisClaim(String object,String property,int n) {
+	public List<String> getSubjectsOfThisClaim(String object,String property,int n) {
 		List<String> ret=null;
 		try {
 			List<WikiClaim> rs = find("pred:"+property.toLowerCase()+" AND object:"+object.toLowerCase(), n);
@@ -124,22 +124,22 @@ public class LuceneWikidataClaimsSearch extends LuceneWikidataSearch {
 	}
 		
 	public List<String> getOfWhatItIsAnInstance(String thing,int n) {
-		List<String> rs = getObjectOfThisClaim(thing, "p31",n);
+		List<String> rs = getObjectsOfThisClaim(thing, "p31",n);
 		if (rs!=null && !rs.isEmpty()) return rs;
 		return null;
 	}
 	public List<String> getOfWhatItIsASubclass(String thing,int n) {
-		List<String> rs = getObjectOfThisClaim(thing, "p279",n);
+		List<String> rs = getObjectsOfThisClaim(thing, "p279",n);
 		if (rs!=null && !rs.isEmpty()) return rs;
 		return null;
 	}
 	public List<String> getThingsThatAreInstancesOf(String thing,int n) {
-		List<String> rs = getSubjectOfThisClaim(thing, "p31",n);
+		List<String> rs = getSubjectsOfThisClaim(thing, "p31",n);
 		if (rs!=null && !rs.isEmpty()) return rs;
 		return null;
 	}
 	public List<String> getThingsThatAreSubclassesOf(String thing,int n) {
-		List<String> rs = getSubjectOfThisClaim(thing, "p279",n);
+		List<String> rs = getSubjectsOfThisClaim(thing, "p279",n);
 		if (rs!=null && !rs.isEmpty()) return rs;
 		return null;
 	}

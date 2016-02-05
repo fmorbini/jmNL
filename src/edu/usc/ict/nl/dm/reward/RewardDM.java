@@ -1039,9 +1039,13 @@ public class RewardDM extends DM {
 			} else {
 				thisIterationNLUVariables=(Map<String, Object>) sa.getPayload();
 			}
+			if (logger.isDebugEnabled()) logger.debug("information state: "+is);
+			if (logger.isInfoEnabled()) logger.info("finished extracting NLU variables from event: "+thisIterationNLUVariables);
 			removeNLUVariableFromIS(is,nluVariables);
+			if (logger.isInfoEnabled()) logger.info("finihsed removing previous event NLU variables (increase dm debug to debug level to see which ones).");
 			nluVariables=thisIterationNLUVariables;
 			setNLUVariablesInIS(is,nluVariables);
+			if (logger.isInfoEnabled()) logger.info("finished setting variables.");
 		}
 	}
 	private void incrementUnhandledEventTracker() throws Exception {
@@ -1090,6 +1094,7 @@ public class RewardDM extends DM {
 	private void removeNLUVariableFromIS(DialogueKBInterface is,Map<String, Object> vars) throws Exception {
 		if (vars!=null) {
 			for(String vName:vars.keySet()) {
+				if (logger.isDebugEnabled()) logger.debug("removing variable "+vName+" from is as it's a nlu variable.");
 				vName=vName.toLowerCase();
 				is.removeVariable(vName,ACCESSTYPE.AUTO_OVERWRITEAUTO);
 			}

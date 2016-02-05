@@ -2,6 +2,7 @@ package edu.usc.ict.nl.nlu.wikidata.dumps;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 
+import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.util.FileUtils;
@@ -259,22 +261,36 @@ public class Queries {
 		return false;
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void createInstaceFileForNEextraction(String parentID) throws Exception {
 		Queries qs = new Queries();
-		//List<WikiThing> things = qs.getIdsForString("The Big Apple", TYPE.ITEM, MAXITEMS);
-		//System.out.println(things);
 		Set<String> r=qs.getAllSubclassesAndInstancesOf("q6256", MAXITEMS, 1,false,true);
 		BufferedWriter x=new BufferedWriter(new FileWriter("q6256"));
 		for(String t:r) {
 			WikiThing thing=new WikiThing(t);
 			qs.fillWikiThing(thing);
-			x.write(thing.getName());
+			x.write(DialogueKBFormula.generateStringConstantFromContent(thing.getName()));
 			for(String l:thing.getLabels()) {
 				x.write("\t"+l);
 			}
 			x.write("\n");
 		}
 		x.close();
+	}
+	
+	public List<String> getObjectsOfThisClaim(WikiThing subject,WikiThing property) {
+		List<String> objects = rc.getObjectsOfThisClaim(subject.getName(), property.getName(), MAXITEMS);
+		return objects;
+	}
+	public List<String> getSubjectsOfThisClaim(WikiThing object,WikiThing property) {
+		List<String> subjects = rc.getSubjectsOfThisClaim(object.getName(), property.getName(), MAXITEMS);
+		return subjects;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		//createInstaceFileForNEextraction("q6256");
+		Queries qs = new Queries();
+		List<WikiThing> things = qs.getIdsForString("capital", TYPE.PROPERTY, MAXITEMS);
+		System.out.println(things);
 		//FileUtils.dumpToFile(r, "q6256", false, true);
 		/*
 		qs.getInstanceAndOrSubclassGraphFor("Q51624", MAXITEMS).toGDLGraph();
