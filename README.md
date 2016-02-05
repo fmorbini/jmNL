@@ -14,6 +14,7 @@ if you plan to use clearnlp you'll need to separately download the models: https
 
 to use wikidata (see [this demo character](resources/characters/WikiData/)) you need to create lucene local indexes.
 For that you need to:
+
 1. download a recent [wikidata json dump](https://dumps.wikimedia.org/wikidatawiki/entities/)
 2. run edu.usc.ict.nl.nlu.wikidata.dumps.WikidataJsonProcessing.createItemsFile(8, new File(json_dump_file)) (adjust parameters as needed)
 3. run edu.usc.ict.nl.nlu.wikidata.dumps.WikidataJsonProcessing.createPropertiesFile(8, new File(json_dump_file)) (adjust parameters as needed)
