@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:camel="http://camel.apache.org/schema/spring"
+       xmlns:broker="http://activemq.apache.org/schema/core"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<import resource="classpath:wikidata/WikiData/PreprocessingConfig.xml"/>
+
+	<bean id="wikidataNLUclass" class="edu.usc.ict.nl.config.NLUConfig">
+		<property name="lowConfidenceEvent" value="internal.low-confidence"/>
+		<property name="emptyTextEventName" value="empty"/>
+		
+		<property name="preprocessingTrainingConfig" ref="wiki"/>
+		<property name="preprocessingRunningConfig" ref="wiki"/>
+		
+		<!-- ########################## NLU START ################################### -->
+		<!-- general nlu setup --> 
+		<property name="printNluErrors" value="true"/>
+		<property name="chartNluMaxLength" value="30"/>
+		<property name="nluModelFile" value="classifier-model-stage2"/>
+		<property name="nluTrainingFile" value="classifier-training.txt"/>
+		<property name="nluHardLinks" value="hardlinks.txt"/>
+		<property name="useSystemFormsToTrainNLU" value="true"/>
+		<property name="userUtterances" value="user-utterances.xlsx"/>
+		<property name="nBest" value="2"/>
+		
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="internalNluClass4Hier" value="edu.usc.ict.nl.nlu.opennlp.MaxEntOpenNLPClassifierNLU"/>
+		<property name="acceptanceThreshold" value="0.0"/>
+		<property name="maximumNumberOfLabels"><null/></property>
+		
+	</bean>
+
+	<bean id="wikidataNLU" class="edu.usc.ict.nl.config.NLUConfig">
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.multi.MultiNLU"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier"/>
+		<property name="internalNluListForMultiNlu">
+		<map>
+			<entry key="stage1"> <ref bean="wikidataNLURE"/></entry>
+			<entry key="stage2"> <ref bean="wikidataNLUclass"/></entry>
+		</map>
+		</property>
+		<property name="mergerForMultiNlu" ref="cascadeMerger"/>
+	</bean>
+    
+    <bean id="cascadeMerger" class="edu.usc.ict.nl.nlu.multi.merger.Cascade">
+		<constructor-arg>
+			<value>stage1</value>
+		</constructor-arg>
+		<constructor-arg>
+			<list>
+				<bean class="edu.usc.ict.nl.util.Triple">
+			 		<constructor-arg index="0" value="stage1"/>
+					<constructor-arg index="1" value="internal.low-confidence"/>
+					<constructor-arg index="2" value="stage2"/>
+				</bean>
+			</list>
+		</constructor-arg>
+	</bean>
+    
+	<bean id="wikidataNLURE" class="edu.usc.ict.nl.config.NLUConfig">
+		<property name="lowConfidenceEvent" value="internal.low-confidence"/>
+		<property name="emptyTextEventName" value="empty"/>
+		
+		<property name="preprocessingTrainingConfig" ref="nothing"/>
+		<property name="preprocessingRunningConfig" ref="wiki"/>
+		
+		<!-- ########################## NLU START ################################### -->
+		<!-- general nlu setup --> 
+		<property name="printNluErrors" value="true"/>
+		<property name="chartNluMaxLength" value="30"/>
+		<property name="nluTrainingFile" value="classifier-training.txt"/>
+		<property name="nluHardLinks" value="hardlinks.txt"/>
+		<property name="useSystemFormsToTrainNLU" value="true"/>
+		<property name="userUtterances" value="user-utterances-re.xlsx"/>
+		<property name="nluFeaturesBuilderClass" value="edu.usc.ict.nl.nlu.features.NoFeatures"/>
+
+		<property name="nluModelFile" value="classifier-model-stage1"/>
+
+		<property name="nluClass" value="edu.usc.ict.nl.nlu.textmatch.RegExpMatcherNLU"/>
+		<property name="acceptanceThreshold" value="0.0"/>
+		
+	</bean>
+	
+</beans>

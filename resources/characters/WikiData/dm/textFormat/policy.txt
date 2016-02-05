@@ -1,0 +1,44 @@
+Network low-confidence {
+	#topic: basic
+	#entrance condition: current NLU speech act = internal.low-confidence
+	system: statement.not-understand
+	#goal: simple
+}
+Network ignored {
+	#topic: basic
+	#entrance condition: current NLU speech act = ignored
+	system: statement.ignore
+	#goal: simple
+}
+Network loop {
+	#topic: basic
+	#entrance condition: current NLU speech act = loop
+	system: statement.loop
+	#goal: simple
+}
+Network empty {
+	#topic: basic
+	#entrance condition: current NLU speech act = empty
+	
+	DO
+	#goal: simple
+}
+
+Network greetings {
+	#topic: greeting
+	#entrance condition: current NLU speech act = question.wiki.capital
+    DO
+    #action: country=print(C)
+	system: answer.wiki.capital
+	#goal: simple
+}
+
+final Network exitSystem {
+	#topic: greeting
+	#entrance condition: current NLU speech act = greeting.bye
+	#entrance condition: system initiative
+	#condition: state=='exit'
+
+	system: greeting.bye
+	#goal: exitGoal
+}

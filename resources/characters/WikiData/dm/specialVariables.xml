@@ -1,0 +1,11 @@
+<sv id="timeSinceLastUserAction" value="0" type="NUMBER" desc="Time in seconds since the last thing said by the user."/>
+<sv id="timeSinceLastSystemAction" value="0" type="NUMBER" desc="Time in seconds since the last thing said by the system."/>
+<sv id="consecutiveUnhandledUserActions" value="0" type="NUMBER" desc="Number of consecutive user actions for which the system had no direct response (handler)."/>
+<sv id="timeSinceLastAction" value="0" type="NUMBER" desc="Time in seconds since anyone said something (user or system)."/>
+<sv id="timeSinceLastResource" value="0" type="NUMBER" desc="Time in seconds since the last resource link/video was given."/>
+<sv id="event" value="null" type="TEXT" desc="Name of last speech act said by the user and processed by the system."/>
+<sv id="lastNonNullSubdialog" value="null" type="TEXT" desc="Name of last sub-dialog executed by the system."/>
+<sv id="systemEvent" value="null" type="TEXT" desc="Name of the speech act last said by the system."/>
+<sv id="timerInterval" value="1" type="NUMBER" desc="Time in seconds between 2 consecutive timer events."/>
+<sv id="preferForms" value="true" type="BOOLEAN" desc="If true and a form is available for the current system speech act, the form will be selected by the NLG."/>
+<sv id="tmpEvent" value="null" type="TEXT" desc="Variable used to store the input event that generated one of the internal events (e.g. unhandled, ignore and loop)."/>
