@@ -35,9 +35,11 @@ import edu.usc.ict.nl.kb.cf.CFisLastNonNullTopic;
 import edu.usc.ict.nl.kb.cf.CFisQuestion;
 import edu.usc.ict.nl.kb.cf.CFlen;
 import edu.usc.ict.nl.kb.cf.CFmatch;
+import edu.usc.ict.nl.kb.cf.CFnewMap;
 import edu.usc.ict.nl.kb.cf.CFnluQuery;
 import edu.usc.ict.nl.kb.cf.CFnumToString;
 import edu.usc.ict.nl.kb.cf.CFnumberIPUs;
+import edu.usc.ict.nl.kb.cf.CFset;
 import edu.usc.ict.nl.kb.cf.CFtoUnit;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.kb.parser.FormulaGrammar;
@@ -70,11 +72,13 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFmatch());
 		addCustomFunction(new CFMin());
 		addCustomFunction(new CFnluQuery());
+		addCustomFunction(new CFnewMap());
 		addCustomFunction(new CFnumberIPUs());
 		addCustomFunction(new CFnumToString());
 		addCustomFunction(new CFPrint());
 		addCustomFunction(new CFRandom());
 		addCustomFunction(new CFRound());
+		addCustomFunction(new CFset());
 		addCustomFunction(new CFtoUnit());
 		addCustomFunction(new CFTrace());
 	}

@@ -36,17 +36,25 @@ public class CFget implements CustomFunctionInterface {
 		DialogueKBFormula arg2 = (DialogueKBFormula) f.getArg(2);
 		Object listArg=is.evaluate(arg1,context);
 		Object indexArg=is.evaluate(arg2,context);
-		List<Object> list=null;
-		int index=-1;
-		if (listArg instanceof List) list=(List)listArg;
-		if (indexArg instanceof Number) index=((Number) indexArg).intValue();
-		if (list!=null && index>=0 && index<list.size()) {
-			return list.get(index);
+		
+		if (listArg!=null) {
+			if (listArg instanceof List && indexArg!=null && indexArg instanceof Number) {
+				int index=((Number) indexArg).intValue();
+				List list=(List)listArg;
+				if (index>=0 && index<list.size()) {
+					return list.get(index);
+				}
+			} else if (listArg!=null && listArg instanceof Map) {
+				return ((Map)listArg).get(indexArg);
+			}
 		}
 		return null;
 	}
 	
-	private static final String name="get".toLowerCase();
+	private static final String getNameFromClass() {
+		return CFget.class.getSimpleName().toLowerCase().substring(2);
+	}
+	private static final String name=getNameFromClass();
 	@Override
 	public String getName() {return name;}
 	
