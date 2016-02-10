@@ -1,6 +1,5 @@
 package edu.usc.ict.nl.kb;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,8 +7,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -21,52 +18,13 @@ import edu.usc.ict.nl.kb.DialogueKBFormula.CmpOp;
 import edu.usc.ict.nl.kb.DialogueKBFormula.NumOp;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
+import edu.usc.ict.nl.kb.internal.PropositionalKB;
 import edu.usc.ict.nl.util.graph.Edge;
 import edu.usc.ict.nl.utils.FloatAndLongUtils;
 
 public class TrivialDialogueKB extends DialogueKB {
 	
-	public class InternalKB {
-		Map<String,Object> variables;
-		public InternalKB() {
-			variables=new HashMap<String, Object>();
-		}
-		public void put(DialogueKBFormula f,Object v) {
-			String name=f.getName();
-			name=normalizeNames(name);
-			Logger logger=(dm!=null)?dm.getLogger():null;
-			if (f.isConstant() && getTracing(f.getName())) {
-				Object oldValue=variables.get(name);
-				if (oldValue!=v)
-					logger.info("######Variable '"+name+"'(original: "+f+")"+" in KB "+getName()+" changed value from "+oldValue+" to "+v+".");
-			}
-			variables.put(name, v);
-		}
-		public boolean containsKey(DialogueKBFormula f) {
-			String name=f.getName();
-			name=normalizeNames(name);
-			return variables.containsKey(name);
-		}
-		public Object get(DialogueKBFormula f) {
-			String name=f.getName();
-			name=normalizeNames(name);
-			return variables.get(name);
-		}
-		public boolean containsKey(String fs) {
-			return variables.containsKey(fs);
-		}
-		public Object get(String fs) {
-			return variables.get(fs);
-		}
-		public void remove(String fs) {
-			variables.remove(fs);
-		}
-		public void clear() {
-			variables.clear();
-		}
-	}
-
-	private InternalKB kb;
+	private PropositionalKB kb;
 	private DialogueKB inheritedKB;
 	private Collection<DialogueKB> inheritedByKBs;
 	private LinkedHashSet<DialogueOperatorEffect> rulesKB;
@@ -85,7 +43,7 @@ public class TrivialDialogueKB extends DialogueKB {
 	public TrivialDialogueKB(DM dm) {
 		super(dm);
 		name=toString();
-		kb=new InternalKB();
+		kb=new PropositionalKB(this);
 		rulesKB=new LinkedHashSet<DialogueOperatorEffect>();
 		setParent(null);
 	}
@@ -141,12 +99,20 @@ public class TrivialDialogueKB extends DialogueKB {
 				}
 				if (e.isAssertion()) {
 					DialogueKBFormula f=e.getAssertedFormula();
+					String name=(f.getArgCount()>0)?f.toString():f.getName();
 					if (type==ACCESSTYPE.AUTO_OVERWRITETHIS || type==ACCESSTYPE.AUTO_NEW) {
-						retKB.setValueOfVariable(f.getName(), e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITETHIS);
+						if (f.getArgCount()>0) {
+							retKB.setValueOfPredication(f, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITETHIS);
+						} else {
+							retKB.setValueOfVariable(name, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITETHIS);
+						}
 					} else {
-						retKB.setValueOfVariable(f.getName(), e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITEAUTO);
+						if (f.getArgCount()>0) {
+							retKB.setValueOfPredication(f, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITEAUTO);
+						} else {
+							retKB.setValueOfVariable(name, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITEAUTO);
+						}
 					}
-					//retKB.kb.put(f, e.getAssertionSign());
 				} else if (e.isAssignment()) {
 					DialogueKBFormula var=e.getAssignedVariable();
 					Object varValue=e.getAssignedExpression();
@@ -194,6 +160,9 @@ public class TrivialDialogueKB extends DialogueKB {
 	
 	@Override
 	public boolean isSupportedFormulaToBeStored(DialogueOperatorEffect e) {
+		if (e.isAssignment()) {
+			return e.getAssignedVariable().getArgCount()==0;
+		}
 		return !e.isGoalAchievement();
 	}
 	@Override public DialogueKB getParent() {return inheritedKB;}
@@ -214,6 +183,7 @@ public class TrivialDialogueKB extends DialogueKB {
 		//inheritedByKBs.add(c);
 	}
 
+	@Override
 	public Boolean isTrueInKB(DialogueKBFormula f,EvalContext context) throws Exception {
 		DialogueKBInterface parent;
 		if (kb.containsKey(f)) {
@@ -273,11 +243,13 @@ public class TrivialDialogueKB extends DialogueKB {
 			else return null;
 		} else return null;
 	}
+	@Override
 	public Object evaluate(Object f,EvalContext context) throws Exception {
 		if (f instanceof DialogueKBFormula) return evaluate((DialogueKBFormula) f,context);
 		else if (f instanceof DialogueOperatorEffect) return evaluate((DialogueOperatorEffect) f,context);
 		else return f;
 	}
+	@Override
 	public Object evaluate(DialogueKBFormula f,EvalContext context) throws Exception {
 		//if (cache.containsKey(f)) return cache.get(f);
 		//else {
@@ -295,8 +267,8 @@ public class TrivialDialogueKB extends DialogueKB {
 			//else return f.getName();
 			return f.getName();
 		}
-		else if (f.isVariable()) {
-			Object v=getValueOfVariable(f.getName(),ACCESSTYPE.AUTO_OVERWRITEAUTO,context);
+		else if (f.isPredication()) {
+			Object v=getValueOfPredication(f,ACCESSTYPE.AUTO_OVERWRITEAUTO,context);
 			if (v instanceof DialogueKBFormula) return evaluate((DialogueKBFormula) v,context);
 			else return v;
 		}
@@ -361,7 +333,7 @@ public class TrivialDialogueKB extends DialogueKB {
 			} else return null;
 		} else throw new Exception("Called cutom formula evaluation on the non-custom formula: "+f);
 	}
-		
+	
 	public Boolean doComparison(Object v1,Object v2,CmpOp op) {
 		if (v1!=null && v2!=null && (v1 instanceof Number || v1 instanceof Number)) {
 			return doNumericComparison((Number) v1, (Number) v2, op);
@@ -415,7 +387,7 @@ public class TrivialDialogueKB extends DialogueKB {
 			if (value instanceof DialogueKBFormula) {
 				value=evaluate((DialogueKBFormula) value,null);
 			}
-			return hasVariableThisValue(e.getAssignedVariable().getName(), value,ACCESSTYPE.AUTO_OVERWRITEAUTO);
+			return hasPredicationThisValue(e.getAssignedVariable(), value,ACCESSTYPE.AUTO_OVERWRITEAUTO);
 		} else if (e.isImplication()) {
 			return doesItContainThisRule(e,ACCESSTYPE.AUTO_OVERWRITEAUTO);
 		} else if (e.isAssignmentList()) {
@@ -451,58 +423,59 @@ public class TrivialDialogueKB extends DialogueKB {
 	}
 
 	@Override
-	public void setValueOfVariableInKBNamed(String kbName, String vName,Object value) throws Exception {
-		DialogueKB kb=findFirstKBInHierarchyWithID(kbName);
-		if (kb!=null) kb.setValueOfVariable(vName, value, ACCESSTYPE.THIS_OVERWRITETHIS);
+	public DialogueKB setValueOfVariable(String vName, Object value, ACCESSTYPE type) throws Exception {
+		vName=normalizeNames(vName);
+		return setValueOfPredication(DialogueKBFormula.createVar(vName), value, type);
 	}
 	@Override
-	public DialogueKB setValueOfVariable(String vName, Object value,ACCESSTYPE type) throws Exception {
-		vName=normalizeNames(vName);
+	public DialogueKB setValueOfPredication(DialogueKBFormula f, Object value,ACCESSTYPE type) throws Exception {
 		DialogueKB retKB=null;
 		DialogueKB thisVarKB=null;
 		Boolean v=null;
 		switch (type) {
 		case AUTO_NEW:
-			v=hasVariableThisValue(vName, value, ACCESSTYPE.AUTO_OVERWRITEAUTO);
+			v=hasPredicationThisValue(f, value, ACCESSTYPE.AUTO_OVERWRITEAUTO);
 			retKB=this;
 			if (v==null || !v) {
 				retKB=new TrivialDialogueKB(this);
-				retKB.setValueOfVariable(vName, value, ACCESSTYPE.THIS_OVERWRITETHIS);
+				retKB.setValueOfPredication(f, value, ACCESSTYPE.THIS_OVERWRITETHIS);
 			}
 			return retKB;
 		case AUTO_OVERWRITEAUTO:
 		case AUTO_OVERWRITETHIS:
 			retKB=this;
 			if (type==ACCESSTYPE.AUTO_OVERWRITEAUTO) {
-				thisVarKB=findFirstKBInHierarchyThatContainsThisVariableName(vName);
+				thisVarKB=findFirstKBInHierarchyThatContainsThisPredication(f);
 				if (thisVarKB!=null) retKB=thisVarKB;
 			}
-			retKB.setValueOfVariable(vName, value, ACCESSTYPE.THIS_OVERWRITETHIS);
+			retKB.setValueOfPredication(f, value, ACCESSTYPE.THIS_OVERWRITETHIS);
 			return this;
 			// do the storing in current KB (THIS mode)
 		case THIS_OVERWRITETHIS:
 			if (kb!=null) {
-				if (getPropertyForVar(vName, PROPERTY.READONLY)) throw new Exception("trying to set a readonly variable: "+vName);
-				DialogueKBFormula var = DialogueKBFormula.create(vName,null);
+				if (f.isVariable()) {
+					String vName=f.getName();
+					if (getPropertyForVar(vName, PROPERTY.READONLY)) throw new Exception("trying to set a readonly variable: "+vName);
+				}
 				if (value instanceof DialogueKBFormula) {
-					kb.put(var, value);
+					kb.put(f, value);
 				} else if ((value instanceof Number) || (value instanceof String)) {
 					try {
-						DialogueKBFormula f=DialogueKBFormula.parse(value.toString());
-						kb.put(var, f);
+						DialogueKBFormula valuef=DialogueKBFormula.parse(value.toString());
+						kb.put(f, valuef);
 					} catch (Exception e) {
-						kb.put(var, value);
+						kb.put(f, value);
 					}
 				} else {
-					kb.put(var, value);
+					kb.put(f, value);
 				}
 			}
 			return this;
 		case THIS_NEW:
-			v=hasVariableThisValue(vName, value, ACCESSTYPE.THIS_OVERWRITETHIS);
+			v=hasPredicationThisValue(f, value, ACCESSTYPE.THIS_OVERWRITETHIS);
 			if (v==null || !v) {
 				retKB=new TrivialDialogueKB(this);
-				return retKB.setValueOfVariable(vName, value, ACCESSTYPE.THIS_OVERWRITETHIS);
+				return retKB.setValueOfPredication(f, value, ACCESSTYPE.THIS_OVERWRITETHIS);
 			}
 			return this;
 		default:
@@ -510,22 +483,31 @@ public class TrivialDialogueKB extends DialogueKB {
 		}
 	}
 	@Override
+	public Object getValueOfVariable(String vName, ACCESSTYPE type, EvalContext context) {
+		vName=normalizeNames(vName);
+		try {
+			return getValueOfPredication(DialogueKBFormula.createVar(vName), type, context);
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return null;
+	}
+	@Override
 	/**
 	 * finds the value of the first KB in the inheritance structure (including the initial KB) that contains the given variable
 	 */
-	public Object getValueOfVariable(String vName,ACCESSTYPE type,EvalContext context) {
-		vName=normalizeNames(vName);
+	public Object getValueOfPredication(DialogueKBFormula f,ACCESSTYPE type,EvalContext context) {
 		switch (type) {
 		case AUTO_NEW:
 		case AUTO_OVERWRITEAUTO:
 		case AUTO_OVERWRITETHIS:
-			DialogueKB thisVarKB=findFirstKBInHierarchyThatContainsThisVariableName(vName);
+			DialogueKB thisVarKB=findFirstKBInHierarchyThatContainsThisPredication(f);
 			if (context!=null) context.updateLowestKBUsed(thisVarKB);
-			if (thisVarKB!=null) return thisVarKB.getValueOfVariable(vName,ACCESSTYPE.THIS_OVERWRITETHIS,null);
+			if (thisVarKB!=null) return thisVarKB.getValueOfPredication(f,ACCESSTYPE.THIS_OVERWRITETHIS,null);
 			break;
 		case THIS_NEW:
 		case THIS_OVERWRITETHIS:
-			if (kb!=null && kb.containsKey(vName)) return kb.get(vName);
+			if (kb!=null && kb.containsKey(f)) return kb.get(f);
 			break;
 		}
 		return null;
@@ -549,6 +531,7 @@ public class TrivialDialogueKB extends DialogueKB {
 			throw new Exception("unsupported access type: "+type);
 		}
 	}
+	@Override
 	public DialogueKB findFirstKBInHierarchyThatContainsThisVariableName(String vName) {
 		if (kb!=null) {
 			vName=normalizeNames(vName);
@@ -561,33 +544,53 @@ public class TrivialDialogueKB extends DialogueKB {
 		} else return null;
 	}
 	@Override
-	public boolean hasVariableNamed(String vName,ACCESSTYPE type) {
-		vName=normalizeNames(vName);
+	public DialogueKB findFirstKBInHierarchyThatContainsThisPredication(DialogueKBFormula f) {
+		if (kb!=null) {
+			if (kb.containsKey(f)) return this;
+			else {
+				DialogueKBInterface parent=null;
+				if ((parent=getParent())!=null) return parent.findFirstKBInHierarchyThatContainsThisPredication(f);
+				else return null;
+			}
+		} else return null;
+	}
+	@Override
+	public boolean hasVariableNamed(String vName, ACCESSTYPE type) {
+		try {
+			vName=normalizeNames(vName);
+			return hasPredication(DialogueKBFormula.createVar(vName), type);
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return false;
+	}
+	@Override
+	public boolean hasPredication(DialogueKBFormula f,ACCESSTYPE type) {
 		switch (type) {
 		case AUTO_NEW:
 		case AUTO_OVERWRITETHIS:
 		case AUTO_OVERWRITEAUTO:
-			DialogueKB thisVarKB=findFirstKBInHierarchyThatContainsThisVariableName(vName);
+			DialogueKB thisVarKB=findFirstKBInHierarchyThatContainsThisPredication(f);
 			return thisVarKB!=null;
 		case THIS_NEW:
 		case THIS_OVERWRITETHIS:
-			return (kb!=null && kb.containsKey(vName));
+			return (kb!=null && kb.containsKey(f));
 		}
 		return false;
 	}
-	private Boolean hasVariableThisValue(String vName,Object value,ACCESSTYPE type) {
-		vName=normalizeNames(vName);
+	private Boolean hasPredicationThisValue(DialogueKBFormula f,Object value,ACCESSTYPE type) {
+		//vName=normalizeNames(vName);
 		DialogueKB kb=this;
 		switch (type) {
 		case AUTO_NEW:
 		case AUTO_OVERWRITEAUTO:
 		case AUTO_OVERWRITETHIS:
-			kb=findFirstKBInHierarchyThatContainsThisVariableName(vName);
+			kb=findFirstKBInHierarchyThatContainsThisPredication(f);
 			if (kb==null) break;
 		case THIS_NEW:
 		case THIS_OVERWRITETHIS:
-			if (!kb.hasVariableNamed(vName,ACCESSTYPE.THIS_OVERWRITETHIS)) return null;
-			Object oldValue=kb.getValueOfVariable(vName,ACCESSTYPE.THIS_OVERWRITETHIS,null);
+			if (!kb.hasPredication(f,ACCESSTYPE.THIS_OVERWRITETHIS)) return null;
+			Object oldValue=kb.getValueOfPredication(f,ACCESSTYPE.THIS_OVERWRITETHIS,null);
 			if (oldValue==null) return value==oldValue;
 			else return oldValue.equals(value);
 		}
@@ -648,29 +651,13 @@ public class TrivialDialogueKB extends DialogueKB {
 	}
 	@Override
 	public Set<String> getAllVariablesInThisKB() {
-		Set<String> ret=null;
-		if (kb!=null && kb.variables!=null && !kb.variables.isEmpty()) {
-			for(String var:kb.variables.keySet()) {
-				if (ret==null) ret=new HashSet<String>();
-				ret.add(var);
-			}
-		}
-		return ret;
+		if (kb!=null) { return kb.getAllVariablesInThisKB();}
+		return null;
 	}
 	@Override
 	public Collection<DialogueOperatorEffect> dumpKB() throws Exception {
-		ArrayList<DialogueOperatorEffect> ret=null;
-		if (kb!=null) {
-			for(Entry<String, Object> cnt:kb.variables.entrySet()) {
-				if (ret==null) ret=new ArrayList<DialogueOperatorEffect>();
-				Object val=cnt.getValue();
-				String var=cnt.getKey();
-				DialogueOperatorEffect eff=DialogueOperatorEffect.createAssignment(DialogueKBFormula.createVar(var),val,false);
-				eff.setAssignmentProperties(getProperties(var));
-				ret.add(eff);
-			}
-		}
-		return ret;
+		if (kb!=null) return kb.dumpKB();
+		return null;
 	}
 	@Override
 	public void printKB(String indent) {
@@ -699,37 +686,6 @@ public class TrivialDialogueKB extends DialogueKB {
 	private void clearKB() {
 		if (kb!=null) kb.clear();
 		if (rulesKB!=null) rulesKB.clear();
-	}
-
-	public static void main(String[] args) throws Exception {
-		TrivialDialogueKB mykb = new TrivialDialogueKB();
-		TrivialDialogueKB mykb2 = new TrivialDialogueKB(mykb);
-		DialogueOperatorEffect f = DialogueOperatorEffect.parse("assign(b,2)");
-		mykb.store(f, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
-		DialogueKBFormula e3=DialogueKBFormula.create("b", null);
-		System.out.println(mykb.evaluate(e3,null));
-		DialogueOperatorEffect f2=DialogueOperatorEffect.createAssignment("a", DialogueKBFormula.parse("quote(known(b))"));
-		mykb.store(f2,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
-		DialogueKBFormula e4=DialogueKBFormula.create("a", null);
-		System.out.println(mykb.evaluate(e4,null));
-		
-		DialogueOperatorEffect e=DialogueOperatorEffect.createAssertion(DialogueKBFormula.create("test", null));
-		System.out.println(mykb.evaluate(e));
-		System.out.println(mykb.evaluate(e.getAssertedFormula(),null));
-		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
-		System.out.println(mykb.evaluate(e));
-		System.out.println(mykb.evaluate(e.getAssertedFormula(),null));
-		DialogueOperatorEffect e1=DialogueOperatorEffect.createAssertion(e.getAssertedFormula().negate());
-		DialogueOperatorEffect e2 = DialogueOperatorEffect.createAssertion(DialogueKBFormula.create("test2", null));
-		mykb2.store(e1,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
-		mykb.store(e2,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
-		System.out.println(mykb2.evaluate(e));
-		System.out.println(mykb2.evaluate(e.getAssertedFormula(),null));
-		System.out.println(mykb2.evaluate(e1));
-		System.out.println(mykb2.evaluate(e1.getAssertedFormula(),null));
-		System.out.println(mykb.evaluate(e2));
-		System.out.println(mykb2.evaluate(e2));
-		System.out.println(mykb.evaluate(DialogueKBFormula.parse("known(test)"),null));
 	}
 
 	@Override
@@ -818,5 +774,44 @@ public class TrivialDialogueKB extends DialogueKB {
 
 	@Override
 	public LinkedHashSet<DialogueOperatorEffect> getForwardInferenceRules() {return rulesKB;}
+
+	public static void main(String[] args) throws Exception {
+		TrivialDialogueKB mykb = new TrivialDialogueKB();
+		mykb.store(DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(a,P1,c)")), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		mykb.store(DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(a,P1,d)")), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		mykb.store(DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(b,P1,c)")), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		System.out.println(mykb.dumpKB());
+		DialogueKBFormula e8=DialogueKBFormula.parse("p(a,p1,d)");
+		System.out.println(mykb.evaluate(e8,null));
+		System.exit(0);
+		
+		TrivialDialogueKB mykb2 = new TrivialDialogueKB(mykb);
+		DialogueOperatorEffect f = DialogueOperatorEffect.parse("assign(b,2)");
+		mykb.store(f, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		DialogueKBFormula e3=DialogueKBFormula.create("b", null);
+		System.out.println(mykb.evaluate(e3,null));
+		DialogueOperatorEffect f2=DialogueOperatorEffect.createAssignment("a", DialogueKBFormula.parse("quote(known(b))"));
+		mykb.store(f2,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
+		DialogueKBFormula e4=DialogueKBFormula.create("a", null);
+		System.out.println(mykb.evaluate(e4,null));
+		
+		DialogueOperatorEffect e=DialogueOperatorEffect.createAssertion(DialogueKBFormula.create("test", null));
+		System.out.println(mykb.evaluate(e));
+		System.out.println(mykb.evaluate(e.getAssertedFormula(),null));
+		mykb.store(e,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
+		System.out.println(mykb.evaluate(e));
+		System.out.println(mykb.evaluate(e.getAssertedFormula(),null));
+		DialogueOperatorEffect e1=DialogueOperatorEffect.createAssertion(e.getAssertedFormula().negate());
+		DialogueOperatorEffect e2 = DialogueOperatorEffect.createAssertion(DialogueKBFormula.create("test2", null));
+		mykb2.store(e1,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
+		mykb.store(e2,ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
+		System.out.println(mykb2.evaluate(e));
+		System.out.println(mykb2.evaluate(e.getAssertedFormula(),null));
+		System.out.println(mykb2.evaluate(e1));
+		System.out.println(mykb2.evaluate(e1.getAssertedFormula(),null));
+		System.out.println(mykb.evaluate(e2));
+		System.out.println(mykb2.evaluate(e2));
+		System.out.println(mykb.evaluate(DialogueKBFormula.parse("known(test)"),null));
+	}
 
 }

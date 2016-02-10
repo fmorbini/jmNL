@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -33,9 +34,11 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 	protected DM dm=null;
 	protected Set<String> tracedConstants=null;
 	protected Map<String,VariableProperties> ps;
+	protected Logger logger;
 
 	public DialogueKB(DM dm) {
 		this.dm=dm;
+		this.logger=(dm!=null)?dm.getLogger():null;
 	}
 
 	@Override
@@ -43,6 +46,10 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 		return dm;
 	}
 
+	public Logger getLogger() {
+		return logger;
+	}
+	
 	@Override
 	public String normalizeNames(String name) {
 		DMConfig config = (dm!=null)?dm.getConfiguration():null;

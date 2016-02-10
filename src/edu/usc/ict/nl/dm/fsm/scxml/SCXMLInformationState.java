@@ -139,15 +139,35 @@ public class SCXMLInformationState extends DialogueKB {
 		Context c=exe.getRootContext();
 		return c.has(vName);
 	}
+	@Override
+	public boolean hasPredication(DialogueKBFormula f, ACCESSTYPE type) {
+		return hasVariableNamed(f.getName(), type);
+	}
 
 	@Override
 	public Object getValueOfVariable(String vName,ACCESSTYPE type,EvalContext context) {
 		Context c=exe.getRootContext();
 		return c.get(vName);
 	}
+	@Override
+	public Object getValueOfPredication(DialogueKBFormula f, ACCESSTYPE type, EvalContext context) {
+		return getValueOfVariable(f.getName(), type, context);
+	}
+
 
 	@Override
 	public DialogueKB findFirstKBInHierarchyThatContainsThisVariableName(String vName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public DialogueKB findFirstKBInHierarchyThatContainsThisPredication(DialogueKBFormula f) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DialogueKB findThisKBInHierarchy(DialogueKB kb) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -221,13 +241,8 @@ public class SCXMLInformationState extends DialogueKB {
 		return this;
 	}
 	@Override
-	public void setValueOfVariableInKBNamed(String kbName, String vName,Object value) throws Exception {
-		Map<String, TransitionTarget> states = exe.getStateMachine().getTargets();
-		TransitionTarget tt=states.get(kbName);
-		if (tt!=null) {
-			Context c=exe.getContext(tt);
-			c.set(vName, value);
-		}
+	public DialogueKB setValueOfPredication(DialogueKBFormula f, Object value, ACCESSTYPE type) throws Exception {
+		return setValueOfVariable(f.getName(), value, type);
 	}
 
 	@Override
@@ -290,9 +305,8 @@ public class SCXMLInformationState extends DialogueKB {
 		
 	}
 
-	@Override
-	public DialogueKB findThisKBInHierarchy(DialogueKB kb) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
+
+
+
 }

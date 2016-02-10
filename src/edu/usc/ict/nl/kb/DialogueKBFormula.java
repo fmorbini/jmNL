@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.cf.CFMin;
@@ -21,6 +22,7 @@ import edu.usc.ict.nl.kb.cf.CFPrint;
 import edu.usc.ict.nl.kb.cf.CFRandom;
 import edu.usc.ict.nl.kb.cf.CFRound;
 import edu.usc.ict.nl.kb.cf.CFTrace;
+import edu.usc.ict.nl.kb.cf.CFclear;
 import edu.usc.ict.nl.kb.cf.CFconcatenate;
 import edu.usc.ict.nl.kb.cf.CFcurrentTime;
 import edu.usc.ict.nl.kb.cf.CFfollows;
@@ -56,6 +58,7 @@ public class DialogueKBFormula extends Node {
 
 	private static final HashMap<String,CustomFunctionInterface> customFunctions=new HashMap<String, CustomFunctionInterface>();
 	static {
+		addCustomFunction(new CFclear());
 		addCustomFunction(new CFconcatenate());
 		addCustomFunction(new CFcurrentTime());
 		addCustomFunction(new CFfollows());
@@ -368,10 +371,9 @@ public class DialogueKBFormula extends Node {
 	public boolean isVariable() {
 		return isConstant() && !isNumber() && !isString() && !isTrivialFalsity() && !isTrivialTruth() && !isNull() && !isCustomFormula();
 	}
-	/*public boolean isVariable(DialogueKBInterface is) {
-		String cnst=getName();
-		return isConstant() && !isNumber() && !isString() && is.hasVariableNamed(cnst);
-	}*/
+	public boolean isPredication() {
+		return !isNumber() && !isString() && !isTrivialFalsity() && !isTrivialTruth() && !isNull() && !isCustomFormula();
+	}
 	public boolean isNegatedFormula() {return isLogicalFormula() && (getValue()==BooleanOp.NOT);}
 	public boolean isConjunction() {return isLogicalFormula() && getValue()==BooleanOp.AND;}
 	public boolean isCustomFormula() {return getType()==Type.CUSTOM;}
@@ -379,7 +381,9 @@ public class DialogueKBFormula extends Node {
 
 	@Override
 	public String toString() {
-		//System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+		return toString(null);
+	}
+	public String toString(DialogueKB kb) {
 		switch (getType()) {
 		case QUOTED:
 		case FALSE:
@@ -390,28 +394,38 @@ public class DialogueKBFormula extends Node {
 		case CUSTOM:
 		case NUMBER:
 			try {
-				return getName()+FunctionalLibrary.printCollection(getOutgoingEdges(),Edge.class.getMethod("getTarget"),"(", ")", ",");
+				String nname=kb!=null?kb.normalizeNames(getName()):getName();
+				List<Edge> edgs = getOutgoingEdges();
+				String children=(edgs!=null)?edgs.stream().map(s->((DialogueKBFormula)(s.getTarget())).toString(kb)).collect(Collectors.joining(",", "(", ")")):"";
+				return nname+children;
+				//return nname+FunctionalLibrary.printCollection(getOutgoingEdges(),Edge.class.getMethod("getTarget"),"(", ")", ",");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			return null;
 		case NUMPRED:
 			try {
-				return getTypeOfNumericOperator()+FunctionalLibrary.printCollection(getOutgoingEdges(),Edge.class.getMethod("getTarget"),"(", ")", ",");
+				List<Edge> edgs = getOutgoingEdges();
+				String children=(edgs!=null)?edgs.stream().map(s->((DialogueKBFormula)(s.getTarget())).toString(kb)).collect(Collectors.joining(",", "(", ")")):"";
+				return getTypeOfNumericOperator()+children;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			return null;
 		case CMP:
 			try {
-				return getTypeOfCMPOperator()+FunctionalLibrary.printCollection(getOutgoingEdges(),Edge.class.getMethod("getTarget"),"(", ")", ",");
+				List<Edge> edgs = getOutgoingEdges();
+				String children=(edgs!=null)?edgs.stream().map(s->((DialogueKBFormula)(s.getTarget())).toString(kb)).collect(Collectors.joining(",", "(", ")")):"";
+				return getTypeOfCMPOperator()+children;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			return null;
 		case BOOL:
 			try {
-				return normalizePredName(getName())+FunctionalLibrary.printCollection(getOutgoingEdges(),Edge.class.getMethod("getTarget"),"(", ")", ",");
+				List<Edge> edgs = getOutgoingEdges();
+				String children=(edgs!=null)?edgs.stream().map(s->((DialogueKBFormula)(s.getTarget())).toString(kb)).collect(Collectors.joining(",", "(", ")")):"";
+				return normalizePredName(getName())+children;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -431,7 +445,6 @@ public class DialogueKBFormula extends Node {
 	public static DialogueKBFormula parse(String fs) throws Exception {
 		fs=StringUtils.removeLeadingAndTrailingSpaces(fs);
 		if (!StringUtils.isEmptyString(fs)) {
-			//fs=fs.toLowerCase();
 			FormulaGrammar parser = new FormulaGrammar(new StringReader(fs));
 			return parser.formula();
 		} else return null;
@@ -612,6 +625,9 @@ public class DialogueKBFormula extends Node {
 	}
 
 	public static void main(String[] args) throws Exception {
+		DialogueKBFormula x=parse("P(a,b,c)");
+		System.out.println(x);
+		System.exit(0);
 		DialogueKBFormula rrr = parse("currentTime()");
 		System.out.println(rrr);
 		DialogueKBFormula f40 = parse("isQuestion(a)");

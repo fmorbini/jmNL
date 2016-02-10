@@ -44,7 +44,7 @@ public class CFget implements CustomFunctionInterface {
 				if (index>=0 && index<list.size()) {
 					return list.get(index);
 				}
-			} else if (listArg!=null && listArg instanceof Map) {
+			} else if (listArg instanceof Map) {
 				return ((Map)listArg).get(indexArg);
 			}
 		}

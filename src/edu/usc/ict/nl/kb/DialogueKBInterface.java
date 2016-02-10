@@ -8,6 +8,7 @@ import java.util.Set;
 
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
+import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 
 public interface DialogueKBInterface extends InformationStateInterface {
@@ -52,14 +53,30 @@ public interface DialogueKBInterface extends InformationStateInterface {
 	public DialogueKB findFirstKBInHierarchyWithID(String name);
 	public DialogueKB findThisKBInHierarchy(DialogueKB kb);
 	public boolean hasVariableNamed(String vName,ACCESSTYPE type);
+	public boolean hasPredication(DialogueKBFormula f,ACCESSTYPE type);
 	public void removeVariable(String vName,ACCESSTYPE type) throws Exception;
 	public Object getValueOfVariable(String vName,ACCESSTYPE type,EvalContext context);
+	public Object getValueOfPredication(DialogueKBFormula f,ACCESSTYPE type,EvalContext context);
 	public DialogueKB findFirstKBInHierarchyThatContainsThisVariableName(String vName);
+	public DialogueKB findFirstKBInHierarchyThatContainsThisPredication(DialogueKBFormula f);
+	/**
+	 * use this to assign a value to a variable
+	 * @param vName
+	 * @param value
+	 * @param type
+	 * @return
+	 * @throws Exception
+	 */
 	public DialogueKB setValueOfVariable(String vName,Object value,ACCESSTYPE type) throws Exception;
 	/**
-	 *  used primarely by the SCXML dialogue manager. this uses internally a THIS_OVERWRITE access mode
+	 * use this one to store a complex predication (assertion) as opposed to an assignment of a variable.
+	 * @param f
+	 * @param value
+	 * @param type
+	 * @return
+	 * @throws Exception
 	 */
-	public void setValueOfVariableInKBNamed(String name,String vName,Object value) throws Exception;
+	public DialogueKB setValueOfPredication(DialogueKBFormula f,Object value,ACCESSTYPE type) throws Exception;
 	public Boolean isTrueInKB(DialogueKBFormula f,EvalContext context) throws Exception;
 	public Set<String> getAllVariables() throws Exception;
 	public Set<String> getAllVariablesInThisKB() throws Exception;
@@ -86,4 +103,6 @@ public interface DialogueKBInterface extends InformationStateInterface {
 	public VariableProperties getProperties(String vName);
 	public void setPropertyForVar(String varName,PROPERTY p,Boolean value);
 	public void setProperties(String varName,VariableProperties properties);
+
+
 }

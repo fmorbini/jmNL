@@ -126,7 +126,6 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 		return createAssignment(left, value, true);		
 	}
 	public static DialogueOperatorEffect createAssignment(DialogueKBFormula left,Object value,boolean parseValue) throws Exception {
-		if (!left.isConstant()) throw new Exception("Invalid left hand side of assignment: "+left);
 		if (value!=null) { 
 			if (value instanceof String) {
 				String rightString=((String) value).toLowerCase();
@@ -147,6 +146,9 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 				else return DialogueOperatorEffect.createAssertion(left.negate());
 			}
 		}
+		//at this point all assertions have been dealt with and so we must have a standard assignment
+		//in which the left handside is a variable name.
+		if (!left.isConstant()) throw new Exception("Invalid left hand side of assignment: "+left);
 
 		DialogueOperatorEffect f=new DialogueOperatorEffect();
 		f.type=EffectType.ASSIGNMENT;
