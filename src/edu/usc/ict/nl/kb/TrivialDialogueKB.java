@@ -267,7 +267,7 @@ public class TrivialDialogueKB extends DialogueKB {
 			//else return f.getName();
 			return f.getName();
 		}
-		else if (f.isPredication()) {
+		else if (f.isVariable()) {
 			Object v=getValueOfPredication(f,ACCESSTYPE.AUTO_OVERWRITEAUTO,context);
 			if (v instanceof DialogueKBFormula) return evaluate((DialogueKBFormula) v,context);
 			else return v;

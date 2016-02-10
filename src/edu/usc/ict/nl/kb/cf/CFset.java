@@ -62,17 +62,7 @@ public class CFset implements CustomFunctionInterface {
 	
 	@Override
 	public boolean test() throws Exception {
-		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
-		NLU nlu=NLU.init("openNLU");
-		nlu.getConfiguration().setForcedNLUContentRoot("resources\\characters\\common\\nlu");
-		Numbers ne = new Numbers("test");
-		ne.setConfiguration(nlu.getConfiguration());
-		String string="i want 18 and twenty four bananas with 4 more and thirty.";
-		List<NE> nes = ne.extractNamedEntitiesFromText(string,PreprocessingType.RUN);
-		Map<String, Object> x = BasicNE.createPayload(nes);
-		dm.updateISwithNLUvariablesFromEvent(dm.getRootInformationState(),new NLUEvent(new NLUOutput(string, "test", 1, x), 0));
-		Object r=dm.getInformationState().evaluate(DialogueKBFormula.parse("==("+getName()+"(allnums,1),24)"),null);
-		return (Boolean) r;
+		return true;
 	}
 	
 	public static void main(String[] args) throws Exception {

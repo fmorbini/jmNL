@@ -7,6 +7,7 @@ import java.util.Map;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.modules.NLU;
 import edu.usc.ict.nl.config.DMConfig;
+import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
@@ -15,6 +16,8 @@ import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.ne.BasicNE;
 import edu.usc.ict.nl.nlu.ne.NE;
 import edu.usc.ict.nl.nlu.ne.Numbers;
+import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
+import edu.usc.ict.nl.nlu.preprocessing.normalization.EnglishWrittenNumbers2Digits;
 
 /**
  * 
@@ -50,10 +53,15 @@ public class CFlen implements CustomFunctionInterface {
 	public boolean test() throws Exception {
 		TestRewardDM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG);
 		NLU nlu=NLU.init("openNLU");
-		nlu.getConfiguration().setForcedNLUContentRoot("resources\\characters\\common\\nlu");
+		nlu.getConfiguration().setNlBusConfig(NLBusConfig.WIN_EXE_CONFIG);
+		nlu.getConfiguration().setForcedNLUContentRoot("resources\\characters\\CakeVendor\\");
 		Numbers ne = new Numbers("test");
 		ne.setConfiguration(nlu.getConfiguration());
 		String string="i want 18 and twenty four bananas with 4 more and thirty.";
+		TokenizerI tokenizer = nlu.getConfiguration().getNluTokenizer(PreprocessingType.RUN);
+		EnglishWrittenNumbers2Digits pr = new EnglishWrittenNumbers2Digits();
+		pr.setNlu(nlu);
+		string=tokenizer.untokenize(pr.normalize(tokenizer.tokenize1(string), PreprocessingType.RUN),null);
 		List<NE> nes = ne.extractNamedEntitiesFromText(string,PreprocessingType.RUN);
 		Map<String, Object> x = BasicNE.createPayload(nes);
 		dm.updateISwithNLUvariablesFromEvent(dm.getRootInformationState(),new NLUEvent(new NLUOutput(string, "test", 1, x), 0));
