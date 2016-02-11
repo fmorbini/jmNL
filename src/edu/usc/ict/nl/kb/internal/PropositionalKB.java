@@ -10,11 +10,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.StringField;
@@ -32,6 +29,8 @@ import org.apache.lucene.store.RAMDirectory;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
+import edu.usc.ict.nl.nlu.wikidata.WikiClaim;
+import edu.usc.ict.nl.nlu.wikidata.dumps.Queries;
 
 public class PropositionalKB {
 	/**
@@ -71,7 +70,7 @@ public class PropositionalKB {
 		try {
 			Document doc = new Document();
 			doc.add(new StringField(WHOLE, f.toString(wrapperKB), Store.YES));
-			doc.add(new StringField(RELATION, f.toString(wrapperKB), Store.YES));
+			doc.add(new StringField(RELATION, wrapperKB.normalizeNames(f.getName()), Store.YES));
 			doc.add(new StringField(VALUE, v.toString(), Store.YES));
 			int i=0;
 			for(DialogueKBFormula a:f.getAllArgs()) {
@@ -121,14 +120,21 @@ public class PropositionalKB {
 			try {
 				DirectoryReader newReader = getReader();
 				IndexSearcher searcher = new IndexSearcher(newReader);
-				Query q = queryParser.parse(WHOLE+": "+QueryParserUtil.escape(f.toString(wrapperKB)));
-				TopDocs result = searcher.search(q,1);
-				ScoreDoc[] hits = result.scoreDocs;
-				if (hits.length>0) {
-					Document doc = searcher.getIndexReader().document(hits[0].doc);
-					String v=doc.get(VALUE);
-					return Boolean.valueOf(v);
+
+				List<Arg> starArgs=null;
+				String query=RELATION+": "+f.getName();
+				int i=0;
+				for(DialogueKBFormula a:f.getAllArgs()) {
+					String name=a.getName();
+					if (!name.equals("?")) query+=" AND "+ARG+i+": "+a.getName();
+					else {
+						if (starArgs==null) starArgs=new ArrayList<>();
+						starArgs.add(new Arg(i,a));
+					}
+					i++;
 				}
+				if (starArgs==null) query=WHOLE+": "+QueryParserUtil.escape(f.toString(wrapperKB));
+				return find(query,Queries.MAXITEMS,starArgs);
 			} catch (Exception e) {
 				wrapperKB.getLogger().error(e);
 			}
@@ -139,6 +145,43 @@ public class PropositionalKB {
 		}
 		return null;
 	}
+	
+	public Object find(String query,int n,List<Arg> args) throws Exception {
+		DirectoryReader newReader = getReader();
+		IndexSearcher searcher = new IndexSearcher(newReader);
+		Query q = queryParser.parse(query);
+		//System.out.println("query: "+q.getClass()+" "+q);
+		int ln=Math.round((float)Math.log10(n));
+		ScoreDoc[] hits=null;
+		int sn=1;
+		for(int i=1;i<=ln;i++) {
+			sn=(i==ln)?n:sn*10;
+			TopDocs result = searcher.search(q,sn);
+			hits = result.scoreDocs;
+			if (hits.length<sn || args==null) break;
+		}
+		List<List<Arg>> ret=null;
+		for (int i = 0; i < hits.length; i++) {
+			Document doc = searcher.getIndexReader().document(hits[i].doc);
+			String v=doc.get(VALUE);
+			if (args!=null) {
+				List<Arg> ass=null;
+				for(Arg a:args) {
+					String av=doc.get(ARG+a.getPos());
+					if (ass==null) ass=new ArrayList<>();
+					ass.add(new Arg(a.getPos(),av));
+				}
+				if (ass!=null) {
+					if (ret==null) ret=new ArrayList<>();
+					ret.add(ass);
+				}
+			} else {
+				return Boolean.valueOf(v);
+			}
+		}
+		return ret;
+	}
+
 	
 	public boolean containsKey(String fs) {
 		return variables.containsKey(fs);
@@ -205,12 +248,5 @@ public class PropositionalKB {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		Analyzer analyzer = new WhitespaceAnalyzer();
-		TokenStream stream = analyzer.tokenStream("", "p(a,p1,d)");
-		stream.reset();
-		while (stream.incrementToken()) {
-	        String s=stream.getAttribute(CharTermAttribute.class).toString();
-	        System.out.println(s);
-		}
 	}
 }

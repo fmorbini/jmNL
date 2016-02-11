@@ -89,6 +89,8 @@ public class DialogueKBFormula extends Node {
 		customFunctions.put(cf.getName(),cf);
 	}
 
+	public static final String STARARG="?";
+	
 	private static final TrivialDialogueKB simplifyKB=new TrivialDialogueKB();
 
 	private enum BooleanOp {AND,OR,NOT};
@@ -359,6 +361,14 @@ public class DialogueKBFormula extends Node {
 	public boolean isNumber() {return getType()==Type.NUMBER;}
 	public boolean isString() {return getType()==Type.STRING;}
 	public boolean isQuoted() {return getType()==Type.QUOTED;}
+	public boolean isStar() {return isConstant() && getName().equals(STARARG);}
+	public boolean hasStarArgs() {
+		if (isPredication()) {
+			List<DialogueKBFormula> args = getAllArgs();
+			return (args!=null && !args.isEmpty() && args.stream().anyMatch(s->s.isStar()));
+		}
+		return false;
+	}
 	public Number getNumber() {
 		if (isNumber()) {
 			try {

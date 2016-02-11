@@ -4,11 +4,11 @@ import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
-import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 
 public interface DialogueKBInterface extends InformationStateInterface {
@@ -59,6 +59,9 @@ public interface DialogueKBInterface extends InformationStateInterface {
 	public Object getValueOfPredication(DialogueKBFormula f,ACCESSTYPE type,EvalContext context);
 	public DialogueKB findFirstKBInHierarchyThatContainsThisVariableName(String vName);
 	public DialogueKB findFirstKBInHierarchyThatContainsThisPredication(DialogueKBFormula f);
+
+	public List getSatisfyingArguments(DialogueKBFormula f,ACCESSTYPE type,EvalContext context);
+
 	/**
 	 * use this to assign a value to a variable
 	 * @param vName

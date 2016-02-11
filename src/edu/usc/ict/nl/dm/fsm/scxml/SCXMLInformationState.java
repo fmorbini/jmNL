@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -245,6 +246,12 @@ public class SCXMLInformationState extends DialogueKB {
 		return setValueOfVariable(f.getName(), value, type);
 	}
 
+	@Override
+	public List getSatisfyingArguments(DialogueKBFormula f, ACCESSTYPE type, EvalContext context) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	@Override
 	public Object get(String vName) {
 		return getValueOfVariable(vName,ACCESSTYPE.AUTO_OVERWRITEAUTO,null);

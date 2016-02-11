@@ -21,7 +21,7 @@ import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.util.FileUtils;
 
 public class Queries {
-	private static final int MAXITEMS=12000000;
+	public static final int MAXITEMS=12000000;
 	private LuceneWikidataSearch ri,rp;
 	private LuceneWikidataClaimsSearch rc;
 	public Queries() throws Exception {

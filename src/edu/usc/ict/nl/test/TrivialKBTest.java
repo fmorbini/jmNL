@@ -823,6 +823,35 @@ public class TrivialKBTest extends TestCase {
 		assertTrue(r instanceof Number);
 	}
 	
+
+	// evaluation of complex assertions
+	public void test17() throws Exception {
+		TrivialDialogueKB mykb = new TrivialDialogueKB();
+		TrivialDialogueKB mykb2 = new TrivialDialogueKB(mykb);
+		DialogueOperatorEffect e=DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(a,b)"));
+		mykb.store(e, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		e=DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(a,c)"));
+		mykb.store(e, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		e=DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(a,d)"));
+		mykb2.store(e, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		System.out.println(mykb2.dumpKBTree());
+		DialogueKBFormula f=DialogueKBFormula.parse("p(a,?)");
+		Object r=evaluate(mykb,f);
+		System.out.println(r);
+		r=evaluate(mykb2,f);
+		System.out.println(r);
+		f=DialogueKBFormula.parse("p(a,b)");
+		r=evaluate(mykb,f);
+		assertTrue((Boolean)r);
+		f=DialogueKBFormula.parse("P(A,b)");
+		r=evaluate(mykb,f);
+		assertTrue((Boolean)r);
+		// test P(a,b)
+		// test P(a,*) retrieve all instances of * for which the assertion is true
+		// test !P(a,b)
+		// test !P(a,*) (retrieve all instances of * for which the assertion is false. 
+	}
+
 	private DialogueKBFormula parseWithCheck(String fs) throws Exception {
 		DialogueKBFormula f=DialogueKBFormula.parse(fs);
 		assertTrue(f==DialogueKBFormula.parse(f.toString()));
@@ -834,7 +863,7 @@ public class TrivialKBTest extends TestCase {
 	
 	public static void main(String[] args) throws Exception {
 		TrivialKBTest t = new TrivialKBTest();
-		t.test16();
+		t.test17();
 		System.exit(0);
 	}
 }

@@ -161,7 +161,9 @@ public class TrivialDialogueKB extends DialogueKB {
 	@Override
 	public boolean isSupportedFormulaToBeStored(DialogueOperatorEffect e) {
 		if (e.isAssignment()) {
-			return e.getAssignedVariable().getArgCount()==0;
+			return e.getAssignedVariable().getArgCount()==0 && !e.getAssignedVariable().hasStarArgs();
+		} else if (e.isAssertion()) {
+			return !e.getAssertedFormula().hasStarArgs();
 		}
 		return !e.isGoalAchievement();
 	}
@@ -274,7 +276,12 @@ public class TrivialDialogueKB extends DialogueKB {
 		}
 		else if (f.isQuoted()) return (forSimplification)?null:f.getArg(1);
 		else if (f.isCustomFormula()) return evaluateCustomFormula(f, forSimplification,context);
-		else if (!f.isNumericFormula()) return evaluateLogicalFormula(f,forSimplification,context);
+		else if (f.isPredication()) {
+			if (f.hasStarArgs()) {
+				return getSatisfyingArguments(f, ACCESSTYPE.AUTO_OVERWRITEAUTO, context);
+			}
+			else return isTrueInKB(f, context);
+		} else if (!f.isNumericFormula()) return evaluateLogicalFormula(f,forSimplification,context);
 		else return evaluateNumericTerm(f,forSimplification,context);
 	}
 	private Boolean evaluateLogicalFormula(DialogueKBFormula f,EvalContext context) throws Exception {
@@ -508,6 +515,31 @@ public class TrivialDialogueKB extends DialogueKB {
 		case THIS_NEW:
 		case THIS_OVERWRITETHIS:
 			if (kb!=null && kb.containsKey(f)) return kb.get(f);
+			break;
+		}
+		return null;
+	}
+	
+	@Override
+	public List getSatisfyingArguments(DialogueKBFormula f, ACCESSTYPE type, EvalContext context) {
+		assert(f.hasStarArgs());
+		switch (type) {
+		case AUTO_NEW:
+		case AUTO_OVERWRITEAUTO:
+		case AUTO_OVERWRITETHIS:
+			DialogueKB ckb=this;
+			List ret=null;
+			do {
+				List list = ckb.getSatisfyingArguments(f, ACCESSTYPE.THIS_OVERWRITETHIS, context);
+				if (list!=null) {
+					if (ret==null) ret=list;
+					else ret.addAll(list);
+				}
+			} while ((ckb=ckb.getParent())!=null);
+			return ret;
+		case THIS_NEW:
+		case THIS_OVERWRITETHIS:
+			if (kb!=null) return (List)kb.get(f);
 			break;
 		}
 		return null;
