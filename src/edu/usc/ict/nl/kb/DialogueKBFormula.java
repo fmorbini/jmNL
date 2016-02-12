@@ -25,6 +25,7 @@ import edu.usc.ict.nl.kb.cf.CFTrace;
 import edu.usc.ict.nl.kb.cf.CFclear;
 import edu.usc.ict.nl.kb.cf.CFconcatenate;
 import edu.usc.ict.nl.kb.cf.CFcurrentTime;
+import edu.usc.ict.nl.kb.cf.CFexists;
 import edu.usc.ict.nl.kb.cf.CFfollows;
 import edu.usc.ict.nl.kb.cf.CFget;
 import edu.usc.ict.nl.kb.cf.CFgetLastTimeMark;
@@ -64,6 +65,7 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFclear());
 		addCustomFunction(new CFconcatenate());
 		addCustomFunction(new CFcurrentTime());
+		addCustomFunction(new CFexists());
 		addCustomFunction(new CFfollows());
 		addCustomFunction(new CFif());
 		addCustomFunction(new CFintersect());
