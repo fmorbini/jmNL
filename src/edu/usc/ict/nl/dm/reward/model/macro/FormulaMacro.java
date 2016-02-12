@@ -25,8 +25,7 @@ public class FormulaMacro extends Macro {
 	 */
 	public DialogueKBFormula generateSubstituteFormula(DialogueKBFormula f) throws Exception {
 		Map<DialogueKBFormula,DialogueKBFormula> argMap=getArgumentsMapping(formulaToSubstitute,f);
-		applySubstitutions(substitution,argMap);
-		return null;
+		return applySubstitutions(substitution,argMap);
 	}
 
 	private DialogueKBFormula applySubstitutions(DialogueKBFormula f, Map<DialogueKBFormula, DialogueKBFormula> argMap) throws Exception {
@@ -38,15 +37,15 @@ public class FormulaMacro extends Macro {
 		} else return f;
 	}
 
-	private List<DialogueKBFormula> applySubstitutionsToArgs(List<DialogueKBFormula> args,Map<DialogueKBFormula, DialogueKBFormula> argMap) {
+	private List<DialogueKBFormula> applySubstitutionsToArgs(List<DialogueKBFormula> args,Map<DialogueKBFormula, DialogueKBFormula> argMap) throws Exception {
 		List<DialogueKBFormula> ret=args;
 		if (args!=null && !args.isEmpty() && argMap!=null && !argMap.isEmpty()) {
 			boolean changed=false;
 			int l=args.size();
 			for(int i=0;i<l;i++) {
 				DialogueKBFormula a=args.get(i);
-				DialogueKBFormula s=argMap.get(a);
-				if (s!=null) {
+				DialogueKBFormula s=applySubstitutions(a,argMap);
+				if (a!=s) {
 					if (!changed) {
 						ret=new ArrayList<>(ret.subList(0, i));
 						changed=true;
@@ -77,6 +76,13 @@ public class FormulaMacro extends Macro {
 			} else throw new Exception("invalid use. source and target don't match.");
 		}
 		return ret;
+	}
+
+	public int getArgCount() {
+		if (formulaToSubstitute!=null) {
+			return formulaToSubstitute.getArgCount();
+		}
+		return -1;
 	}
 
 }

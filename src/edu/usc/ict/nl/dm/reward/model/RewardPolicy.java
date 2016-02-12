@@ -197,6 +197,7 @@ public class RewardPolicy {
 		return p;
 	}
 	public RewardPolicy parseDialoguePolicyFile(String fileName,RewardPolicy dp) throws Exception {
+		MacroRepository.clear();
 		File f=FileUtils.getFileFromStringInResources(fileName);
 		Document doc = XMLUtils.parseXMLFile(f, true, true);
 		Node rootNode = doc.getDocumentElement();

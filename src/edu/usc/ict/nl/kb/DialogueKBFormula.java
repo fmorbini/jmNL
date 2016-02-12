@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.kb;
 
+import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -156,11 +157,11 @@ public class DialogueKBFormula extends Node {
 		}
 		if ((args!=null) && (!args.isEmpty())) {
 			DialogueKBFormula f=getFormulaForArguments(pred,predElement,args,args.iterator());
-			f=f.simplify();
-			Macro m=MacroRepository.getMacro(f.getName());
+			Macro m=MacroRepository.getMacro(f.getName(),f.getArgCount());
 			if (m!=null && m instanceof FormulaMacro) {
 				f=((FormulaMacro)m).generateSubstituteFormula(f);
 			}
+			f=f.simplify();
 			return f;
 		} else return predElement.completeF;
 	}
@@ -651,7 +652,11 @@ public class DialogueKBFormula extends Node {
 	}
 
 	public static void main(String[] args) throws Exception {
-		DialogueKBFormula x=parse("P(a,b,c)");
+		MacroRepository.loadFromXML(new File("C:\\Users\\morbini\\jmNL\\resources\\story\\Story\\dm\\macros.xml"));
+		DialogueKBFormula x=parse("and(test(ddd),test(a),test(b),nothing,nothing(c))");
+		System.out.println(x);
+		MacroRepository.block();
+		x=parse("and(test(ddd),test(a),test(b))");
 		System.out.println(x);
 		System.exit(0);
 		DialogueKBFormula rrr = parse("currentTime()");
