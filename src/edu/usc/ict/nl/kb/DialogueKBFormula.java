@@ -16,6 +16,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import edu.usc.ict.nl.dm.reward.model.macro.FormulaMacro;
+import edu.usc.ict.nl.dm.reward.model.macro.Macro;
+import edu.usc.ict.nl.dm.reward.model.macro.MacroRepository;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.kb.cf.CFMin;
 import edu.usc.ict.nl.kb.cf.CFPrint;
@@ -50,7 +53,6 @@ import edu.usc.ict.nl.kb.cf.CFunion;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.kb.parser.FormulaGrammar;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
-import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.NumberUtils;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
@@ -107,6 +109,8 @@ public class DialogueKBFormula extends Node {
 	public enum Type {BOOL,NUMBER,STRING,PRED,NUMPRED,CMP,TRUE,FALSE,QUOTED,NULL,CUSTOM};
 	private Type type;
 
+	private static final Map<String,Macro> macros=new HashMap<String,Macro>();
+	
 	protected static HashMap<String,LTS> basicElements=new HashMap<String, LTS>();
 
 	public static DialogueKBFormula trueFormula,falseFormula,nullFormula;
@@ -153,6 +157,10 @@ public class DialogueKBFormula extends Node {
 		if ((args!=null) && (!args.isEmpty())) {
 			DialogueKBFormula f=getFormulaForArguments(pred,predElement,args,args.iterator());
 			f=f.simplify();
+			Macro m=MacroRepository.getMacro(f.getName());
+			if (m!=null && m instanceof FormulaMacro) {
+				f=((FormulaMacro)m).generateSubstituteFormula(f);
+			}
 			return f;
 		} else return predElement.completeF;
 	}

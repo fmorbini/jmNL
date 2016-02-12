@@ -3,6 +3,7 @@ package edu.usc.ict.nl.dm.reward.model.textFormat;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.Stack;
 import java.util.LinkedHashSet;
@@ -13,6 +14,9 @@ import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import edu.usc.ict.nl.dm.reward.model.macro.MacroRepository;
+import edu.usc.ict.nl.dm.reward.model.macro.Macro;
+import edu.usc.ict.nl.dm.reward.model.macro.EventMacro;
 
 /** Simple brace matcher. */
 public class TextFormatGrammar implements TextFormatGrammarConstants {
@@ -23,7 +27,6 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
   private static String getStateName(int n) {return prefix+n;}
   private static HashMap<Integer,String> allStates=new HashMap<Integer,String>();
   private static final int endState=getID();
-  private HashMap<String,String> userMacros=null;
 
   private static final Pattern eventStringMacro=Pattern.compile("^[\u005c\u005cs]*[Oo][Rr][\u005c\u005cs]*\u005c\u005c((.+)\u005c\u005c)[\u005c\u005cs]*$");
   private List<String> getEvents(String es) {
@@ -43,16 +46,16 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         } else {
                 ret.add(StringUtils.cleanupSpaces(es));
         }
-        if (ret!=null && !ret.isEmpty() && userMacros!=null) {
+        if (ret!=null && !ret.isEmpty()) {
                         Set<String> noRepeats=new LinkedHashSet<String>();
                 Stack<String> events=new Stack<String>();
                 events.addAll(ret);
 
                 while(!events.isEmpty()) {
                         String e=events.pop();
-                        String macro=getMacroFor(e);
-                        if (!StringUtils.isEmptyString(macro)) {
-                                events.addAll(getEvents(macro));
+                        Macro macro=getMacroFor(e);
+                        if (macro!=null && macro instanceof EventMacro) {
+                                events.addAll(getEvents(((EventMacro)macro).getSubstitution()));
                         } else noRepeats.add(e);
                 }
                 ret.clear();
@@ -61,8 +64,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         return ret;
   }
 
-  public void setUserMacros(HashMap<String,String> macros) {userMacros=macros;}
-  private String getMacroFor(String e) {return (userMacros!=null)?userMacros.get(e):null;}
+  private Macro getMacroFor(String e) {return MacroRepository.getMacro(e);}
 
   private static void addTransitionToState(int sn,DialogueKBFormula cnd,int target,int line) throws ParseException {
         canAddOutgoingTransitionToState(sn,line);

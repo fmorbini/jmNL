@@ -2,6 +2,7 @@
 package edu.usc.ict.nl.dm.reward.model.textFormat;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.Stack;
 import java.util.LinkedHashSet;
@@ -12,6 +13,9 @@ import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import edu.usc.ict.nl.dm.reward.model.macro.MacroRepository;
+import edu.usc.ict.nl.dm.reward.model.macro.Macro;
+import edu.usc.ict.nl.dm.reward.model.macro.EventMacro;
 
 /** Token Manager. */
 public class TextFormatGrammarTokenManager implements TextFormatGrammarConstants

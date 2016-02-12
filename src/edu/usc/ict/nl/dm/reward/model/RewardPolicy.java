@@ -3,7 +3,6 @@ package edu.usc.ict.nl.dm.reward.model;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -22,8 +21,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -41,6 +38,9 @@ import edu.usc.ict.nl.bus.modules.NLUInterface;
 import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.dm.reward.matcher.EventMatcher;
+import edu.usc.ict.nl.dm.reward.model.macro.EventMacro;
+import edu.usc.ict.nl.dm.reward.model.macro.FormulaMacro;
+import edu.usc.ict.nl.dm.reward.model.macro.MacroRepository;
 import edu.usc.ict.nl.dm.reward.model.textFormat.TextFormatGrammar;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
@@ -219,7 +219,7 @@ public class RewardPolicy {
 						operatorsToBeAdded.add(o);
 					}
 					else throw new Exception("parse of operator failed: "+XMLUtils.prettyPrintDom(c, " ", true, true));
-				} else if (isInitsNode(c)) {
+				} else if (isInitsNode(c) || isMacrosNode(c)) {
 					cs = c.getChildNodes();
 					for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
 				} else if (isInitNode(c)) {
@@ -231,6 +231,26 @@ public class RewardPolicy {
 						if (initIS==null) initIS=new ArrayList<DialogueOperatorEffect>();
 						initIS.add(eff);
 					} else throw new Exception("Problem with IS initialization expr: "+XMLUtils.prettyPrintDom(c, " ", true, true));
+				} else if (isEventMacroNode(c)) {
+					String left=getLeftNodeValue(childAtt);
+					String right=getRightNodeValue(childAtt);
+					if (!StringUtils.isEmptyString(left) && !StringUtils.isEmptyString(right)) {
+						if (MacroRepository.containsMacro(left)) logger.warn("overwriting macro for: '"+left+"' with event macro '"+right+"'");
+						MacroRepository.addMacro(left, new EventMacro(left,right));
+					}
+				} else if (isFormulatMacroNode(c)) {
+					String left=getLeftNodeValue(childAtt);
+					String right=getRightNodeValue(childAtt);
+					try {
+						DialogueKBFormula leftf=DialogueKBFormula.parse(left);
+						DialogueKBFormula rightf=DialogueKBFormula.parse(right);
+						if (leftf!=null && rightf!=null) {
+							if (MacroRepository.containsMacro(leftf.getName())) logger.warn("overwriting macro for: '"+left+"' with formula macro '"+right+"'");
+							MacroRepository.addMacro(leftf.getName(), new FormulaMacro(leftf,rightf));
+						}
+					} catch (Exception e) {
+						logger.error("error parsing macro: '"+left+"' => '"+right+"'");
+					}
 				} else if (isGoalsNode(c)) {
 					cs = c.getChildNodes();
 					for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
@@ -257,8 +277,8 @@ public class RewardPolicy {
 				} else if (isStepLossNode(c)) {
 					dp.setStepLoss(getStepLossNodeValue(childAtt));
 				} else if (isIncludeTxtFormatNode(c)) {
-					HashMap<String,String> macros=readUserMacros(getIncludeTxtFormatMacroFile(childAtt));
-					dp.importTxtFormat(getIncludeTxtFormatNodeValue(childAtt),macros,c,q);
+					if (!StringUtils.isEmptyString(getIncludeTxtFormatMacroFile(childAtt))) throw new Exception("Old macro format detected. Change to new format (xml file).");
+					dp.importTxtFormat(getIncludeTxtFormatNodeValue(childAtt),c,q);
 				} else if (c.getNodeType()==Node.COMMENT_NODE) {
 					//TODO: should save the comment too so that it can be printed back
 				} else {
@@ -282,27 +302,7 @@ public class RewardPolicy {
 		}
 		return null;
 	}
-	
-	private static final Pattern macroLinePattern=Pattern.compile("^[\\s]*([^\\s]+)\t(.*)$");
-	private HashMap<String, String> readUserMacros(String macroFile) throws IOException {
-		HashMap<String,String> ret=null;
-		if (macroFile!=null) {
-			BufferedReader in=new BufferedReader(new FileReader(new File(getPolicyDirectory(),macroFile)));
-			String line;
-			while((line=in.readLine())!=null) {
-				Matcher m=macroLinePattern.matcher(line);
-				if (m.matches() && (m.groupCount()==2)) {
-					String name=m.group(1);
-					String macro=m.group(2);
-					if (!StringUtils.isEmptyString(name) && !StringUtils.isEmptyString(macro)) {
-						if (ret==null) ret=new HashMap<String, String>();
-						ret.put(name, macro);
-					}
-				}
-			}
-		}
-		return ret;
-	}
+
 	private void removeTheseUsedVarsFromThisSet(Set<DialogueKBFormula> used,Set<String> total) {
 		if (used!=null && total!=null) {
 			for(DialogueKBFormula u:used) {
@@ -705,12 +705,11 @@ public class RewardPolicy {
 		}
 		return found;
 	}
-	private void importTxtFormat(String fileName,HashMap<String,String> macros, Node sourceNode, Queue<Node> q) throws Exception {
+	private void importTxtFormat(String fileName, Node sourceNode, Queue<Node> q) throws Exception {
 		try {
 			File f=new File(getPolicyDirectory(),fileName);
 			
 			TextFormatGrammar parser = new TextFormatGrammar(new FileInputStream(f));
-			if (macros!=null) parser.setUserMacros(macros);
 			String result;
 			//System.out.println(f);
 			result = parser.Input();
@@ -1006,6 +1005,26 @@ public class RewardPolicy {
 	}
 	public static String getInitNodeValue(NamedNodeMap att) {
 		Node node = att.getNamedItem(XMLConstants.EXPRID);
+		if (node!=null) return StringUtils.cleanupSpaces(node.getNodeValue());
+		else return null;
+	}
+	
+	public static boolean isMacrosNode(Node c) {
+		return (c.getNodeType()==Node.ELEMENT_NODE) && c.getNodeName().toLowerCase().equals(XMLConstants.MACROSID);
+	}
+	public static boolean isEventMacroNode(Node c) {
+		return (c.getNodeType()==Node.ELEMENT_NODE) && c.getNodeName().toLowerCase().equals(XMLConstants.EVENTMACROID);
+	}
+	public static boolean isFormulatMacroNode(Node c) {
+		return (c.getNodeType()==Node.ELEMENT_NODE) && c.getNodeName().toLowerCase().equals(XMLConstants.FORMULAMACROID);
+	}
+	public static String getLeftNodeValue(NamedNodeMap att) {
+		Node node = att.getNamedItem(XMLConstants.LEFTID);
+		if (node!=null) return StringUtils.cleanupSpaces(node.getNodeValue());
+		else return null;
+	}
+	public static String getRightNodeValue(NamedNodeMap att) {
+		Node node = att.getNamedItem(XMLConstants.RIGHTID);
 		if (node!=null) return StringUtils.cleanupSpaces(node.getNodeValue());
 		else return null;
 	}

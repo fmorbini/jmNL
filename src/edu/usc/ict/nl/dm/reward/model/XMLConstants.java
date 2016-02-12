@@ -93,4 +93,9 @@ public class XMLConstants {
 	public static final String SCOREID = "score";
 	public static final String TRIAGEID = "triage";
 
+	public static final String MACROSID = "macros";
+	public static final String FORMULAMACROID = "formulamacro";
+	public static final String EVENTMACROID = "eventmacro";
+	public static final String LEFTID = "left";
+	public static final String RIGHTID = "right";
 }

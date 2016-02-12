@@ -809,6 +809,9 @@ public class TrivialDialogueKB extends DialogueKB {
 
 	public static void main(String[] args) throws Exception {
 		TrivialDialogueKB mykb = new TrivialDialogueKB();
+		DialogueOperatorEffect e23=DialogueOperatorEffect.createAssignment(DialogueKBFormula.parse("tellAvailable(topic)"),DialogueKBFormula.parse("quote(exists(x,question(topic,?),!known(answered('self',x))))"));
+		mykb.store(e23, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		
 		mykb.store(DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(a,P1,c)")), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 		mykb.store(DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(a,P1,d)")), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 		mykb.store(DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("P(b,P1,c)")), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
