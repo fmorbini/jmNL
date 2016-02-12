@@ -30,6 +30,7 @@ import edu.usc.ict.nl.kb.cf.CFget;
 import edu.usc.ict.nl.kb.cf.CFgetLastTimeMark;
 import edu.usc.ict.nl.kb.cf.CFhasBeenInterrupted;
 import edu.usc.ict.nl.kb.cf.CFif;
+import edu.usc.ict.nl.kb.cf.CFintersect;
 import edu.usc.ict.nl.kb.cf.CFisCurrentTopic;
 import edu.usc.ict.nl.kb.cf.CFisInterruptible;
 import edu.usc.ict.nl.kb.cf.CFisKnown;
@@ -42,7 +43,9 @@ import edu.usc.ict.nl.kb.cf.CFnluQuery;
 import edu.usc.ict.nl.kb.cf.CFnumToString;
 import edu.usc.ict.nl.kb.cf.CFnumberIPUs;
 import edu.usc.ict.nl.kb.cf.CFset;
+import edu.usc.ict.nl.kb.cf.CFsubtract;
 import edu.usc.ict.nl.kb.cf.CFtoUnit;
+import edu.usc.ict.nl.kb.cf.CFunion;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.kb.parser.FormulaGrammar;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
@@ -63,6 +66,7 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFcurrentTime());
 		addCustomFunction(new CFfollows());
 		addCustomFunction(new CFif());
+		addCustomFunction(new CFintersect());
 		addCustomFunction(new CFget());
 		addCustomFunction(new CFgetLastTimeMark());
 		addCustomFunction(new CFhasBeenInterrupted());
@@ -82,8 +86,10 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFRandom());
 		addCustomFunction(new CFRound());
 		addCustomFunction(new CFset());
+		addCustomFunction(new CFsubtract());
 		addCustomFunction(new CFtoUnit());
 		addCustomFunction(new CFTrace());
+		addCustomFunction(new CFunion());
 	}
 	public static void addCustomFunction(CustomFunctionInterface cf) {
 		customFunctions.put(cf.getName(),cf);

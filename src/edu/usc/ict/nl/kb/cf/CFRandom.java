@@ -16,7 +16,7 @@ import edu.usc.ict.nl.utils.FloatAndLongUtils;
 public class CFRandom implements CustomFunctionInterface {
 
 	private static final String name="random".toLowerCase();
-	private static SecureRandom rng=new SecureRandom(ByteBuffer.allocate(Long.SIZE/Byte.SIZE).putLong(System.currentTimeMillis()).array());
+	public static SecureRandom rng=new SecureRandom(ByteBuffer.allocate(Long.SIZE/Byte.SIZE).putLong(System.currentTimeMillis()).array());
 
 	@Override
 	public String getName() {return name;}

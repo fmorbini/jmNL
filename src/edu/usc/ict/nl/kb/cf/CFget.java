@@ -38,9 +38,14 @@ public class CFget implements CustomFunctionInterface {
 		Object indexArg=is.evaluate(arg2,context);
 		
 		if (listArg!=null) {
-			if (listArg instanceof List && indexArg!=null && indexArg instanceof Number) {
-				int index=((Number) indexArg).intValue();
+			if (listArg instanceof List && indexArg!=null) {
 				List list=(List)listArg;
+				int index=0;
+				if (indexArg instanceof Number) {
+					index=((Number) indexArg).intValue();
+				} else if (indexArg instanceof String) {
+					index=CFRandom.rng.nextInt(list.size());
+				}
 				if (index>=0 && index<list.size()) {
 					return list.get(index);
 				}
