@@ -47,6 +47,8 @@ import edu.usc.ict.nl.kb.cf.CFnewMap;
 import edu.usc.ict.nl.kb.cf.CFnluQuery;
 import edu.usc.ict.nl.kb.cf.CFnumToString;
 import edu.usc.ict.nl.kb.cf.CFnumberIPUs;
+import edu.usc.ict.nl.kb.cf.CFremoveIf;
+import edu.usc.ict.nl.kb.cf.CFremoveIfNot;
 import edu.usc.ict.nl.kb.cf.CFset;
 import edu.usc.ict.nl.kb.cf.CFsubtract;
 import edu.usc.ict.nl.kb.cf.CFtoUnit;
@@ -89,6 +91,8 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFnumToString());
 		addCustomFunction(new CFPrint());
 		addCustomFunction(new CFRandom());
+		addCustomFunction(new CFremoveIf());
+		addCustomFunction(new CFremoveIfNot());
 		addCustomFunction(new CFRound());
 		addCustomFunction(new CFset());
 		addCustomFunction(new CFsubtract());
