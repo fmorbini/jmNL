@@ -90,34 +90,27 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 	public List<DialogueOperatorEffect> getAssignmentList() {
 		return list;
 	}
+	public static DialogueOperatorEffect createAssertion(DialogueKBFormula left,boolean trueOrFalse) throws Exception {
+		DialogueOperatorEffect f=new DialogueOperatorEffect();
+		f.left=left;
+		f.right=trueOrFalse?DialogueKBFormula.trueFormula:DialogueKBFormula.falseFormula;
+		if (left.isConstant()) {
+			f.type=EffectType.ASSIGNMENT;
+		} else {
+			f.type=EffectType.ASSERTION;
+		}
+		return f;
+	}
 	public static DialogueOperatorEffect createAssertion(DialogueKBFormula left) throws Exception {
 		DialogueOperatorEffect f=new DialogueOperatorEffect();
 		left=left.normalize();
-		
-		if (left.isConstant()) {
-			f.type=EffectType.ASSIGNMENT;
-			f.left=left;
-			f.right=DialogueKBFormula.trueFormula;
-			return f;
-		} else if (left.isNegatedFormula()) {
-			DialogueKBFormula child=(DialogueKBFormula) left.getFirstChild();
-			if (child.isConstant()) {
-				f.type=EffectType.ASSIGNMENT;
-				f.left=child;
-				f.right=DialogueKBFormula.falseFormula;
-				return f;
-			}
-		}
-		
-		f.type=EffectType.ASSERTION;
+
 		if (left.isNegatedFormula()) {
-			left=(DialogueKBFormula) left.getFirstChild();
-			f.right=DialogueKBFormula.falseFormula;
+			DialogueKBFormula child=(DialogueKBFormula) left.getFirstChild();
+			return createAssertion(child, false);
 		} else {
-			f.right=DialogueKBFormula.trueFormula;
+			return createAssertion(left, true);
 		}
-		f.left=left;
-		return f;
 	}
 	public static DialogueOperatorEffect createAssignment(String varName,Object value) throws Exception {
 		return createAssignment(DialogueKBFormula.create(varName, null), value, true);
@@ -250,7 +243,10 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 	public String toString(boolean shortForm,String effectXmlName) {
 		String ret="";
 		if (shortForm) {
-			if (isAssertion()) ret+=XMLConstants.AssignmentID+"("+left+","+right+")";
+			if (isAssertion()) {
+				if (getAssertionSign())	ret+=XMLConstants.AssertID+"("+left+")";
+				else try {ret+=XMLConstants.AssertID+"("+left.negate()+")";}catch (Exception e) {}
+			}
 			else if (isAssignment()) ret+=XMLConstants.AssignmentID+"("+left+","+getAssignedExpression()+")";
 			else if (isGoalAchievement()) ret+=XMLConstants.GOALID+": "+goalName+((left!=null)?" "+XMLConstants.VALUEID+": "+left:"");
 			else if (isImplication()) ret+=XMLConstants.implyID+"("+left+","+value+","+implyElse+")";
@@ -268,7 +264,15 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 			else ret+="unknown effect"; 
 		} else {
 			ret="<"+effectXmlName+" ";
-			if (isAssertion()) ret+=XMLConstants.EXPRID+"=\""+XMLConstants.AssignmentID+"("+left+","+right+")\"";
+			if (isAssertion()) {
+				if (getAssertionSign()) {
+					ret+=XMLConstants.EXPRID+"=\""+XMLConstants.AssertID+"("+left+")\"";
+				} else {
+					try {
+						ret+=XMLConstants.EXPRID+"=\""+XMLConstants.AssertID+"("+left.negate()+")\"";
+					} catch (Exception e) {}
+				}
+			}
 			else if (isAssignmentList()) {
 				String list="";
 				boolean first=true;
@@ -533,7 +537,9 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 
 	public static void main(String[] args) throws Exception {
 		TrivialDialogueKB kb=new TrivialDialogueKB();
-		DialogueOperatorEffect f3 = parse("assert(or(a,b))");
+		DialogueOperatorEffect a = DialogueOperatorEffect.parse("assert(answered('other',currentQuestion))");
+		System.out.println(a.toString());
+		DialogueOperatorEffect f3 = parse("assert(answered('other',currentQuestion))");
 		kb.store(f3, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 		//f3=createAssertion(DialogueKBFormula.parse("and(a,b"));
 		//DialogueOperatorEffect f3 = parse("++q");

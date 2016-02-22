@@ -116,9 +116,9 @@ public class DialogueOperatorNodeTransition extends Edge {
 			tr.setCondition(cnd);
 		}
 		tr.setInterruptible(isInterruptible(attributes));
+		tr.setEvent(getEvent(attributes),o);
 		tr.setMustBeEvaluated(mustBeEvaluated(attributes));
 		if (getMustBeEvaluated()) {
-			tr.setEvent(getEvent(attributes),o);
 			tr.setEventToBeEvaluated(DialogueKBFormula.parse(tr.getEvent()));
 		}
 		tr.setDefaultWait(getDefaultWait(attributes));

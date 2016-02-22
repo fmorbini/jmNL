@@ -871,7 +871,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
                         } else {
                                 try {
                                         a=DialogueOperatorEffect.parse(action);
-                                        if (!a.isAssignment()) {if (true) throw new Exception();}
+                                        if (!a.isAssignment() && !a.isAssertion()) {if (true) throw new Exception();}
                                 } catch (Exception e) {{if (true) throw new ParseException("Invalid information state update: "+t1.image+" at line "+t1.beginLine+" column: "+t1.beginColumn);}}
                                 ret="<effect expr=\u005c""+a.toString()+"\u005c"/>";
                         }

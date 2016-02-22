@@ -170,11 +170,13 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 		if (effs!=null) {
 			for(DialogueOperatorEffect e:effs) {
 				DialogueKBFormula v = e.getAssignedVariable();
-				String name=v.getName();
-				if (excludeTheseVars==null || !excludeTheseVars.contains(name)) {
-					if (ret==null) ret=new ArrayList<VarChange>();
-					Object newValue=e.getAssignedExpression();
-					ret.add(new VarChange(e, null));
+				if (v!=null) {
+					String name=v.getName();
+					if (excludeTheseVars==null || !excludeTheseVars.contains(name)) {
+						if (ret==null) ret=new ArrayList<VarChange>();
+						Object newValue=e.getAssignedExpression();
+						ret.add(new VarChange(e, null));
+					}
 				}
 			}
 		}

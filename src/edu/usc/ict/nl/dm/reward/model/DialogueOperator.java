@@ -184,14 +184,18 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 				NodeList cs = n.getChildNodes();
 				for (int i = 0; i < cs.getLength(); i++) {
 					Node c = cs.item(i);
-					NamedNodeMap childAtt = c.getAttributes();
-					if (isEntranceConditionNode(c)) o.addEntranceConditionToOperator(getEntranceCondition(c,childAtt));
-					else if (isVarNode(c)) o.addLocalVarToOperator(c,childAtt);
-					else if (DialogueOperatorNode.isStateNode(c)) o.addStateToOperator(DialogueOperatorNode.parseState(c,childAtt,o));
-					else if (DialogueOperatorTopic.isTopicNode(c)) o.addTopicToOperator(DialogueOperatorTopic.getTopicName(childAtt));
-					else if (isForgetNode(c)) o.addForget(getForgetTime(childAtt),getForgetCnd(childAtt));
-					else if (isTurnTakingCndNode(c)) o.addTurnTakingCnd(getTurnTakingCnd(childAtt));
-					else if (isIgnoreVarNode(c)) o.addIgnoreVariable(getIgnoredVarName(childAtt,o));
+					try {
+						NamedNodeMap childAtt = c.getAttributes();
+						if (isEntranceConditionNode(c)) o.addEntranceConditionToOperator(getEntranceCondition(c,childAtt));
+						else if (isVarNode(c)) o.addLocalVarToOperator(c,childAtt);
+						else if (DialogueOperatorNode.isStateNode(c)) o.addStateToOperator(DialogueOperatorNode.parseState(c,childAtt,o));
+						else if (DialogueOperatorTopic.isTopicNode(c)) o.addTopicToOperator(DialogueOperatorTopic.getTopicName(childAtt));
+						else if (isForgetNode(c)) o.addForget(getForgetTime(childAtt),getForgetCnd(childAtt));
+						else if (isTurnTakingCndNode(c)) o.addTurnTakingCnd(getTurnTakingCnd(childAtt));
+						else if (isIgnoreVarNode(c)) o.addIgnoreVariable(getIgnoredVarName(childAtt,o));
+					} catch (Exception e) {
+						throw new Exception(e.getMessage()+" in child "+XMLUtils.prettyPrintDom(c, " ", true, true));
+					}
 				}
 				//System.out.println(XMLUtils.prettyPrintXMLString(o.toString(false)," ",true));
 				o.checkOperator();

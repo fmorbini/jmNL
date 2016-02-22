@@ -22,6 +22,7 @@ public class XMLConstants {
 	public static final String WAITID="wait";
 	public static final String AssignmentLISTID="assignlist";
 	public static final String AssignmentID="assign";
+	public static final String AssertID="assert";
 	public static final String implyID="imply";
 	public static final String EXPRID = "expr";
 	public static final String TOPICID="topic";

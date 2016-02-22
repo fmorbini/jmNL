@@ -500,7 +500,7 @@ void CurrentStateAnnotation(int cs,int ss,boolean isRoot):{
 			} else {
 				try {
 		 			a=DialogueOperatorEffect.parse(action);
-		 			if (!a.isAssignment()) throw new Exception();
+		 			if (!a.isAssignment() && !a.isAssertion()) throw new Exception();
 		 		} catch (Exception e) {throw new ParseException("Invalid information state update: "+t1.image+" at line "+t1.beginLine+" column: "+t1.beginColumn);}
 				ret="<effect expr=\""+a.toString()+"\"/>";
 			}
