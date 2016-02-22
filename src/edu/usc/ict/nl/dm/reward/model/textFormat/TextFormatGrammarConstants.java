@@ -41,55 +41,59 @@ public interface TextFormatGrammarConstants {
   /** RegularExpression Id. */
   int ISYSTEM = 23;
   /** RegularExpression Id. */
-  int WAIT = 24;
+  int ESYSTEM = 24;
   /** RegularExpression Id. */
-  int SYSWAIT = 25;
+  int EISYSTEM = 25;
   /** RegularExpression Id. */
-  int EC = 26;
+  int WAIT = 26;
   /** RegularExpression Id. */
-  int UI = 27;
+  int SYSWAIT = 27;
   /** RegularExpression Id. */
-  int SI = 28;
+  int EC = 28;
   /** RegularExpression Id. */
-  int GV = 29;
+  int UI = 29;
   /** RegularExpression Id. */
-  int RO = 30;
+  int SI = 30;
   /** RegularExpression Id. */
-  int IS = 31;
+  int GV = 31;
   /** RegularExpression Id. */
-  int NETWORK = 32;
+  int RO = 32;
   /** RegularExpression Id. */
-  int FINAL = 33;
+  int IS = 33;
   /** RegularExpression Id. */
-  int DAEMON = 34;
+  int NETWORK = 34;
   /** RegularExpression Id. */
-  int CONDITION = 35;
+  int FINAL = 35;
   /** RegularExpression Id. */
-  int CE = 36;
+  int DAEMON = 36;
   /** RegularExpression Id. */
-  int OR = 37;
+  int CONDITION = 37;
   /** RegularExpression Id. */
-  int END = 38;
+  int CE = 38;
   /** RegularExpression Id. */
-  int GOTOEND = 39;
+  int OR = 39;
   /** RegularExpression Id. */
-  int NOP = 40;
+  int END = 40;
   /** RegularExpression Id. */
-  int IF = 41;
+  int GOTOEND = 41;
   /** RegularExpression Id. */
-  int ELSE = 42;
+  int NOP = 42;
   /** RegularExpression Id. */
-  int CM = 43;
+  int IF = 43;
   /** RegularExpression Id. */
-  int IGNORE = 44;
+  int ELSE = 44;
   /** RegularExpression Id. */
-  int ID = 45;
+  int CM = 45;
   /** RegularExpression Id. */
-  int ENDTEXT = 46;
+  int IGNORE = 46;
   /** RegularExpression Id. */
-  int URL = 47;
+  int ID = 47;
   /** RegularExpression Id. */
-  int ANY = 48;
+  int ENDTEXT = 48;
+  /** RegularExpression Id. */
+  int URL = 49;
+  /** RegularExpression Id. */
+  int ANY = 50;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -126,6 +130,8 @@ public interface TextFormatGrammarConstants {
     "\"user:\"",
     "\"system:\"",
     "\"isystem:\"",
+    "\"esystem:\"",
+    "\"eisystem:\"",
     "<WAIT>",
     "<SYSWAIT>",
     "<EC>",
@@ -152,7 +158,7 @@ public interface TextFormatGrammarConstants {
     "<URL>",
     "<ANY>",
     "\"*/\"",
-    "<token of kind 50>",
+    "<token of kind 52>",
   };
 
 }

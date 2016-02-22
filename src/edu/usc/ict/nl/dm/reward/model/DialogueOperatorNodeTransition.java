@@ -13,6 +13,7 @@ import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.matcher.EventMatcher;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorNode.TYPE;
+import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.EvalContext;
@@ -24,11 +25,13 @@ public class DialogueOperatorNodeTransition extends Edge {
 
 	protected DialogueKBFormula condition;
 	protected String event;
+	protected DialogueKBFormula eventToBeEvaluated;
 	protected Float delay,wait;
 	protected EventMatcher<Object> eventMatcher;
 	protected TransitionType type;
 	protected boolean consumes;
 	protected boolean interruptible=false;
+	protected boolean mustBeEvaluated=false;
 	protected DialogueOperator operator=null;
 	
 	private List<List<DialogueOperatorEffect>> possibleEffects;
@@ -63,6 +66,12 @@ public class DialogueOperatorNodeTransition extends Edge {
 			eventMatcher.addEvent(event, this);
 		}
 	}
+	public void setEventToBeEvaluated(DialogueKBFormula event) {
+		this.eventToBeEvaluated=event;
+	}
+	public DialogueKBFormula getEventToBeEvaluated() {
+		return eventToBeEvaluated;
+	}
 	public void setConsumes(boolean consumes) {this.consumes=consumes;}
 	public boolean doesConsume() {return this.consumes;}
 	public Float getDelay() {return delay;}
@@ -74,6 +83,10 @@ public class DialogueOperatorNodeTransition extends Edge {
 		this.interruptible = isInterruptible;
 	}
 	public boolean isInterruptible() {return interruptible;}
+	public void setMustBeEvaluated(boolean mustBeEvaluated) {
+		this.mustBeEvaluated = mustBeEvaluated;
+	}
+	public boolean getMustBeEvaluated() {return mustBeEvaluated;}
 	
 	public boolean isTrigger() {return false;}
 	
@@ -103,9 +116,13 @@ public class DialogueOperatorNodeTransition extends Edge {
 			tr.setCondition(cnd);
 		}
 		tr.setInterruptible(isInterruptible(attributes));
+		tr.setMustBeEvaluated(mustBeEvaluated(attributes));
+		if (getMustBeEvaluated()) {
+			tr.setEvent(getEvent(attributes),o);
+			tr.setEventToBeEvaluated(DialogueKBFormula.parse(tr.getEvent()));
+		}
 		tr.setDefaultWait(getDefaultWait(attributes));
 		tr.setOperator(o);
-		tr.setEvent(getEvent(attributes),o);
 		tr.setConsumes(getConsumes(attributes));
 		tr.setDelay(getDelay(attributes));
 		String target=getTarget(attributes);
@@ -142,6 +159,16 @@ public class DialogueOperatorNodeTransition extends Edge {
 	}
 	private boolean isInterruptible(NamedNodeMap att) throws DOMException, Exception {
 		Node cndNode = att.getNamedItem(XMLConstants.INTERRUPTIBLEID);
+		if (cndNode!=null) {
+			String value=StringUtils.cleanupSpaces(cndNode.getNodeValue());
+			if (StringUtils.isEmptyString(value)) return false;
+			else if (value.equalsIgnoreCase("true"))
+				return true;
+			else return false;
+		} else return false;
+	}
+	private boolean mustBeEvaluated(NamedNodeMap att) throws DOMException, Exception {
+		Node cndNode = att.getNamedItem(XMLConstants.EVALID);
 		if (cndNode!=null) {
 			String value=StringUtils.cleanupSpaces(cndNode.getNodeValue());
 			if (StringUtils.isEmptyString(value)) return false;
@@ -281,6 +308,13 @@ public class DialogueOperatorNodeTransition extends Edge {
 			if (!StringUtils.isEmptyString(say)) {
 				DialogueOperator op=a.getOperator();
 				if (willSay(context)) {
+					if (getMustBeEvaluated()) {
+						dm.getLogger().info("say transition must be evaluated: '"+getEventToBeEvaluated()+"'.");
+						DialogueKB is = context.getInformationState();
+						Object result = is.evaluate(eventToBeEvaluated, context);
+						if (result instanceof String) say=DialogueKBFormula.getStringValue((String) result);
+						dm.getLogger().info("result of evaluation: '"+say+"'.");
+					}
 					TimemarksTracker tt = dm.getTimemarkTracker();
 					if (tt!=null) tt.setMark(getOperator().getName(),TimemarksTracker.TYPES.SAY,say);
 					dm.getLogger().info("Operator '"+op+"' will say: '"+say+"'");

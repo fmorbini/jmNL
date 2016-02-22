@@ -82,7 +82,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         content+="<listen event=\u005c""+StringUtils.cleanupSpaces(event)+"\u005c" target=\u005c""+getStateName(target)+"\u005c" condition=\u005c""+((cnd!=null)?cnd.toString():"")+"\u005c" consume=\u005c""+ce+"\u005c"/>";
         allStates.put(sn,content);
   }
-  private static void addSayToState(int sn,String say,boolean interruptible,int target,int line,Token wait) throws ParseException {
+  private static void addSayToState(int sn,String say,boolean interruptible,boolean eval,int target,int line,Token wait) throws ParseException {
         canAddOutgoingTransitionToState(sn,line);
     if (StringUtils.isEmptyString(StringUtils.cleanupSpaces(say)))
         throw new ParseException("empty system argument at line "+line);
@@ -92,7 +92,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
     }
         String content="";
         if (allStates.containsKey(sn)) content=allStates.get(sn);
-        content+="<say event=\u005c""+XMLUtils.escapeStringForXML(say)+"\u005c" target=\u005c""+getStateName(target)+"\u005c" interruptible=\u005c""+interruptible+"\u005c""+(waitTime!=null?" wait=\u005c""+waitTime+"\u005c"":"")+"/>";
+        content+="<say event=\u005c""+XMLUtils.escapeStringForXML(say)+"\u005c" target=\u005c""+getStateName(target)+"\u005c" interruptible=\u005c""+interruptible+"\u005c" eval=\u005c""+eval+"\u005c""+(waitTime!=null?" wait=\u005c""+waitTime+"\u005c"":"")+"/>";
         allStates.put(sn,content);
   }
   private static void addDelayToState(int sn,Float delay,boolean interruptible,int target,int line) throws ParseException {
@@ -208,6 +208,8 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
       case USER:
       case SYSTEM:
       case ISYSTEM:
+      case ESYSTEM:
+      case EISYSTEM:
       case WAIT:
       case GOTOEND:
       case NOP:
@@ -283,6 +285,8 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         case USER:
         case SYSTEM:
         case ISYSTEM:
+        case ESYSTEM:
+        case EISYSTEM:
         case WAIT:
         case GOTOEND:
         case NOP:
@@ -340,6 +344,8 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
     case USER:
     case SYSTEM:
     case ISYSTEM:
+    case ESYSTEM:
+    case EISYSTEM:
     case WAIT:
     case GOTOEND:
       ns = ReadTerminalBlock(cs,ss);
@@ -440,6 +446,8 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         case USER:
         case SYSTEM:
         case ISYSTEM:
+        case ESYSTEM:
+        case EISYSTEM:
         case WAIT:
         case GOTOEND:
         case NOP:
@@ -457,6 +465,8 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
     case USER:
     case SYSTEM:
     case ISYSTEM:
+    case ESYSTEM:
+    case EISYSTEM:
     case WAIT:
     case GOTOEND:
       ns = ReadTerminalBlock(cs,ss);
@@ -536,6 +546,8 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
     case USER:
     case SYSTEM:
     case ISYSTEM:
+    case ESYSTEM:
+    case EISYSTEM:
     case WAIT:
       ns = ReadEdge(cs);
       label_10:
@@ -585,7 +597,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         List<String> events;
         DialogueKBFormula f=null;
         Token pos;
-        boolean interruptible=false;
+        boolean interruptible=false,eval=false;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case USER:
       pos = jj_consume_token(USER);
@@ -654,6 +666,8 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
       break;
     case SYSTEM:
     case ISYSTEM:
+    case ESYSTEM:
+    case EISYSTEM:
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SYSTEM:
         pos = jj_consume_token(SYSTEM);
@@ -661,6 +675,14 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
       case ISYSTEM:
         pos = jj_consume_token(ISYSTEM);
                                           interruptible=true;
+        break;
+      case ESYSTEM:
+        pos = jj_consume_token(ESYSTEM);
+                                                                               eval=true;
+        break;
+      case EISYSTEM:
+        pos = jj_consume_token(EISYSTEM);
+                                                                                                            interruptible=true;eval=true;
         break;
       default:
         jj_la1[24] = jj_gen;
@@ -681,13 +703,13 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
                 events=getEvents(say.image);
                 if (events.size()==1) {
                         String event=events.get(0);
-                        addSayToState(cs,event,interruptible,ns,pos.beginLine,wait);
+                        addSayToState(cs,event,interruptible,eval,ns,pos.beginLine,wait);
                         addToState(ns,"");
                         {if (true) return ns;}
                 } else {
                         for(String event: events) {
                                 int ms=getID();
-                                addSayToState(cs,event,interruptible,ms,pos.beginLine,wait);
+                                addSayToState(cs,event,interruptible,eval,ms,pos.beginLine,wait);
                                 addTransitionToState(ms,null,ns,pos.beginLine);
                         }
                         addToState(ns,"");
@@ -947,10 +969,10 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x0,0x0,0x0,0xe41f8000,0x1e00200,0xe41f8000,0x0,0x1e00200,0xe41f8000,0x0,0x0,0x0,0xe41f8000,0x1e00200,0x1e00200,0x0,0xe41f8000,0x1e00200,0xe41f8000,0x1e00000,0x0,0x0,0x0,0x0,0xc00000,0x2000000,0x1e00000,0x18000000,0x0,0x0,0x0,0x0,0x0,0xe41f8000,};
+      jj_la1_0 = new int[] {0x0,0x0,0x0,0x901f8000,0x7e00200,0x901f8000,0x0,0x7e00200,0x901f8000,0x0,0x0,0x0,0x901f8000,0x7e00200,0x7e00200,0x0,0x901f8000,0x7e00200,0x901f8000,0x7e00000,0x0,0x0,0x0,0x0,0x3c00000,0x8000000,0x7e00000,0x60000000,0x0,0x0,0x0,0x0,0x0,0x901f8000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x7,0x2,0x4,0x1000,0x380,0x1000,0x40,0x380,0x1000,0x20,0x20,0x400,0x1000,0x380,0x380,0x400,0x1000,0x380,0x1000,0x80,0x10,0x8,0x18,0x18,0x0,0x0,0x0,0x0,0x8,0x10000,0x8,0x10000,0x8,0x1000,};
+      jj_la1_1 = new int[] {0x1c,0x8,0x10,0x4003,0xe00,0x4003,0x100,0xe00,0x4003,0x80,0x80,0x1000,0x4003,0xe00,0xe00,0x1000,0x4003,0xe00,0x4003,0x200,0x40,0x20,0x60,0x60,0x0,0x0,0x0,0x0,0x20,0x40000,0x20,0x40000,0x20,0x4003,};
    }
 
   /** Constructor with InputStream. */
@@ -1067,7 +1089,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[51];
+    boolean[] la1tokens = new boolean[53];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -1084,7 +1106,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         }
       }
     }
-    for (int i = 0; i < 51; i++) {
+    for (int i = 0; i < 53; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

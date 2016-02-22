@@ -102,7 +102,7 @@ public class TextFormatGrammar {
 	content+="<listen event=\""+StringUtils.cleanupSpaces(event)+"\" target=\""+getStateName(target)+"\" condition=\""+((cnd!=null)?cnd.toString():"")+"\" consume=\""+ce+"\"/>";
 	allStates.put(sn,content);
   }
-  private static void addSayToState(int sn,String say,boolean interruptible,int target,int line,Token wait) throws ParseException {
+  private static void addSayToState(int sn,String say,boolean interruptible,boolean eval,int target,int line,Token wait) throws ParseException {
   	canAddOutgoingTransitionToState(sn,line);
     if (StringUtils.isEmptyString(StringUtils.cleanupSpaces(say)))
     	throw new ParseException("empty system argument at line "+line);
@@ -112,7 +112,7 @@ public class TextFormatGrammar {
     }
 	String content="";
 	if (allStates.containsKey(sn)) content=allStates.get(sn);
-	content+="<say event=\""+XMLUtils.escapeStringForXML(say)+"\" target=\""+getStateName(target)+"\" interruptible=\""+interruptible+"\""+(waitTime!=null?" wait=\""+waitTime+"\"":"")+"/>";
+	content+="<say event=\""+XMLUtils.escapeStringForXML(say)+"\" target=\""+getStateName(target)+"\" interruptible=\""+interruptible+"\" eval=\""+eval+"\""+(waitTime!=null?" wait=\""+waitTime+"\"":"")+"/>";
 	allStates.put(sn,content);
   }
   private static void addDelayToState(int sn,Float delay,boolean interruptible,int target,int line) throws ParseException {
@@ -181,6 +181,8 @@ SKIP:
 | <USER: "user:">:TEXT
 | <SYSTEM: "system:">:TEXT
 | <ISYSTEM: "isystem:">:TEXT
+| <ESYSTEM: "esystem:">:TEXT
+| <EISYSTEM: "eisystem:">:TEXT
 | <WAIT: "wait:"(<SPACE>)*>
 | <SYSWAIT: <AN>"wait:"(<SPACE>)*>
 | <EC: <AN>"entrance condition:"(<SPACE>)*>
@@ -374,7 +376,7 @@ int ReadEdge(int cs):{
 	List<String> events;
 	DialogueKBFormula f=null;
 	Token pos;
-	boolean interruptible=false;
+	boolean interruptible=false,eval=false;
 }
 {
 	(pos=<USER> say=<ANY><ENDTEXT> (((<CONDITION> cnd=<ANY><ENDTEXT>)(ce=<CE>)?)|((ce=<CE>)(<CONDITION> cnd=<ANY><ENDTEXT>)?))?) {
@@ -399,17 +401,17 @@ int ReadEdge(int cs):{
 			return ns;
 		}
 	} |
-	((((pos=<SYSTEM>)|(pos=<ISYSTEM>){interruptible=true;}) say=<ANY><ENDTEXT>)(<SYSWAIT>wait=<ID>)?) {
+	((((pos=<SYSTEM>)|(pos=<ISYSTEM>){interruptible=true;}|(pos=<ESYSTEM>){eval=true;}|(pos=<EISYSTEM>){interruptible=true;eval=true;}) say=<ANY><ENDTEXT>)(<SYSWAIT>wait=<ID>)?) {
 		events=getEvents(say.image);
 		if (events.size()==1) {
 			String event=events.get(0);
-			addSayToState(cs,event,interruptible,ns,pos.beginLine,wait);
+			addSayToState(cs,event,interruptible,eval,ns,pos.beginLine,wait);
 			addToState(ns,"");
 			return ns;
 		} else {
 			for(String event: events) {
 				int ms=getID();
-				addSayToState(cs,event,interruptible,ms,pos.beginLine,wait);
+				addSayToState(cs,event,interruptible,eval,ms,pos.beginLine,wait);
 				addTransitionToState(ms,null,ns,pos.beginLine);
 			}
 			addToState(ns,"");

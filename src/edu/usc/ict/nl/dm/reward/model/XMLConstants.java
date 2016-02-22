@@ -27,6 +27,7 @@ public class XMLConstants {
 	public static final String TOPICID="topic";
 	public static final String TRANSITIONID = "transition";
 	public static final String INTERRUPTIBLEID = "interruptible";
+	public static final String EVALID = "eval";
 	public static final String LISTENERSID = "listeners";
 	public static final String LISTENID = "listen";
 	public static final String SAYID = "say";
