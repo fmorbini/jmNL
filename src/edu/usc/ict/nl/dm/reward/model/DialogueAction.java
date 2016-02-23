@@ -287,6 +287,7 @@ public class DialogueAction {
 		}
 	}
 	public void setTransitionAsSaying(DialogueOperatorNodeTransition tr,Event sourceEvent) {
+		dm.getLogger().info("Setting say transition: "+tr+". if possible: issay="+tr.isSayTransition()+" getsay="+tr.getSay()+".");
 		boolean isSayTransition=tr.isSayTransition();
 		if (isSayTransition || tr.isWaitTransition()) sayStateTracker.put(tr, SAYState.SAYING);
 		if (isSayTransition) {

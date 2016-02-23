@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.dm.reward.model.macro.FormulaMacro;
 import edu.usc.ict.nl.dm.reward.model.macro.Macro;
 import edu.usc.ict.nl.dm.reward.model.macro.MacroRepository;
@@ -153,6 +154,7 @@ public class DialogueKBFormula extends Node {
 	 */
 	public static DialogueKBFormula create(String pred,Collection<DialogueKBFormula> args,Type type) throws Exception {
 		pred=normalizePredName(pred,type);
+
 		LTS predElement=basicElements.get(pred);
 		if (predElement==null) {
 			if (args==null || args.isEmpty()) predElement=new LTS(new DialogueKBFormula(pred,null,type));
@@ -167,7 +169,14 @@ public class DialogueKBFormula extends Node {
 			}
 			f=f.simplify();
 			return f;
-		} else return predElement.completeF;
+		} else {
+			Macro m=MacroRepository.getMacro(pred,args!=null?args.size():0);
+			if (m!=null && m instanceof FormulaMacro) {
+				return ((FormulaMacro)m).generateSubstituteFormula(predElement.completeF);
+			} else {
+				return predElement.completeF;
+			}
+		}
 	}
 
 	private static String normalizePredName(String pred) {
@@ -667,8 +676,12 @@ public class DialogueKBFormula extends Node {
 
 	public static void main(String[] args) throws Exception {
 		MacroRepository.loadFromXML(new File("C:\\Users\\morbini\\jmNL\\resources\\story\\Story\\dm\\macros.xml"));
-		DialogueKBFormula x=parse("and(test(ddd),test(a),test(b),nothing,nothing(c))");
+		TrivialDialogueKB mykb22 = new TrivialDialogueKB();
+		mykb22.store(DialogueOperatorEffect.createAssignment("systemEvent", "'question.1'"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		DialogueKBFormula x=parse("lastAsked");
 		System.out.println(x);
+		Object r84 = mykb22.evaluate(x, null);
+		System.out.println(r84);
 		MacroRepository.block();
 		x=parse("and(test(ddd),test(a),test(b))");
 		System.out.println(x);

@@ -118,7 +118,7 @@ public class DialogueOperatorNodeTransition extends Edge {
 		tr.setInterruptible(isInterruptible(attributes));
 		tr.setEvent(getEvent(attributes),o);
 		tr.setMustBeEvaluated(mustBeEvaluated(attributes));
-		if (getMustBeEvaluated()) {
+		if (tr.getMustBeEvaluated()) {
 			tr.setEventToBeEvaluated(DialogueKBFormula.parse(tr.getEvent()));
 		}
 		tr.setDefaultWait(getDefaultWait(attributes));
@@ -311,8 +311,8 @@ public class DialogueOperatorNodeTransition extends Edge {
 					if (getMustBeEvaluated()) {
 						dm.getLogger().info("say transition must be evaluated: '"+getEventToBeEvaluated()+"'.");
 						DialogueKB is = context.getInformationState();
-						Object result = is.evaluate(eventToBeEvaluated, context);
-						if (result instanceof String) say=DialogueKBFormula.getStringValue((String) result);
+						Object result = is.evaluate(getEventToBeEvaluated(), context);
+						say=DialogueKBFormula.getStringValue(result!=null?result.toString():null);
 						dm.getLogger().info("result of evaluation: '"+say+"'.");
 					}
 					TimemarksTracker tt = dm.getTimemarkTracker();

@@ -70,7 +70,7 @@ public class SpeakingTracker {
 
 	public void setSpeaking(NLGEvent ev) throws Exception {
 		final Logger logger = dm.getLogger();
-		if (speakingActionState.setSpeakingEvent(ev)) {
+		if (speakingActionState!=null && speakingActionState.setSpeakingEvent(ev)) {
 			NLGInterface nlg = dm.getMessageBus().getNlg(dm.getSessionID());
 			NLGConfig nlgConfig=nlg.getConfiguration();
 			speakingActionState.setExpectedLengthOfSpeech(nlg.getDurationOfThisDMEvent(dm.getSessionID(), ev));
