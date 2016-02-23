@@ -101,16 +101,17 @@ public class TrivialDialogueKB extends DialogueKB {
 				}
 				if (e.isAssertion()) {
 					DialogueKBFormula f=e.getAssertedFormula();
-					String name=(f.getArgCount()>0)?f.toString():f.getName();
-					if (type==ACCESSTYPE.AUTO_OVERWRITETHIS || type==ACCESSTYPE.AUTO_NEW) {
-						if (f.getArgCount()>0) {
+					if (f.getArgCount()>0) {
+						f=evalArgs(f, null);
+						if (type==ACCESSTYPE.AUTO_OVERWRITETHIS || type==ACCESSTYPE.AUTO_NEW) {
 							retKB.setValueOfPredication(f, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITETHIS);
 						} else {
-							retKB.setValueOfVariable(name, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITETHIS);
+							retKB.setValueOfPredication(f, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITEAUTO);
 						}
 					} else {
-						if (f.getArgCount()>0) {
-							retKB.setValueOfPredication(f, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITEAUTO);
+						String name=f.getName();
+						if (type==ACCESSTYPE.AUTO_OVERWRITETHIS || type==ACCESSTYPE.AUTO_NEW) {
+							retKB.setValueOfVariable(name, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITETHIS);
 						} else {
 							retKB.setValueOfVariable(name, e.getAssertionSign(), ACCESSTYPE.AUTO_OVERWRITEAUTO);
 						}

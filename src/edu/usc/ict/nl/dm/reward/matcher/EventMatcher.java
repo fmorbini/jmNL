@@ -79,10 +79,12 @@ public class EventMatcher<T> {
 	}
 
 	public void addEvent(String event,T payload) {
+		System.out.println("adding event: "+event);
 		if (storedEvents.containsKey(event)) logger.warn("ignoring adding event '"+event+"' because already present in this matcher.");
 		else {
 			storedEvents.put(event, payload);
 			List<String> parts=split(event);
+			System.out.println("parts: "+parts);
 			State<T> next=null;
 			event="";
 			for(String part:parts) {
@@ -110,7 +112,14 @@ public class EventMatcher<T> {
 			payload=(T) new ArrayList<Object>();
 			((List<Object>) payload).add(update);
 			storedEvents.put(event, payload);
-			State<T> next=root.addNext(event);
+			List<String> parts=split(event);
+			System.out.println("parts: "+parts);
+			State<T> next=null;
+			event="";
+			for(String part:parts) {
+				event+=part;
+				next=root.addNext(event);
+			}
 			next.attachPayload(payload);
 		} else {
 			((List<Object>) payload).add(update);
@@ -181,31 +190,11 @@ public class EventMatcher<T> {
 	}
 
 	public static void main(String[] args) throws Exception {
-		System.out.println(split("*ab*c*"));
 		EventMatcher<Integer> em = new EventMatcher<Integer>();
-		em.addEvent("a.b", 1);
-		em.addEvent("a.b.c", 2);
-		System.out.println("compare "+EventComparer.compare("a.*.c", "a.b.*.b"));
-
-		//em.addEvent("internal.timer", 1);
-		//em.addEvent("answer.observable.*", 2);
-		//em.addEvent("*", 3);
-		//em.addEvent("a*d*f", 4);
-		//em.addEvent("a*d", 4);
-		em.addEvent("a*", 5);
-		em.addEvent("ab*", 9);
-		//em.addEvent("ab", 6);
-		//em.addEvent("ab", 7);
-		//em.addEvent("b", 8);
-		Set<Integer> r = em.match("a*");
+		em.addEvent("answer.*", 1);
+		em.addEvent("ask-topic", 2);
+		em.addEvent("accept", 3);
+		Set<Integer> r = em.match("answer.question.3");
 		System.out.println("result "+r);
-		r = em.match("abc");
-		System.out.println(r);
-		System.out.println(em.getAllMatchedEvents());
-		em.removeEvent("ab", 1);
-		r = em.match("ab");
-		System.out.println(r);
-		System.out.println(em.getAllMatchedEvents());
-		System.out.println(EventComparer.compare("a***","ac"));
 	}
 }

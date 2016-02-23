@@ -110,18 +110,19 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 			Collection<DialogueOperatorEffect> changes = tmpKB.dumpKB();
 			if (changes!=null) {
 				for(DialogueOperatorEffect e:changes) {
-					DialogueKBFormula var=e.getAssignedVariable();
-					if (var!=null) {
-						String varName=var.getName();
-						Object newValue=e.getAssignedExpression();
-						Object oldValue=getValueOfVariable(varName,ACCESSTYPE.AUTO_OVERWRITEAUTO,null);
-						if (ret==null) ret=new ArrayList<VarChange>();
-						ret.add(new VarChange(e, oldValue));
-						logger.info("variable "+varName+" changed from "+oldValue+" to "+newValue);
-						// updating information state.
-						// keep track of local variables
-						store(e, type, false);
-						/*if (localVars!=null && (localVars==localVars.findFirstKBInHierarchyThatContainsThisVariableName(varName))) {
+					if (e.isAssignment()) {
+						DialogueKBFormula var=e.getAssignedVariable();
+						if (var!=null) {
+							String varName=var.getName();
+							Object newValue=e.getAssignedExpression();
+							Object oldValue=getValueOfVariable(varName,ACCESSTYPE.AUTO_OVERWRITEAUTO,null);
+							if (ret==null) ret=new ArrayList<VarChange>();
+							ret.add(new VarChange(e, oldValue));
+							logger.info("variable "+varName+" changed from "+oldValue+" to "+newValue);
+							// updating information state.
+							// keep track of local variables
+							//store(e, type, false);
+							/*if (localVars!=null && (localVars==localVars.findFirstKBInHierarchyThatContainsThisVariableName(varName))) {
 							logger.info("NODE EXE: saving '"+varName+"' in local kb.");
 							localVars.store(e, ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
 						} else {
@@ -129,7 +130,9 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 							logger.info("NODE EXE: saving '"+varName+"' in global kb.");
 						}*/
 
-					} else logger.error("Error in change effect: "+e);
+						} else logger.error("Error in change effect: "+e);
+					}
+					store(e, type, false);
 				}
 			}
 		}

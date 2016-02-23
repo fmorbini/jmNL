@@ -675,10 +675,12 @@ public class DialogueKBFormula extends Node {
 	}
 
 	public static void main(String[] args) throws Exception {
-		MacroRepository.loadFromXML(new File("C:\\Users\\morbini\\jmNL\\resources\\story\\Story\\dm\\macros.xml"));
+		//MacroRepository.loadFromXML(new File("C:\\Users\\morbini\\jmNL\\resources\\story\\Story\\dm\\macros.xml"));
 		TrivialDialogueKB mykb22 = new TrivialDialogueKB();
-		mykb22.store(DialogueOperatorEffect.createAssignment("systemEvent", "'question.1'"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
-		DialogueKBFormula x=parse("lastAsked");
+		//mykb22.store(DialogueOperatorEffect.createAssignment("systemEvent", "'question.1'"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		mykb22.store(DialogueOperatorEffect.createAssignment("currentQuestion", "'question.1'"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		mykb22.store(DialogueOperatorEffect.createAssertion(DialogueKBFormula.parse("answered('self',currentQuestion)")), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);
+		DialogueKBFormula x=parse("answered('self',currentQuestion)");
 		System.out.println(x);
 		Object r84 = mykb22.evaluate(x, null);
 		System.out.println(r84);
