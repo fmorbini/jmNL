@@ -288,9 +288,13 @@ public abstract class DM implements DMInterface {
 					if (content==null) content=new LinkedHashMap<String, DialogueOperatorEffect>();
 					for(DialogueOperatorEffect e:c) {
 						DialogueKBFormula v=e.getAssignedVariable();
-						String vName=v.toString();
-						if (v!=null && !content.containsKey(vName)) {
-							content.put(vName, e);
+						if (v!=null) {
+							String vName=v.toString();
+							if (v!=null && !content.containsKey(vName)) {
+								content.put(vName, e);
+							}
+						} else {
+							logger.warn("not handling changes for: "+e);
 						}
 					}
 				}

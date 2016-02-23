@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.kb;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,6 +19,7 @@ import edu.usc.ict.nl.kb.DialogueKBFormula.CmpOp;
 import edu.usc.ict.nl.kb.DialogueKBFormula.NumOp;
 import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
+import edu.usc.ict.nl.kb.internal.Arg;
 import edu.usc.ict.nl.kb.internal.PropositionalKB;
 import edu.usc.ict.nl.util.graph.Edge;
 import edu.usc.ict.nl.utils.FloatAndLongUtils;
@@ -276,14 +278,35 @@ public class TrivialDialogueKB extends DialogueKB {
 		}
 		else if (f.isQuoted()) return (forSimplification)?null:f.getArg(1);
 		else if (f.isCustomFormula()) return evaluateCustomFormula(f, forSimplification,context);
-		else if (f.isPredication()) {
-			if (f.hasStarArgs()) {
-				return getSatisfyingArguments(f, ACCESSTYPE.AUTO_OVERWRITEAUTO, context);
-			}
-			else return isTrueInKB(f, context);
-		} else if (!f.isNumericFormula()) return evaluateLogicalFormula(f,forSimplification,context);
-		else return evaluateNumericTerm(f,forSimplification,context);
+		else if (f.isNumericFormula()) return evaluateNumericTerm(f,forSimplification,context);
+		else if (f.hasStarArgs()) {
+			DialogueKBFormula nf=evalArgs(f, context);
+			return getSatisfyingArguments(nf, ACCESSTYPE.AUTO_OVERWRITEAUTO, context);
+		}
+		else return evaluateLogicalFormula(f,forSimplification,context);
 	}
+	private DialogueKBFormula evalArgs(DialogueKBFormula f, EvalContext context) throws Exception {
+		DialogueKBFormula nf=f;
+		if(f.countStarArgs()<f.getArgCount()) {
+			List<DialogueKBFormula> nargs=new ArrayList<>();
+			boolean newArg=false;
+			for(DialogueKBFormula a:f.getAllArgs()) {
+				if (a.isStar()) nargs.add(a);
+				else {
+					Object v=evaluate(a, context);
+					DialogueKBFormula na=a;
+					if (v!=null && !v.toString().equals(a.toString())) {
+						na=DialogueKBFormula.create(v.toString());
+						newArg=true;
+					}
+					nargs.add(na);
+				}
+			}
+			if (newArg) nf=DialogueKBFormula.create(f.getName(), nargs);
+		}
+		return nf;
+	}
+
 	private Boolean evaluateLogicalFormula(DialogueKBFormula f,EvalContext context) throws Exception {
 		return evaluateLogicalFormula(f, false,context);
 	}
@@ -327,8 +350,11 @@ public class TrivialDialogueKB extends DialogueKB {
 		} else if (f.isCustomFormula()) {
 			Boolean result=(Boolean) evaluateCustomFormula(f, forSimplification,context);
 			return result;
+		} else if (f.isPredication() && !f.hasStarArgs()) {
+			DialogueKBFormula nf=evalArgs(f, context);
+			return isTrueInKB(nf,context);
 		} else {
-			return isTrueInKB(f,context);
+			throw new Exception("invalid logical formula type: "+f);
 		}
 	}
 	private Object evaluateCustomFormula(DialogueKBFormula f,boolean forSimplification,EvalContext context) throws Exception {
@@ -539,10 +565,41 @@ public class TrivialDialogueKB extends DialogueKB {
 			return ret;
 		case THIS_NEW:
 		case THIS_OVERWRITETHIS:
-			if (kb!=null) return (List)kb.get(f);
+			if (kb!=null) {
+				List result = (List)kb.get(f);
+				if (isListOfArgs(result)) {
+					result=simplifyListOfArgs(result);
+				}
+				return result;
+			}
 			break;
 		}
 		return null;
+	}
+
+	private List simplifyListOfArgs(List result) {
+		List ret=null;
+		for(Object x:result) {
+			if (x!=null && x instanceof List && ((List)x).size()==1) {
+				Arg a=(Arg) ((List)x).get(0);
+				if (ret==null) ret=new ArrayList<>();
+				ret.add(a.getValue());
+			}
+		}
+		return ret!=null?ret:result;
+	}
+
+	private boolean isListOfArgs(List result) {
+		if (result!=null && !result.isEmpty()) {
+			for(Object x:result) {
+				if (x!=null && x instanceof List && !((List)x).isEmpty()) {
+					for(Object thing:((List)x)) {
+						if (thing==null || !(thing instanceof Arg)) return false;
+					}
+				} else return false;
+			}
+			return true;
+		} else return false;
 	}
 
 	@Override

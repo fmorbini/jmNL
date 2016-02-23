@@ -177,6 +177,8 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 						Object newValue=e.getAssignedExpression();
 						ret.add(new VarChange(e, null));
 					}
+				} else {
+					logger.warn("not considering "+e+" in current values of IS.");
 				}
 			}
 		}

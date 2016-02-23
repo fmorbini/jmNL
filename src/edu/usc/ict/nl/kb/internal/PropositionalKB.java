@@ -29,6 +29,8 @@ import org.apache.lucene.store.RAMDirectory;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
+import edu.usc.ict.nl.kb.EvalContext;
+import edu.usc.ict.nl.kb.TrivialDialogueKB;
 import edu.usc.ict.nl.nlu.wikidata.WikiClaim;
 import edu.usc.ict.nl.nlu.wikidata.dumps.Queries;
 
@@ -126,7 +128,9 @@ public class PropositionalKB {
 				int i=0;
 				for(DialogueKBFormula a:f.getAllArgs()) {
 					String name=a.getName();
-					if (!name.equals("?")) query+=" AND "+ARG+i+": "+a.getName();
+					if (!name.equals("?")) {
+						query+=" AND "+ARG+i+": "+name;
+					}
 					else {
 						if (starArgs==null) starArgs=new ArrayList<>();
 						starArgs.add(new Arg(i,a));
@@ -247,6 +251,11 @@ public class PropositionalKB {
 		return ret;
 	}
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
+		PropositionalKB kb = new PropositionalKB(new TrivialDialogueKB());
+		kb.storePredication(DialogueKBFormula.parse("question('topic1','question.1')"),true);
+		kb.storePredication(DialogueKBFormula.parse("question('topic2','question.2')"),true);
+		Object r = kb.get(DialogueKBFormula.parse("question('topic1',?)"));
+		System.out.println(r);
 	}
 }

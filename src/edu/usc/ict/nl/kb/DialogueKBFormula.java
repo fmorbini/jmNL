@@ -390,6 +390,16 @@ public class DialogueKBFormula extends Node {
 		}
 		return false;
 	}
+	public int countStarArgs() {
+		if (isPredication()) {
+			List<DialogueKBFormula> args = getAllArgs();
+			if (args!=null && !args.isEmpty()) {
+				int count=args.stream().mapToInt(s->s.isStar()?1:0).sum();
+				return count;
+			} else return 0;
+		}
+		return -1;
+	}
 	public Number getNumber() {
 		if (isNumber()) {
 			try {
@@ -403,7 +413,7 @@ public class DialogueKBFormula extends Node {
 		return isConstant() && !isNumber() && !isString() && !isTrivialFalsity() && !isTrivialTruth() && !isNull() && !isCustomFormula();
 	}
 	public boolean isPredication() {
-		return !isNumber() && !isString() && !isTrivialFalsity() && !isTrivialTruth() && !isNull() && !isCustomFormula();
+		return !isLogicalFormula() && !isNumber() && !isString() && !isTrivialFalsity() && !isTrivialTruth() && !isNull() && !isCustomFormula();
 	}
 	public boolean isNegatedFormula() {return isLogicalFormula() && (getValue()==BooleanOp.NOT);}
 	public boolean isConjunction() {return isLogicalFormula() && getValue()==BooleanOp.AND;}
