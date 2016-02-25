@@ -306,7 +306,7 @@ public class VHProtocol extends Protocol {
 								try {
 									bus.handleTextUtteranceEvent(sessionID, msg.getSpeech());
 								} catch (Exception e1) {
-									logger.error("Error processing vrSpoke event from "+vhOther+" into an utterance event for myself:",e1);
+									logger.error("Error processing vrexpress event from "+vhOther+" into an utterance event for myself:",e1);
 								}
 							}
 						} catch (Exception e1) {

@@ -484,9 +484,13 @@ public abstract class NLBusBase implements NLBusInterface {
 		else {
 			String characterName = getCharacterName4Session(sid);
 			NLUConfig config=getNLUConfigurationForCharacter(characterName);
-			logger.info("Starting NEW NLU for session "+sid+" for character "+characterName+" with nlu class: "+config.getNluClass());
-			nlu=(NLUInterface) createSubcomponent(config,config.getNluClass());
-			session2NLU.put(sid, nlu);
+			if (config!=null) {
+				logger.info("Starting NEW NLU for session "+sid+" for character "+characterName+" with nlu class: "+config.getNluClass());
+				nlu=(NLUInterface) createSubcomponent(config,config.getNluClass());
+				session2NLU.put(sid, nlu);
+			} else {
+				logger.error("No NLU configuration for character: "+characterName+". already termianted?");
+			}
 			return nlu;
 		}
 	}
@@ -736,13 +740,16 @@ public abstract class NLBusBase implements NLBusInterface {
 	}
 
 	protected NLUConfig getNLUConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
-		return getConfigurationForCharacter(characterName).getNluConfigNC();
+		NLBusConfig busConfig = getConfigurationForCharacter(characterName);
+		return busConfig!=null?busConfig.getNluConfigNC():null;
 	}
 	protected DMConfig getDMConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
-		return getConfigurationForCharacter(characterName).getDmConfigNC();
+		NLBusConfig busConfig = getConfigurationForCharacter(characterName);
+		return busConfig!=null?busConfig.getDmConfigNC():null;
 	}
 	protected NLGConfig getNLGConfigurationForCharacter(String characterName) throws CloneNotSupportedException {
-		return getConfigurationForCharacter(characterName).getNlgConfigNC();
+		NLBusConfig busConfig = getConfigurationForCharacter(characterName);
+		return busConfig!=null?busConfig.getNlgConfigNC():null;
 	}
 
 	@Override

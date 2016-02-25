@@ -212,10 +212,12 @@ public class NLBus extends NLBusBase {
 	public NLUOutput getNLUOutput(Long sessionId,String userUtterance) throws Exception {
 		NLUInterface nlu=getNlu(sessionId);
 		DM dm=getDM(sessionId,false);
-		List<NLUOutput> userSpeechActs = nlu.getNLUOutput(userUtterance, null,null);
 		NLUOutput selectedUserSpeechAct=null;
-		if (userSpeechActs!=null) {
-			selectedUserSpeechAct=dm.selectNLUOutput(userUtterance,sessionId, userSpeechActs);
+		if (nlu!=null && dm!=null) {
+			List<NLUOutput> userSpeechActs = nlu.getNLUOutput(userUtterance, null,null);
+			if (userSpeechActs!=null) {
+				selectedUserSpeechAct=dm.selectNLUOutput(userUtterance,sessionId, userSpeechActs);
+			}
 		}
 		return selectedUserSpeechAct;
 	}
