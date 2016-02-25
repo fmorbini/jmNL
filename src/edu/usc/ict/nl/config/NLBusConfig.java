@@ -32,6 +32,8 @@ public class NLBusConfig extends NLConfig {
 	private String vhOtherSpeaker=null;
 	private boolean pmlListening=false;
 	private boolean minatListening=false;
+	private boolean useVrExpressOnly=false;
+	private boolean useVrSpeakOnly=false;
 	
 	private boolean validatePolicies=true;
 	
@@ -165,8 +167,11 @@ public class NLBusConfig extends NLConfig {
 	public void setPmlListening(boolean s) {this.pmlListening=s;}
 	public boolean getMinatListening() {return minatListening;}
 	public void setMinatListening(boolean s) {this.minatListening=s;}
-	
-	
+
+	public void setUseVrExpressOnly(Boolean s) {this.useVrExpressOnly=s;}
+	public void setUseVrSpeakOnly(Boolean s) {this.useVrSpeakOnly=s;}
+	public boolean getUseVrExpressOnly() {return this.useVrExpressOnly;}
+	public boolean getUseVrSpeakOnly() {return this.useVrSpeakOnly;}
 	
 	public static enum RunningMode {EXE,ADVICER,AUTHORING};
 	public boolean isInExecuteMode() { return getRunningMode()==RunningMode.EXE; }

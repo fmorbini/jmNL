@@ -23,6 +23,7 @@ import edu.usc.ict.nl.vhmsg.VHBridge.VRGenerate;
 import edu.usc.ict.nl.vhmsg.VHBridge.VRNLU;
 import edu.usc.ict.nl.vhmsg.VHBridge.VRPlaySound;
 import edu.usc.ict.nl.vhmsg.VHBridge.VRSpoke;
+import edu.usc.ict.nl.vhmsg.VHBridge.VRexpress;
 import edu.usc.ict.vhmsg.MessageEvent;
 import edu.usc.ict.vhmsg.MessageListener;
 
@@ -32,7 +33,7 @@ public class VHProtocol extends Protocol {
 	private VHBridge getVHBridge() {return vhBridge;}
 	private void setVHBridge(VHBridge s) {this.vhBridge=s;}
 	private String vhMyself,vhOther;
-	private boolean inTwoVHCharactersMode=false,usingJustVRSpeak=false;
+	private boolean inTwoVHCharactersMode=false,usingJustVRSpeak=false,usingJustVRExpress=false;
 	private long sent=0;
 
 	private XStream nluOutputCenverter=new XStream(new StaxDriver());
@@ -48,7 +49,8 @@ public class VHProtocol extends Protocol {
 			if (!StringUtils.isEmptyString(vhOther)) {
 				if (StringUtils.isEmptyString(vhMyself)) throw new Exception("Invalid configuration as it sets property vhOtherSpeak but not vhSpeaker.");
 				inTwoVHCharactersMode=true;
-				usingJustVRSpeak=!config.getDmConfigNC().getSystemEventsHaveDuration();
+				usingJustVRSpeak=config.getUseVrSpeakOnly();
+				usingJustVRExpress=config.getUseVrExpressOnly();
 			}
 			VHBridge vhBridge=new VHBridge(config.getVhServer(), config.getVhTopic());
 			setVHBridge(vhBridge);
@@ -64,6 +66,7 @@ public class VHProtocol extends Protocol {
 			vhBridge.addMessageListenerFor("PlaySound", createVrPlaySoundMessageListener());
 			vhBridge.addMessageListenerFor("vrKillComponent", launcherListener);
 			vhBridge.addMessageListenerFor("vrAllCall", launcherListener);
+			if (usingJustVRExpress && inTwoVHCharactersMode) vhBridge.addMessageListenerFor("vrExpress",createVrExpressMessageListener());
 			logger.info("started vh message listener in "+this.getClass().getCanonicalName());
 
 			vhBridge.sendComponetIsAlive(config.getVhComponentId());
@@ -84,6 +87,7 @@ public class VHProtocol extends Protocol {
 				try {
 					// this will fire an exception if the input message is not a vrExpress message. 
 					msg=vhBridge.processVrSpeechEvent(e);
+					if (logger.isDebugEnabled()) logger.debug("Received message: "+msg);
 				} catch (Exception ex){
 					System.out.println("MessageListener.messageAction received non vrSpeech message.");
 				}
@@ -121,6 +125,7 @@ public class VHProtocol extends Protocol {
 				try {
 					// this will fire an exception if the input message is not a vrExpress message. 
 					msg=vhBridge.processVrNLUEvent(e);
+					if (logger.isDebugEnabled()) logger.debug("Received message: "+msg);
 				} catch (Exception ex){
 					//System.out.println("MessageListener.messageAction received non vrExpress message.");
 				}
@@ -162,6 +167,7 @@ public class VHProtocol extends Protocol {
 				try {
 					// this will fire an exception if the input message is not a vrExpress message. 
 					msg=vhBridge.processVrGenerateEvent(e);
+					if (logger.isDebugEnabled()) logger.debug("Received message: "+msg);
 				} catch (Exception ex){
 					//logger.warn("MessageListener.messageAction received non vrPerception message.");
 				}
@@ -187,6 +193,7 @@ public class VHProtocol extends Protocol {
 				try {
 					// this will fire an exception if the input message is not a vrExpress message. 
 					msg=vhBridge.processVrPlaySoundEvent(e);
+					if (logger.isDebugEnabled()) logger.debug("Received message: "+msg);
 				} catch (Exception ex){
 					//logger.warn("Error processing a VHBridge.VRPlaySound event.",ex);
 				}
@@ -219,6 +226,7 @@ public class VHProtocol extends Protocol {
 				try {
 					// this will fire an exception if the input message is not a vrExpress message. 
 					msg=vhBridge.processVrSpokeEvent(e);
+					if (logger.isDebugEnabled()) logger.debug("Received message: "+msg);
 				} catch (Exception ex){
 					//logger.warn("MessageListener.messageAction received non vrPerception message.");
 				}
@@ -255,6 +263,7 @@ public class VHProtocol extends Protocol {
 				try {
 					// this will fire an exception if the input message is not a vrExpress message. 
 					msg=vhBridge.processVrSpeakEvent(e);
+					if (logger.isDebugEnabled()) logger.debug("Received message: "+msg);
 				} catch (Exception ex){
 					//logger.warn("MessageListener.messageAction received non vrPerception message.");
 				}
@@ -276,6 +285,40 @@ public class VHProtocol extends Protocol {
 			}
 		};
 	}
+	
+	protected MessageListener createVrExpressMessageListener() {
+		return new MessageListener() {
+
+			public void messageAction(MessageEvent e)
+			{
+				VHBridge.VRexpress msg=null;
+				try {
+					// this will fire an exception if the input message is not a vrExpress message. 
+					msg=vhBridge.new VRexpress(e);
+					if (logger.isDebugEnabled()) logger.debug("Received message: "+msg);
+				} catch (Exception ex){
+					//logger.warn("MessageListener.messageAction received non vrPerception message.");
+				}
+				if (msg!=null) {
+					if (inTwoVHCharactersMode && usingJustVRExpress && !vhMyself.equals(msg.getAgent())) {
+						try {
+							for(Long sessionID : bus.getSessions()) {
+								try {
+									bus.handleTextUtteranceEvent(sessionID, msg.getSpeech());
+								} catch (Exception e1) {
+									logger.error("Error processing vrSpoke event from "+vhOther+" into an utterance event for myself:",e1);
+								}
+							}
+						} catch (Exception e1) {
+							logger.error("Error processing vr express message:",e1);
+						}
+					}
+				}
+			}
+		};
+	}
+
+	
 	protected MessageListener createVrLauncherMessagesListener() {
 		return new MessageListener() {
 			public void messageAction(MessageEvent e) {
@@ -285,6 +328,7 @@ public class VHProtocol extends Protocol {
 					vhBridge.sendComponetIsAlive(componentName);
 				} else if (map.containsKey("vrKillComponent")) {
 					String msg=(String) map.get("vrKillComponent");
+					if (logger.isDebugEnabled()) logger.debug("Received message: "+msg);
 					if (msg.equals(componentName) || msg.equalsIgnoreCase("all")) {
 						vhBridge.sendComponentKilled(componentName);
 						try {

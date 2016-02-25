@@ -79,12 +79,10 @@ public class EventMatcher<T> {
 	}
 
 	public void addEvent(String event,T payload) {
-		System.out.println("adding event: "+event);
 		if (storedEvents.containsKey(event)) logger.warn("ignoring adding event '"+event+"' because already present in this matcher.");
 		else {
 			storedEvents.put(event, payload);
 			List<String> parts=split(event);
-			System.out.println("parts: "+parts);
 			State<T> next=null;
 			event="";
 			for(String part:parts) {
@@ -113,7 +111,6 @@ public class EventMatcher<T> {
 			((List<Object>) payload).add(update);
 			storedEvents.put(event, payload);
 			List<String> parts=split(event);
-			System.out.println("parts: "+parts);
 			State<T> next=null;
 			event="";
 			for(String part:parts) {

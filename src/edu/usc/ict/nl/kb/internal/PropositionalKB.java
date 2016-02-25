@@ -216,7 +216,9 @@ public class PropositionalKB {
 		DirectoryReader newReader;
 		try {
 			newReader = DirectoryReader.openIfChanged(reader, writer, true);
-			if (newReader==null) newReader=reader;
+			if (newReader==null || newReader==reader) newReader=reader;
+			else reader.close();
+			reader=newReader;
 			return newReader;
 		} catch (IOException e) {
 			wrapperKB.getLogger().error(e);
@@ -257,5 +259,8 @@ public class PropositionalKB {
 		kb.storePredication(DialogueKBFormula.parse("question('topic2','question.2')"),true);
 		Object r = kb.get(DialogueKBFormula.parse("question('topic1',?)"));
 		System.out.println(r);
+		for(int i=0;i<10000000;i++) {
+			System.out.println(kb.dumpKB());
+		}
 	}
 }

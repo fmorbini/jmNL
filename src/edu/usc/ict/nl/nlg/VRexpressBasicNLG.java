@@ -6,11 +6,11 @@ import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.config.NLGConfig;
-import edu.usc.ict.nl.nlg.echo.EchoNLG;
+import edu.usc.ict.nl.nlg.template.TemplatedNLG;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.vhmsg.VHBridge;
 
-public class VRexpressBasicNLG extends EchoNLG implements VRSpeakSpokeTrackerInterface {
+public class VRexpressBasicNLG extends TemplatedNLG implements VRSpeakSpokeTrackerInterface {
 
 	private int counter=1;
 	private String characterName=null; 

@@ -77,6 +77,7 @@ import edu.usc.ict.nl.util.NumberUtils;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.Triple;
+import edu.usc.ict.nl.util.XMLUtils;
 import edu.usc.ict.nl.util.graph.Edge;
 
 public class RewardDM extends DM {
@@ -661,7 +662,12 @@ public class RewardDM extends DM {
 
 				NLUOutput sa=(NLUOutput) ev.getPayload();
 				if (sa!=null) {
-					is.store(DialogueOperatorEffect.createAssignment(NLBusBase.lastUserText,sa.getText()),ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
+					DialogueKBFormula textValue=DialogueKBFormula.create(DialogueKBFormula.generateStringConstantFromContent(StringUtils.flattenToAscii(sa.getText())));
+					System.out.println(textValue);
+					DialogueOperatorEffect eff=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create(NLBusBase.lastUserText, null),
+							textValue,
+							false);
+					is.store(eff,ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 					lastItem.push(sa);
 				}
 
@@ -1042,7 +1048,7 @@ public class RewardDM extends DM {
 			if (logger.isDebugEnabled()) logger.debug("information state: "+is);
 			if (logger.isInfoEnabled()) logger.info("finished extracting NLU variables from event: "+thisIterationNLUVariables);
 			removeNLUVariableFromIS(is,nluVariables);
-			if (logger.isInfoEnabled()) logger.info("finihsed removing previous event NLU variables (increase dm debug to debug level to see which ones).");
+			if (!logger.isDebugEnabled()) logger.info("finished removing previous event NLU variables (increase dm debug to debug level to see which ones).");
 			nluVariables=thisIterationNLUVariables;
 			setNLUVariablesInIS(is,nluVariables);
 			if (logger.isInfoEnabled()) logger.info("finished setting variables.");
@@ -1342,7 +1348,7 @@ public class RewardDM extends DM {
 		else this.loopEvent=null;
 		stateTracker=new StateTracker();
 		MAX_SEARCH_LEVELS=config.getMaxSearchLevels();
-		MAX_ITERATIONS=10;
+		MAX_ITERATIONS=config.getMaxIterations();
 	}
 	public RewardDM(long sessionID,RewardPolicy dp,DMConfig config,NLBusInterface listener) throws Exception {
 		this(config);

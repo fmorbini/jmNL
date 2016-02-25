@@ -44,6 +44,7 @@ public class DMConfig extends NLConfig {
 	// REWARD DM specific
 	private boolean approximatedForwardSearch=false;
 	private int maxSearchLevels=10;
+	private int maxIterations=10;
 
 	private boolean dmVhGenerating=false;
 	private boolean dmVhListening=false;
@@ -112,6 +113,12 @@ public class DMConfig extends NLConfig {
 	}
 	public void setMaxSearchLevels(int maxSearchLevels) {
 		this.maxSearchLevels = maxSearchLevels;
+	}
+	public int getMaxIterations() {
+		return maxIterations;
+	}
+	public void setMaxIterations(int maxIterations) {
+		this.maxIterations = maxIterations;
 	}
 
 	public String getVisualizerConfig() {return visualizerConfig;}
