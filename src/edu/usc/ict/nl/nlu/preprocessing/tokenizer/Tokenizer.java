@@ -44,31 +44,33 @@ public class Tokenizer implements TokenizerI {
 	public static List<Token> tokenize(String u,LinkedHashMap<TokenTypes,Pattern> types) {
 		ArrayList<Token> ret= new ArrayList<Token>();
 		u=StringUtils.cleanupSpaces(u);
-		LinkedHashMap<TokenTypes,Matcher> matchers=new LinkedHashMap<TokenTypes,Matcher>();
-		for(Entry<TokenTypes, Pattern> tp:types.entrySet())	matchers.put(tp.getKey(),tp.getValue().matcher(u));
-		int currentPos=0,length=u.length();		
-		while(currentPos<length) {
-			int start=length,end=0;
-			TokenTypes type=null;
-			for(Entry<TokenTypes, Matcher> mt:matchers.entrySet()) {
-				Matcher m=mt.getValue();
-				if (m.find(currentPos)) {
-					if (m.start()<start) {
-						start=m.start();
-						end=m.end();
-						type=mt.getKey();
+		if (!StringUtils.isEmptyString(u)) {
+			LinkedHashMap<TokenTypes,Matcher> matchers=new LinkedHashMap<TokenTypes,Matcher>();
+			for(Entry<TokenTypes, Pattern> tp:types.entrySet())	matchers.put(tp.getKey(),tp.getValue().matcher(u));
+			int currentPos=0,length=u.length();		
+			while(currentPos<length) {
+				int start=length,end=0;
+				TokenTypes type=null;
+				for(Entry<TokenTypes, Matcher> mt:matchers.entrySet()) {
+					Matcher m=mt.getValue();
+					if (m.find(currentPos)) {
+						if (m.start()<start) {
+							start=m.start();
+							end=m.end();
+							type=mt.getKey();
+						}
 					}
 				}
-			}
-			if ((start<length) && (type!=null)) {
-				Matcher m=matchers.get(type);
-				String token=u.substring(m.start(),m.end());
-				if ((token=token.replaceAll("[\\s]","")).length()>0) {
-					ret.add(new Token(token, type,token,start,end));
+				if ((start<length) && (type!=null)) {
+					Matcher m=matchers.get(type);
+					String token=u.substring(m.start(),m.end());
+					if ((token=token.replaceAll("[\\s]","")).length()>0) {
+						ret.add(new Token(token, type,token,start,end));
+					}
+					currentPos=m.end();
+				} else {
+					break;
 				}
-				currentPos=m.end();
-			} else {
-				break;
 			}
 		}
 		return ret;
@@ -130,5 +132,13 @@ public class Tokenizer implements TokenizerI {
 	public int getEnd(List<Token> tokens,String sa,int pos) {
 		String entire=untokenize(tokens, sa,pos);
 		return entire.length();
+	}
+	
+	public static void main(String[] args) {
+		
+		Tokenizer t=new Tokenizer();
+		List<Token> test = t.tokenize1(null);
+		System.out.println(test);
+		
 	}
 }
