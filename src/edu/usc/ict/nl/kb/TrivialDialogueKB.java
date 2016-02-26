@@ -457,6 +457,12 @@ public class TrivialDialogueKB extends DialogueKB {
 	}
 
 	@Override
+	public void setValueOfVariableInKBNamed(String kbName, String vName,Object value) throws Exception {
+		DialogueKB kb=findFirstKBInHierarchyWithID(kbName);
+		if (kb!=null) kb.setValueOfVariable(vName, value, ACCESSTYPE.THIS_OVERWRITETHIS);
+	}
+
+	@Override
 	public DialogueKB setValueOfVariable(String vName, Object value, ACCESSTYPE type) throws Exception {
 		vName=normalizeNames(vName);
 		return setValueOfPredication(DialogueKBFormula.createVar(vName), value, type);

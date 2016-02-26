@@ -236,6 +236,11 @@ public class SCXMLInformationState extends DialogueKB {
 	}
 
 	@Override
+	public void setValueOfVariableInKBNamed(String kbName, String vName, Object value) throws Exception {
+		setValueOfVariable(vName, value, ACCESSTYPE.THIS_OVERWRITETHIS);
+	}
+	
+	@Override
 	public DialogueKB setValueOfVariable(String vName, Object value, ACCESSTYPE type) throws Exception {
 		Context c=exe.getRootContext();
 		c.set(vName,value);

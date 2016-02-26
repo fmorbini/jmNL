@@ -80,6 +80,7 @@ public interface DialogueKBInterface extends InformationStateInterface {
 	 * @throws Exception
 	 */
 	public DialogueKB setValueOfPredication(DialogueKBFormula f,Object value,ACCESSTYPE type) throws Exception;
+	public void setValueOfVariableInKBNamed(String kbName, String vName,Object value) throws Exception;
 	public Boolean isTrueInKB(DialogueKBFormula f,EvalContext context) throws Exception;
 	public Set<String> getAllVariables() throws Exception;
 	public Set<String> getAllVariablesInThisKB() throws Exception;
