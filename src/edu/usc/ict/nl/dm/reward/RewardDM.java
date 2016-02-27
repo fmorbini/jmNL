@@ -1857,8 +1857,8 @@ public class RewardDM extends DM {
 							tmp.store(effect, ACCESSTYPE.AUTO_OVERWRITETHIS, false);
 						}
 					}
-					new DialogueAction(ec, this);
-					ActiveStates activeStates=new DialogueAction().getActiveStates();
+					DialogueAction action = new DialogueAction(ec, this);
+					ActiveStates activeStates=action.getActiveStates();
 					activeStates.transition(null, ec.getTarget());
 					handledEvent=null; // because it's consumed by the entrance condition.
 					systemActions=op.simulateAndCollectAllSystemActions(handledEvent,tmp,activeStates);
