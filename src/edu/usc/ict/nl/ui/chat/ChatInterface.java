@@ -1,6 +1,5 @@
 package edu.usc.ict.nl.ui.chat;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -51,7 +50,6 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
@@ -61,13 +59,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
-import javax.swing.text.Highlighter;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-import javax.swing.text.StyledDocument;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -125,8 +116,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 	static protected AbstractApplicationContext context;
 
-	private static final DefaultHighlightPainter defaultHighlighter=new DefaultHighlightPainter(new Color(213, 255, 177));
-
 	private VHBridge vhBridge=null;
 	private MessageListener createVHDMMessageListener() {
 		return new MessageListener() {
@@ -151,8 +140,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		};
 	}
 
-	private StyledDocument doc;
-	private Highlighter h;
+	private JTextArea content;
 	private JScrollPane listScrollPane;
 	private JTextField input;
 	private JTextArea nluOutput;
@@ -273,14 +261,11 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		_instance=this;
 
 		//Create the list and put it in a scroll pane.
-		JTextPane list = new JTextPane();
-		list.setEnabled(true);
-		list.setEditable(false);
-		doc = list.getStyledDocument();
-		h = list.getHighlighter();
+		content=new JTextArea();
+		content.setEnabled(true);
+		content.setEditable(false);
 
-		addStyles(doc,config);
-		listScrollPane = new JScrollPane(list);
+		listScrollPane = new JScrollPane(content);
 		listScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		listScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
@@ -339,7 +324,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			}
 		});
 		input.addKeyListener(this);
-		list.addKeyListener(this);
+		content.addKeyListener(this);
 
 		try {
 			feedback=new Feedback(config);
@@ -385,38 +370,8 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		add(buttonPane,c);
 	}
 
-	private void addStyles(StyledDocument doc, NLBusConfig config) {
-		Style def = StyleContext.getDefaultStyleContext().
-				getStyle(StyleContext.DEFAULT_STYLE);
-
-		Style regular = doc.addStyle("regular", def);
-		StyleConstants.setFontFamily(regular, "SansSerif");
-		StyleConstants.setForeground(regular, Color.BLACK);
-		StyleConstants.setFontSize(regular, (int) (StyleConstants.getFontSize(regular)*config.getZoomFactorChat()));
-
-		Style s = doc.addStyle("lineNumber", regular);
-		StyleConstants.setFontSize(s, (int) (StyleConstants.getFontSize(s)/1.5));
-
-		s = doc.addStyle("systemText", regular);
-		//StyleConstants.setItalic(s, true);
-		StyleConstants.setBold(s, true);
-		//StyleConstants.setLeftIndent(s, 160);
-		//StyleConstants.setFirstLineIndent(s, 200);
-
-		s = doc.addStyle("userText", regular);
-		StyleConstants.setForeground(s, Color.RED);
-
-		s = doc.addStyle("specialDM", regular);
-		StyleConstants.setItalic(s, true);
-		StyleConstants.setForeground(s, Color.GREEN);
-	}
-
-	private int startNew=0,endNew=0;
 	@Override
 	public void handleNLGEvent(Long sessionID,NLGEvent nlgOutput) throws Exception {
-		h.removeAllHighlights();
-		startNew=doc.getLength();
-
 		String systext=nlgOutput.getName();
 		if (StringUtils.isEmptyString(systext)) {
 			systext="("+nlgOutput.getDMEventName()+")";
@@ -432,12 +387,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			}
 		}
 
-		endNew=doc.getLength();
-		try {
-			h.addHighlight(startNew, endNew, defaultHighlighter);
-		} catch (BadLocationException e) {
-			displayError(e,false);
-		}
 	}
 	@Override
 	public void handleTextUtteranceEvent(Long sessionId, String text) {
@@ -613,7 +562,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				String pid=(getPersonalizedSessionID())?getPersonalSessionID():"";
 				enableInput("");
 				
-				doc.remove(0, doc.getLength());
+				content.setText("");
 				displayState=MainDisplayStatus.CHAT;
 				setDisplayAccordingToState();
 
@@ -1047,26 +996,24 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 
 	private void addTextToList(String text,MessageType type) {
-		try {
-			doc.insertString(doc.getLength(), (++line)+": ", doc.getStyle("lineNumber"));
-			switch (type) {
-			case USER:
-				doc.insertString(doc.getLength(), text+"\n", doc.getStyle("userText"));
-				break;
-			case SYSTEM:
-				//String character=nlModule.getCharacterName4Session(sid);
-				//doc.insertString(doc.getLength(), character+": ", doc.getStyle("lineNumber"));
-				doc.insertString(doc.getLength(), text+"\n", doc.getStyle("systemText"));
-				break;
-			case SPECIALDM:
-				doc.insertString(doc.getLength(), text+"\n", doc.getStyle("specialDM"));
-				break;
-			default:
-				break;
-			}
-		} catch (BadLocationException e) {
-			displayError(e,false);
+		switch (type) {
+		case USER:
+			content.append((++line)+" ("+type+"): ");
+			content.append(text+"\n");
+			break;
+		case SYSTEM:
+			String ch=nlModule.getCharacterName4Session(sid);
+			content.append((++line)+" ("+ch+"): ");
+			content.append(text+"\n");
+			break;
+		case SPECIALDM:
+			content.append((++line)+" ("+type+"): ");
+			content.append(text+"\n");
+			break;
+		default:
+			break;
 		}
+
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
