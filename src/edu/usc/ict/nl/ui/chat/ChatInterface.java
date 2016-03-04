@@ -769,7 +769,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				DM dm=null;
 				if (sid!=null && (dm=getDM(sid))!=null) {
 					try {
-						ISinspector.createAndShowGUI(getDM(sid));
+						ISinspector.createAndShowGUI(getDM(sid),nlModule.getCharacterName4Session(sid));
 					} catch (Exception ex) {ex.printStackTrace();}
 				}
 			}

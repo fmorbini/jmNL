@@ -67,8 +67,14 @@ public class TemplatedNLG extends EchoNLG {
 	}
 
 	public Object functionGet(FunctionArguments args) {
-		if (!args.simulate) return args.is.get(args.stringArg);
-		else return null;
+		if (!args.simulate) {
+			try {
+				return args.is.evaluate(DialogueKBFormula.parse(args.stringArg), null);
+			} catch (Exception e) {
+				logger.error("error in the get template.",e);
+			}
+		}
+		return null;
 	}
 	public Object functionGetSA(FunctionArguments args) {
 		if (!args.simulate) {

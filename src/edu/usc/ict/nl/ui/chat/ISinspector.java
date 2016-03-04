@@ -27,6 +27,7 @@ import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
+import edu.usc.ict.nl.bus.ReferenceToVirtualCharacter;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
@@ -261,13 +262,13 @@ public class ISinspector extends JPanel implements KeyListener {
 		return currentIS;
 	}
 
-	public static void createAndShowGUI(DM dm) {
+	public static void createAndShowGUI(DM dm, String character) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			
 			public void run() {
 				try {
 					//Create and set up the window.
-					JFrame frame = new JFrame("ListDemo");
+					JFrame frame = new JFrame("IS inspector for "+character);
 					frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 					//Create and set up the content pane.
@@ -285,7 +286,7 @@ public class ISinspector extends JPanel implements KeyListener {
 	
 	public static void main(String[] args) throws Exception {
 		DM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG); 
-		createAndShowGUI(dm);
+		createAndShowGUI(dm,"test");
 	}
 
 	@Override

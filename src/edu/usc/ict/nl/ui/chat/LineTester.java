@@ -166,7 +166,7 @@ public class LineTester extends JPanel implements ListSelectionListener, ActionL
 			public void run() {
 				try {
 					//Create and set up the window.
-					JFrame frame = new JFrame("ListDemo");
+					JFrame frame = new JFrame("NLG inspector for character "+nlModule.getCharacterName4Session(sid));
 					frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 					//Create and set up the content pane.
