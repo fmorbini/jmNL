@@ -358,7 +358,7 @@ public class RewardDM extends DM {
 
 	public void interruptCurrentlySpeakingAction(Event sourceEvent) {
 		try {
-			NLGEvent ev=getSpeakingTracker().getCurrentlySpeackingEvent();
+			NLGEvent ev=getSpeakingTracker().getCurrentlySpeakingEvent();
 			if (ev!=null) {
 				logger.info("executing interruption of event: "+ev);
 				getMessageBus().handleDMResponseEvent(new DMInterruptionRequest(sourceEvent, getSessionID(), ev));

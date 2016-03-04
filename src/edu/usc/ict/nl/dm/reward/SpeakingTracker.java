@@ -139,8 +139,8 @@ public class SpeakingTracker {
 	private boolean hasAlreadyAWaitingAction() {return speakingActionState!=null;}
 
 	private String getSpeakingSpeechAct() {return speakingActionState!=null?speakingActionState.getSpeechAct():null;}
-	public NLGEvent getCurrentlySpeackingEvent() {return speakingActionState.getNLGEvent();}
-	public String getCurrentlySpeackingSA() {return speakingActionState.getSpeechAct();}
+	public NLGEvent getCurrentlySpeakingEvent() {return speakingActionState!=null?speakingActionState.getNLGEvent():null;}
+	public String getCurrentlySpeakingSA() {return speakingActionState!=null?speakingActionState.getSpeechAct():null;}
 	
 	public void finishedSpeakingThis(Event evSaid) throws Exception {
 		String thingSaid=evSaid.getName();

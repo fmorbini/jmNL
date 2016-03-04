@@ -300,7 +300,7 @@ public class DialogueAction {
 		}
 	}
 	public void setTransitionAsWaitingForCurrentSpeach(DialogueOperatorNodeTransition tr,Event sourceEvent) {
-		String sa=dm.getSpeakingTracker().getCurrentlySpeackingSA();
+		String sa=dm.getSpeakingTracker().getCurrentlySpeakingSA();
 		if (!StringUtils.isEmptyString(sa)) {
 			dm.getSpeakingTracker().setSpeakingTransition(this,tr,sa,sourceEvent);
 		} else {

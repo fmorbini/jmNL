@@ -85,41 +85,43 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		List<Integer> tokenStarts=computeTokenStarts(inputTokens);
 		TokenizerI tokenizer = getConfiguration().getNluTokenizer(type);
 		String input=Preprocess.getString(inputTokens, tokenizer);
-		try {
-			List<NE> nes = extractNamedEntitiesFromText(input,type);
-			filterOverlappingNES(nes);
-			if (nes!=null) {
-				for(NE ne:nes) {
-					int start=ne.getStart();
-					int end=ne.getEnd();
-					boolean isWholeWordsSubstring=StringUtils.isWholeWordSubstring(start,end,input);
-					if (isWholeWordsSubstring) {
-						int startToken = getTokenAtPosition(start,tokenStarts);
-						int endToken=getTokenAtPosition(end,tokenStarts);
-						boolean generalize=generalizeText();
-						for(int j=startToken;j<=endToken;j++) {
-							Token newToken=null;
-							if (j==startToken) {
-								Token original=inputTokens.get(j);
-								if (original!=null) {
-									if (generalize) { 
-										newToken=new Token(ne.getType().toUpperCase(), original.getType(), ne.getMatchedString(), start, end);
+		if (!StringUtils.isEmptyString(input)) {
+			try {
+				List<NE> nes = extractNamedEntitiesFromText(input,type);
+				filterOverlappingNES(nes);
+				if (nes!=null) {
+					for(NE ne:nes) {
+						int start=ne.getStart();
+						int end=ne.getEnd();
+						boolean isWholeWordsSubstring=StringUtils.isWholeWordSubstring(start,end,input);
+						if (isWholeWordsSubstring) {
+							int startToken = getTokenAtPosition(start,tokenStarts);
+							int endToken=getTokenAtPosition(end,tokenStarts);
+							boolean generalize=generalizeText();
+							for(int j=startToken;j<=endToken;j++) {
+								Token newToken=null;
+								if (j==startToken) {
+									Token original=inputTokens.get(j);
+									if (original!=null) {
+										if (generalize) { 
+											newToken=new Token(ne.getType().toUpperCase(), original.getType(), ne.getMatchedString(), start, end);
+										} else {
+											newToken=new Token(original.getName(), original.getType(), original.getOriginal(), original.getStart(), original.getEnd());
+										}
+										newToken.setAssociatedNamedEntity(ne);
+										if (ret==null) ret=new ArrayList<>();
+										ret.add(newToken);
 									} else {
-										newToken=new Token(original.getName(), original.getType(), original.getOriginal(), original.getStart(), original.getEnd());
+										logger.error("Trying to generalize null NE ("+ne+"). NE list: "+nes);
 									}
-									newToken.setAssociatedNamedEntity(ne);
-									if (ret==null) ret=new ArrayList<>();
-									ret.add(newToken);
-								} else {
-									logger.error("Trying to generalize null NE ("+ne+"). NE list: "+nes);
 								}
 							}
 						}
 					}
 				}
+			} catch (Exception e) {
+				logger.error("error generalizing text", e);
 			}
-		} catch (Exception e) {
-			logger.error("error generalizing text", e);
 		}
 		return ret;
 	}
