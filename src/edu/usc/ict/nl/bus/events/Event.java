@@ -45,7 +45,7 @@ public abstract class Event {
 			NLUConfig config=dm.getMessageBus().getNlu(dm.getSessionID()).getConfiguration();
 			String name=getName();
 			return (this instanceof NLUEvent) && !StringUtils.isEmptyString(name) && name.equalsIgnoreCase(config.getEmptyTextEventName());
-		} catch (Exception e) {dm.getLogger().error("error while testing is nlu event is empty",e);}
+		} catch (Exception e) {dm.getLogger().error("error while testing if nlu event is empty",e);}
 		return false;
 	}
 	/**

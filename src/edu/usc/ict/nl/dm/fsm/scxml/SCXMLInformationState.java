@@ -97,6 +97,11 @@ public class SCXMLInformationState extends DialogueKB {
 		return ret;
 	}
 	@Override
+	public Collection<DialogueOperatorEffect> flattenKBTree(
+			LinkedHashMap<String, Collection<DialogueOperatorEffect>> kbTree) {
+		return null;
+	}
+	@Override
 	public Set<String> getAllVariables() throws Exception {
 		Set<String> ret=null;
 		Map<TransitionTarget,Context> variables=exe.getAllContexts();

@@ -45,6 +45,7 @@ public interface DialogueKBInterface extends InformationStateInterface {
 	public Collection<DialogueOperatorEffect> dumpKB(File dumpFile) throws Exception;
 	public Collection<DialogueOperatorEffect> readFromFile(File dumpFile) throws Exception;
 	public LinkedHashMap<String, Collection<DialogueOperatorEffect>> dumpKBTree() throws Exception;
+	public Collection<DialogueOperatorEffect> flattenKBTree(LinkedHashMap<String, Collection<DialogueOperatorEffect>> kbTree);
 	public void printKB(String indent);
 	public String getContentID() throws Exception;
 

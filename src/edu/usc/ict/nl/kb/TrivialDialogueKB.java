@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -731,6 +732,27 @@ public class TrivialDialogueKB extends DialogueKB {
 		}
 		return ret;
 	}
+	
+	@Override
+	public Collection<DialogueOperatorEffect> flattenKBTree(LinkedHashMap<String, Collection<DialogueOperatorEffect>> kbTree) {
+		Map<String,DialogueOperatorEffect> ret=null;
+		if (kbTree!=null) {
+			for(String id:kbTree.keySet()) {
+				Collection<DialogueOperatorEffect> cs=kbTree.get(id);
+				if (cs!=null) {
+					for(DialogueOperatorEffect c:cs) {
+						if (ret==null) ret=new HashMap<>();
+						if (!ret.containsKey(c.getLeftID()) || 
+								!ret.get(c.getLeftID()).getRightID().equals(c.getRightID())) {
+							ret.put(c.getLeftID(), c);
+						}
+					}
+				}
+			}
+		}
+		return ret!=null?ret.values():null;
+	}
+	
 	@Override
 	public Set<String> getAllVariables() throws Exception {
 		Set<String> ret=null;

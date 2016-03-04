@@ -763,6 +763,17 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 				handleLoginEvent();
 			}
 		}));
+		menu.add(new JMenuItem(new AbstractAction("Information state inspector and evaluator.") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DM dm=null;
+				if (sid!=null && (dm=getDM(sid))!=null) {
+					try {
+						ISinspector.createAndShowGUI(getDM(sid));
+					} catch (Exception ex) {ex.printStackTrace();}
+				}
+			}
+		}));
 		menu.addSeparator();
 		menu.add(showDMReplies);
 
