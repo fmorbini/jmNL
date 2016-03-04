@@ -1,7 +1,10 @@
 package edu.usc.ict.nl.ui.chat;
 
-import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,32 +23,60 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
 import edu.usc.ict.nl.bus.modules.DM;
+import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
 import edu.usc.ict.nl.kb.DialogueKB;
+import edu.usc.ict.nl.kb.DialogueKBFormula;
+import edu.usc.ict.nl.kb.EvalContext;
+import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
+import edu.usc.ict.nl.kb.cf.TestRewardDM;
 
-public class ISinspector extends JPanel {
+public class ISinspector extends JPanel implements KeyListener {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private DM dm;
 	private DialogueKB is;
 	private int level=0;
-	private JLabel currentISLabel;
+	private JLabel currentISLabel=new JLabel("", 10);
 	private JTable list;
-	private JCheckBox useInheritance;
-	private DefaultTableModel listModel;
-	
-	public ISinspector(DialogueKB is) {
-		super(new BorderLayout());
-		this.is=is;
-		
-		useInheritance = new JCheckBox("Inheritance");
-		useInheritance.setSelected(true);
+	private JCheckBox useInheritance=new JCheckBox("Inheritance",true);
+	private DefaultTableModel listModel=new DefaultTableModel(new Object[]{"Name","Value"},0);
+	private JTextArea input,output;
+	private AbstractAction evalAction=new AbstractAction("Eval") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String f=input.getText();
+			try {
+				DialogueKBFormula pf=DialogueKBFormula.parse(f);
+				DialogueKB is=selectIS(ISinspector.this.is, level);
+				Object result = is.evaluate(pf,new EvalContext(is));
+				output.setText(result!=null?result.toString():null);
+			} catch (Exception ee) {
+				try {
+					DialogueOperatorEffect ef=DialogueOperatorEffect.parse(f);
+					is.store(ef, ACCESSTYPE.AUTO_OVERWRITETHIS, true);
+					refreshTable();
+				} catch (Exception eee) {
+					eee.printStackTrace();
+				}
+			}
+		}
+	};
 
-		listModel = new DefaultTableModel(new Object[]{"Name","Value"},0);
-		JTable table = new JTable(listModel);
-		updateTable();
+	
+	public ISinspector(DM dm) {
+		super(new GridBagLayout());
+		this.dm=dm;
+		
 		
 		//Create the list and put it in a scroll pane.
 		list = new JTable(listModel);
@@ -56,22 +87,37 @@ public class ISinspector extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (level>0) level--;
-				updateSelectedIndex();
+				refreshSelectedIndex();
 			}
 		});
 		JButton rightButton = new JButton(new AbstractAction("Up") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				level++;
-				updateSelectedIndex();
+				refreshSelectedIndex();
 			}
 		});
+		JButton refreshButton = new JButton(new AbstractAction("Refresh") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refreshIS();
+			}
 
+		});
 
-		currentISLabel = new JLabel("", 10);
-		updateSelectedIndex();
-
-        
+		output=new JTextArea();
+		output.setLineWrap(true);
+		output.setWrapStyleWord(true);
+		output.setEditable(false);
+		JScrollPane outputPane = new JScrollPane(output); 
+		input=new JTextArea();
+		input.setLineWrap(true);
+		input.setWrapStyleWord(true);
+		input.setEditable(true);
+		input.addKeyListener(this);
+		JScrollPane inputPane = new JScrollPane(input); 
+		JButton evalButton = new JButton(evalAction);
+		
 		//Create a panel that uses BoxLayout.
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane,
@@ -82,15 +128,82 @@ public class ISinspector extends JPanel {
 		buttonPane.add(Box.createHorizontalStrut(5));
 		buttonPane.add(rightButton);
 		buttonPane.add(Box.createHorizontalStrut(5));
+		buttonPane.add(refreshButton);
+		buttonPane.add(Box.createHorizontalStrut(5));
 		buttonPane.add(useInheritance);
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 		//add(searchBox,BorderLayout.NORTH);
-		add(buttonPane, BorderLayout.PAGE_START);
-		add(listScrollPane, BorderLayout.CENTER);
+
+		JPanel bottomButtonPane = new JPanel();
+		bottomButtonPane.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.weightx = 1.0;
+		c.weighty = 1.0;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor=GridBagConstraints.WEST;
+		c.fill=GridBagConstraints.BOTH;
+		bottomButtonPane.add(inputPane,c);
+		c = new GridBagConstraints();
+		c.weightx = 0;
+		c.weighty = 1;
+		c.gridx = 1;
+		c.gridy = 0;
+		c.anchor=GridBagConstraints.CENTER;
+		c.fill=GridBagConstraints.BOTH;
+		bottomButtonPane.add(evalButton,c);
+		c = new GridBagConstraints();
+		c.weightx = 1.0;
+		c.weighty = 1.0;
+		c.gridx = 2;
+		c.gridy = 0;
+		c.anchor=GridBagConstraints.EAST;
+		c.fill=GridBagConstraints.BOTH;
+		bottomButtonPane.add(outputPane,c);
+
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.weighty=0;
+		c.weightx=1;
+		c.gridwidth = 3;
+		c.anchor=GridBagConstraints.PAGE_START;
+		c.fill=GridBagConstraints.BOTH;
+		add(buttonPane,c);
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 1;
+		c.weighty=.5;
+		c.weightx=1;
+		c.gridwidth = 3;
+		c.anchor=GridBagConstraints.CENTER;
+		c.fill=GridBagConstraints.BOTH;
+		add(listScrollPane,c);
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 2;
+		c.weighty=.5;
+		c.weightx=1;
+		c.gridwidth = 3;
+		c.anchor=GridBagConstraints.PAGE_END;
+		c.fill=GridBagConstraints.BOTH;
+		add(bottomButtonPane,c);
+		//add(buttonPane, BorderLayout.PAGE_START);
+		//add(listScrollPane, BorderLayout.CENTER);
+		//add(bottomButtonPane, BorderLayout.PAGE_END);
 		//add(buttonPane, BorderLayout.PAGE_END);
+
+		refreshIS();
+		refreshTable();
 	}
 
-	private void updateTable() {
+	private void refreshIS() {
+		ISinspector.this.is=dm.getInformationState();
+		level=0;
+		refreshSelectedIndex();
+	}
+
+	private void refreshTable() {
 		DialogueKB selectedIS=selectIS(is,level);
 		try {
 			Collection<DialogueOperatorEffect> tmp = useInheritance.isSelected()?selectedIS.flattenKBTree(selectedIS.dumpKBTree()):selectedIS.dumpKB();
@@ -99,12 +212,14 @@ public class ISinspector extends JPanel {
 				Collections.sort(content,new Comparator<DialogueOperatorEffect>() {
 					@Override
 					public int compare(DialogueOperatorEffect o1,DialogueOperatorEffect o2) {
-						if (o1!=null) return o1.compareUsingStrings(o2);
+						if (o1!=null) {
+							return o1.compareUsingStrings(o2);
+						}
 						else return -1; 
 					}
 				});
 				int rows=listModel.getRowCount();
-				if (rows>0) for(int i=0;i<rows;i++) listModel.removeRow(i);
+				if (rows>0) listModel.setRowCount(0);
 				Object[] row=new Object[]{null,null};
 				for(DialogueOperatorEffect c:content) {
 					if (c.isAssertion()) {
@@ -128,10 +243,11 @@ public class ISinspector extends JPanel {
 		}
 	}
 
-	private void updateSelectedIndex() {
+	private void refreshSelectedIndex() {
 		DialogueKB selectedIS=selectIS(is,level);
 		String name=useInheritance.isSelected()?selectedIS.getName():selectedIS.getID()+"";
 		currentISLabel.setText(name);
+		refreshTable();
 	}
 
 	private DialogueKB selectIS(DialogueKB is, int level) {
@@ -155,7 +271,7 @@ public class ISinspector extends JPanel {
 					frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 					//Create and set up the content pane.
-					JComponent newContentPane = new ISinspector(dm.getInformationState());
+					JComponent newContentPane = new ISinspector(dm);
 					newContentPane.setOpaque(true); //content panes must be opaque
 					frame.setContentPane(newContentPane);
 
@@ -165,6 +281,28 @@ public class ISinspector extends JPanel {
 				} catch (Exception e) {e.printStackTrace();}
 			}
 		});
+	}
+	
+	public static void main(String[] args) throws Exception {
+		DM dm=new TestRewardDM(DMConfig.WIN_EXE_CONFIG); 
+		createAndShowGUI(dm);
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		int key = e.getKeyCode();
+		int mod=e.getModifiers();
+		if (key == KeyEvent.VK_ENTER && (mod&KeyEvent.CTRL_MASK)!=0) {
+			evalAction.actionPerformed(null);
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
 	}
 
 }

@@ -535,7 +535,7 @@ public abstract class NLBusBase implements NLBusInterface {
 				session2PolicyDM.put(sid, dm);
 				return dm;
 			} else {
-				logger.error("NULL policy for character: "+characterName+". Cannot start a session DM.");
+				logger.warn("NULL policy for character: "+characterName+". Cannot start a session DM.");
 			}
 		}
 		return null;

@@ -16,8 +16,10 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.apache.lucene.search.IndexSearcher;
@@ -70,6 +72,7 @@ public class PropositionalKB {
 	}
 	private void storePredication(DialogueKBFormula f, Object v) {
 		try {
+			writer.deleteDocuments(new Term(WHOLE, f.toString(wrapperKB)));
 			Document doc = new Document();
 			doc.add(new StringField(WHOLE, f.toString(wrapperKB), Store.YES));
 			doc.add(new StringField(RELATION, wrapperKB.normalizeNames(f.getName()), Store.YES));
@@ -165,8 +168,9 @@ public class PropositionalKB {
 			if (hits.length<sn || args==null) break;
 		}
 		List<List<Arg>> ret=null;
+		IndexReader indexReader = searcher.getIndexReader();
 		for (int i = 0; i < hits.length; i++) {
-			Document doc = searcher.getIndexReader().document(hits[i].doc);
+			Document doc = indexReader.document(hits[i].doc);
 			String v=doc.get(VALUE);
 			if (args!=null) {
 				List<Arg> ass=null;
@@ -245,9 +249,13 @@ public class PropositionalKB {
 			    Document doc = newReader.document(i);
 			    String f=doc.get(WHOLE);
 			    String v=doc.get(VALUE);
-				DialogueOperatorEffect eff=DialogueOperatorEffect.createAssignment(DialogueKBFormula.parse(f),DialogueKBFormula.parse(v),false);
-				if (ret==null) ret=new ArrayList<DialogueOperatorEffect>();
-				ret.add(eff);
+			    try {
+			    	DialogueOperatorEffect eff=DialogueOperatorEffect.createAssignment(DialogueKBFormula.parse(f),DialogueKBFormula.parse(v),false);
+					if (ret==null) ret=new ArrayList<DialogueOperatorEffect>();
+					ret.add(eff);
+			    } catch (Exception e) {
+			    	wrapperKB.getLogger().error("Error processing formula: "+f,e);
+			    }
 			}
 		}
 		return ret;
