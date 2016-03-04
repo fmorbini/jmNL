@@ -99,7 +99,7 @@ public class EchoNLG extends NLG {
 		DM dm = (nl!=null)?nl.getDM(sessionID):null;
 		DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
 
-		if (line==null) line=pickLineForSpeechAct(sessionID, evName, is, simulate); 
+		if (line==null) line=pickLineForSpeechAct(sessionID, evName, is, simulate);
 		NLGEvent output=processPickedLine(line, sessionID,evName, is, simulate);
 		if (output!=null) output.setPayload(ev);
 		if (output==null || StringUtils.isEmptyString(output.getName())) {
@@ -179,8 +179,11 @@ public class EchoNLG extends NLG {
 			ret.setText(r.getFirst());
 			ret.setProperty(NLG.PROPERTY_URL, r.getSecond());
 			return ret;
+		} else {
+			SpeechActWithProperties ret = new SpeechActWithProperties();
+			ret.setText(sa);
+			return ret;
 		}
-		return null;
 	}
 
 	protected NLGEvent buildOutputEvent(String text,Long sessionID,DMSpeakEvent sourceEvent) {
@@ -217,6 +220,10 @@ public class EchoNLG extends NLG {
 					if (!StringUtils.isEmptyString(rt)) text+=resolveTemplates(rt, is)+"\n";
 					text+=line.getProperty(NLG.PROPERTY_URL);
 				}
+				result=buildOutputEvent(null, sessionID, null);
+				result.setName(text);
+			} else {
+				String text=line.getText();
 				result=buildOutputEvent(null, sessionID, null);
 				result.setName(text);
 			}
