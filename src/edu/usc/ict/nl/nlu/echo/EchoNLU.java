@@ -30,11 +30,6 @@ public class EchoNLU extends NLU {
 	}
 
 	@Override
-	public List<NLUOutput> getNLUOutputFake(String[] NLUOutputIDs, String text)
-			throws Exception {
-		return getNLUOutput(text, null,null);
-	}
-	@Override
 	public Map<String, Object> getPayload(String sa, String text)
 			throws Exception {
 		return null;

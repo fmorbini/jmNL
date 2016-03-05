@@ -37,17 +37,12 @@ public class MXClassifierNLU extends NLU {
 
 	protected NLUProcess nluP;
 
-	private Float acceptanceThreshold;
-	public void setAcceptanceThreshold(Float t) {this.acceptanceThreshold=t;}
-
 	public MXClassifierNLU() throws Exception {
 		this(NLUConfig.WIN_EXE_CONFIG);
 	}
 	public MXClassifierNLU(NLUConfig c) throws Exception {
 		super(c);
 		NLUConfig config=getConfiguration();
-		Boolean inAdviserMode=config.isInAdvicerMode();
-		setAcceptanceThreshold((inAdviserMode!=null && inAdviserMode)?null:config.getAcceptanceThreshold());
 		setNLUProcess(startMXNLUProcessFromConfig(config));
 	}
 
@@ -205,57 +200,6 @@ public class MXClassifierNLU extends NLU {
 		return ret;
 	}
 
-	/**
-	 * options may differ just because of different named entities recognized altough superficially the text is the same.
-	 * to avoid computing features (for classifiers) over and over for the same text, this sorting routine can be used together
-	 * with some more intelligent code.
-	 * @param options
-	 */
-	private void sortOptionsByText(List<List<Token>> options,final Preprocess pr) {
-		Collections.sort(options, new Comparator<List<Token>>(){
-			@Override
-			public int compare(List<Token> o1, List<Token> o2) {
-				String t1=pr.getString(o1);
-				String t2=pr.getString(o2);
-				return t1.compareTo(t2);
-			}
-		});
-	}
-
-	@Override
-	public List<NLUOutput> getNLUOutputFake(String[] nluOutputIDs,String inputText) throws Exception {
-		List<NLUOutput> ret=new ArrayList<NLUOutput>();
-		Preprocess pr=getPreprocess(PreprocessingType.RUN);
-		List<List<Token>> options = pr.process(inputText);
-		sortOptionsByText(options,pr);
-
-		List<NLUOutput> userSpeechActsWithProb = processNLUOutputs(nluOutputIDs,null,null,null);		
-
-		if (userSpeechActsWithProb!=null && options!=null && !options.isEmpty()) {
-			for(int i=0;i<userSpeechActsWithProb.size();i++) {
-				NLUOutput o=userSpeechActsWithProb.get(0);
-				boolean added=false;
-				for(List<Token> option:options) {
-					if (Preprocess.hasAssociatedNamedEntities(option)) {
-						String t=pr.getString(option);
-						o.setText(t);
-						List<NE> fnes=BasicNE.filterNESwithSpeechAct(option,o.getId(),pr.getTokenizer());
-						Map<String, Object> payload = BasicNE.createPayload(fnes);
-						o.setPayload(payload);
-						if (ret==null) ret=new ArrayList<>();
-						ret.add(o);
-						userSpeechActsWithProb.set(i, new NLUOutput(o.getText(), o.getId(), o.getProb().floatValue(), null));
-						added=true;
-					}
-				}
-				if (!added) {
-					if (ret==null) ret=new ArrayList<>();
-					ret.add(o);
-				}
-			}
-		}
-		return ret;
-	}
 	@Override
 	public List<NLUOutput> getNLUOutput(String text,Set<String> possibleUserEvents,Integer nBest) throws Exception {
 		String emptyEvent=getConfiguration().getEmptyTextEventName();
@@ -270,81 +214,6 @@ public class MXClassifierNLU extends NLU {
 	public static final Pattern nluOutputLineFormat = Pattern.compile("^[\\s]*([\\d\\.]+[eE\\+\\-\\d]*)[\\s]+(.+)[\\s]*$");
 	public static final Pattern rangePattern=Pattern.compile("([\\d]+)-([\\d]+)");
 	public static final Pattern nluNERangesFormat = Pattern.compile("<("+rangePattern.toString()+"(,"+rangePattern.toString()+")*)>");
-	private List<NLUOutput> processNLUOutputs(String[] nlu,Integer nBest, Set<String> possibleUserEvents,ArrayList<String> sortedOutputKeys) throws Exception {
-		Float acceptanceThreshold=this.acceptanceThreshold;
-		NLUConfig config=getConfiguration();
-		getLogger().debug("PROCESS NLU: input user speechActs: "+((nlu==null)?nlu:Arrays.asList(nlu)));
-		if (sortedOutputKeys!=null) sortedOutputKeys.clear();
-
-		List<NLUOutput> userEvents=new ArrayList<NLUOutput>();
-		// if a particular nBest is given forget about the threshold and return the exact number of results.
-		if (nBest==null) nBest=getConfiguration().getnBest();
-		else acceptanceThreshold=null;
-
-		if (nlu!=null) {
-			for(String s:nlu) {
-				Matcher m = nluOutputLineFormat.matcher(s);
-				String prbString,sa;
-				List<Pair<Integer,Integer>> ranges=null;
-				if (m.matches() && (m.groupCount()==2)) {
-					prbString=m.group(1);
-					sa=StringUtils.removeLeadingAndTrailingSpaces(m.group(2));
-					Matcher rm=nluNERangesFormat.matcher(sa);
-					if (rm.find()) {
-						sa=StringUtils.removeLeadingAndTrailingSpaces(sa.substring(0, rm.start()));
-						String rangess=rm.group(1);
-						rm=rangePattern.matcher(rangess);
-						while(rm.find()) {
-							try {
-								Integer start=Integer.parseInt(rm.group(1));
-								Integer end=Integer.parseInt(rm.group(2));
-								if (ranges==null) ranges=new ArrayList<>();
-								ranges.add(new Pair<Integer, Integer>(start, end));
-							} catch (Exception e) {}
-						}
-					}
-				} else {
-					getLogger().error("NO MATCH WITH INPUT SPEECHACT AND PROBABILITY. Forcing P=1 and SpeechAct = '"+s+"'");
-					prbString="1";
-					sa=s;
-				}
-				try {
-					float prb = Float.parseFloat(prbString);
-					if ((acceptanceThreshold==null) || ((prb>=0) && (prb<=1) && (prb>=acceptanceThreshold))) {
-						if ((possibleUserEvents==null) || (possibleUserEvents.contains(sa))) {
-							if (userEvents.size()<=nBest) {
-								NLUOutput o=new NLUOutput(null, sa, prb,null);
-								o.setRanges(ranges);
-								userEvents.add(o);
-								if (sortedOutputKeys!=null) sortedOutputKeys.add(sa);
-								getLogger().debug(" user speechAct: "+sa+" with probability "+prb);
-								if (possibleUserEvents!=null) {
-									possibleUserEvents.remove(sa);
-									if (possibleUserEvents.size()<=0) break;
-								}
-							}
-						}
-					}
-				} catch (NumberFormatException e) {
-					getLogger().error(" probability associated with '"+s+"' is not a number.");
-				}
-			}
-		}
-		
-		// if no event is left: update the current state by following all user edges (this is the case
-		//  representing low certainty with the classification))
-		if (userEvents.isEmpty()) {
-			String lowConfidenceEvent=config.getLowConfidenceEvent();
-			if (StringUtils.isEmptyString(lowConfidenceEvent)) {
-				getLogger().warn(" no user speech acts left and LOW confidence event disabled, returning no NLU results.");
-			} else {
-				userEvents.add(new NLUOutput(null, lowConfidenceEvent, 1f, null));
-				if (sortedOutputKeys!=null) sortedOutputKeys.add(lowConfidenceEvent);
-				getLogger().warn(" no user speech acts left. adding the low confidence event.");
-			}
-		}
-		return userEvents;
-	}
 
 	public void kill() {getNLUProcess().kill();}
 
