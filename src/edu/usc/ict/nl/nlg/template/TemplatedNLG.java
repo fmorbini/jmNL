@@ -38,7 +38,7 @@ public class TemplatedNLG extends EchoNLG {
 		try {
 			qs=new Queries();
 		} catch (Exception e) {
-			logger.error(e);
+			logger.error("Error while loading experimental wikidata indexes: ",e);
 		}
 	}
 
@@ -151,7 +151,7 @@ public class TemplatedNLG extends EchoNLG {
 						try {
 							logger.warn("IS is: "+is.dumpKB());
 						} catch (Exception e) {
-							logger.error(e);
+							logger.error("Error while applying template functions: ",e);
 						}
 						return null;
 					} else {

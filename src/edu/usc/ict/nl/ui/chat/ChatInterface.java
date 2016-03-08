@@ -72,6 +72,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import edu.usc.ict.nl.bus.ExternalListenerInterface;
 import edu.usc.ict.nl.bus.NLBus;
+import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
@@ -508,18 +509,25 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					DM dm=nlModule.getDM(sid);
-					boolean pauseEventProcessing=dm.getPauseEventProcessing();
-					if (!pauseEventProcessing) dm.setPauseEventProcessing(true);
-					NLUInterface nlu = nlModule.getNlu(sid);
-					NLUConfig nluConfig=nlu.getConfiguration();
-					nlu.retrain();
-					nlu.loadModel(new File(nluConfig.getNluModelFile()));
-					if (!pauseEventProcessing) dm.setPauseEventProcessing(false);
-					enableInput("");
-				} catch (Exception e) {
-					displayError(e,false);
+				DM dm=nlModule.getDM(sid);
+				if (dm!=null) {
+					try {
+						boolean pauseEventProcessing=dm.getPauseEventProcessing();
+						if (!pauseEventProcessing) dm.setPauseEventProcessing(true);
+						NLUInterface nlu = nlModule.getNlu(sid);
+						NLUConfig nluConfig=nlu.getConfiguration();
+						nlu.retrain();
+						nlu.loadModel(new File(nluConfig.getNluModelFile()));
+						if (!pauseEventProcessing) dm.setPauseEventProcessing(false);
+						enableInput("");
+					} catch (Exception e) {
+						displayError(e,false);
+					} finally {
+						dm.setPauseEventProcessing(false);
+						enableInput("");
+					}
+				} else {
+					NLBus.logger.error("error while retrieving DM for session "+sid+" for character: "+nlModule.getCharacterName4Session(sid));
 				}
 			}
 		});

@@ -396,7 +396,7 @@ public class DialogueAction {
 						setTransitionAsSaid(tr);
 						resumeExeFromFinishedSystemAction(tr, sourceEvent);
 					} catch (Exception e) {
-						dm.getLogger().error(e);
+						dm.getLogger().error("error while setting transition "+tr+" as said and resume execution of action.",e);
 					}
 				}
 			};

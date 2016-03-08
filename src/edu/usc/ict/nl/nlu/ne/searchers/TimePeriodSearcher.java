@@ -34,7 +34,7 @@ public class TimePeriodSearcher {
 				parser = ChartParser.getParserForGrammar(grammar);
 			}
 		} catch (Exception e) {
-			BasicNE.logger.error(e);
+			BasicNE.logger.error("Error while initializing time period searcher: ",e);
 		}
 
 	}
@@ -50,7 +50,7 @@ public class TimePeriodSearcher {
 				return Math.round((Double)r.getSemantics());
 			}
 		} catch (Exception e) {
-			BasicNE.logger.error(e);
+			BasicNE.logger.error("Error while extracting time period: ",e);
 		}
 		return null;
 	}
@@ -80,7 +80,7 @@ public class TimePeriodSearcher {
 				return ParserSemanticRulesTimeAndNumbers.numSecondsInDay*prevTimesEachSecond;
 			}
 		} catch (Exception e) {
-			BasicNE.logger.error(e);
+			BasicNE.logger.error("Error while extracting frequency from: "+text,e);
 		}
 		return null;
 	}

@@ -154,7 +154,7 @@ public abstract class DialogueKB extends Node implements DialogueKBInterface {
 							if (result)	newe=conse;
 							else newe=elsePart;
 						}
-					} catch (Exception ex) {logger.error(ex);}
+					} catch (Exception ex) {logger.error("error while processing assignment list: ",ex);}
 				} else {
 					newe=e;
 				}

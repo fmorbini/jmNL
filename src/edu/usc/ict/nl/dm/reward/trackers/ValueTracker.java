@@ -28,7 +28,7 @@ public abstract class ValueTracker {
 			lock.acquire();
 			Object currentValue=getter();
 			setter(currentValue);
-		} catch (InterruptedException e) {dm.getLogger().error(e);}
+		} catch (InterruptedException e) {dm.getLogger().error("error in setter in "+this.getClass().getSimpleName(),e);}
 		finally {lock.release();}
 	}
 	

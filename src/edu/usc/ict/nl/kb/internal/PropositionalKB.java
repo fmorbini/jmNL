@@ -62,7 +62,7 @@ public class PropositionalKB {
 			writer.commit();
 			reader=DirectoryReader.open(index);
 		} catch (IOException e) {
-			wrapperKB.getLogger().error(e);
+			wrapperKB.getLogger().error("error while setting up lucene index: ",e);
 		}
 	}
 	
@@ -85,7 +85,7 @@ public class PropositionalKB {
 			writer.addDocument(doc);
 			writer.commit();
 		} catch (Exception e) {
-			wrapperKB.getLogger().error(e);
+			wrapperKB.getLogger().error("Error while storing predication: "+f,e);
 		}
 	}
 	private void storeVariable(DialogueKBFormula f, Object v) {
@@ -111,7 +111,7 @@ public class PropositionalKB {
 				ScoreDoc[] hits = result.scoreDocs;
 				if (hits.length>0) return true;
 			} catch (Exception e) {
-				wrapperKB.getLogger().error(e);
+				wrapperKB.getLogger().error("Error while checking if formula "+f+" is in KB: ",e);
 			}
 		} else {
 			String name=f.getName();
@@ -143,7 +143,7 @@ public class PropositionalKB {
 				if (starArgs==null) query=WHOLE+": "+QueryParserUtil.escape(f.toString(wrapperKB));
 				return find(query,Queries.MAXITEMS,starArgs);
 			} catch (Exception e) {
-				wrapperKB.getLogger().error(e);
+				wrapperKB.getLogger().error("Error while getting value for formula: "+f,e);
 			}
 		} else {
 			String name=f.getName();
@@ -225,7 +225,7 @@ public class PropositionalKB {
 			reader=newReader;
 			return newReader;
 		} catch (IOException e) {
-			wrapperKB.getLogger().error(e);
+			wrapperKB.getLogger().error("Error while getting lucene index reader: ",e);
 		}
 		return null;
 	}

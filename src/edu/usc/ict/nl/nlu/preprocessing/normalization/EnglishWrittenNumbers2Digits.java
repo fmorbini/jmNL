@@ -48,7 +48,7 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 				Collection<Item> result = parser.parseAndFilter(input,"<N>");
 				return replaceItemsInTokens(tokens,result);
 			} catch (Exception e) {
-				logger.error(e);
+				logger.error("Error while parsing written numbers: ",e);
 			}
 		}
 		return tokens;

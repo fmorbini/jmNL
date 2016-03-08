@@ -47,8 +47,7 @@ public class SystemFinishedSpeakingTracker extends ValueTracker {
 				localIS.setValueOfVariable(NLBusBase.systemSpeakingCompletionVarName, spokenFraction!=null?spokenFraction:0,ACCESSTYPE.AUTO_OVERWRITEAUTO);
 			}
 		} catch (Exception e) {
-			Logger logger = dm.getLogger();
-			logger.error(e);
+			dm.getLogger().error("Error while updating IS in "+this.getClass().getSimpleName(),e);
 		}
 		finally {unlock();}
 	}

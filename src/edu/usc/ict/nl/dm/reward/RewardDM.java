@@ -663,7 +663,6 @@ public class RewardDM extends DM {
 				NLUOutput sa=(NLUOutput) ev.getPayload();
 				if (sa!=null) {
 					DialogueKBFormula textValue=DialogueKBFormula.create(DialogueKBFormula.generateStringConstantFromContent(StringUtils.flattenToAscii(sa.getText())));
-					System.out.println(textValue);
 					DialogueOperatorEffect eff=DialogueOperatorEffect.createAssignment(DialogueKBFormula.create(NLBusBase.lastUserText, null),
 							textValue,
 							false);

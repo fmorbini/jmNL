@@ -965,8 +965,7 @@ public class BuildTrainingData {
 				try {
 					ret.add(new TrainingDataFormat(u, k,noAutofillLabel));
 				} catch (Exception e) {
-					logger.error(e);
-					logger.error("Error processing file: "+xlsx);
+					logger.error("Error processing file: "+xlsx,e);
 				}
 			}
 		}

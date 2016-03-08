@@ -529,7 +529,7 @@ public class TrivialDialogueKB extends DialogueKB {
 		try {
 			return getValueOfPredication(DialogueKBFormula.createVar(vName), type, context);
 		} catch (Exception e) {
-			logger.error(e);
+			logger.error("Error while getting value of variable: "+vName,e);
 		}
 		return null;
 	}
@@ -657,7 +657,7 @@ public class TrivialDialogueKB extends DialogueKB {
 			vName=normalizeNames(vName);
 			return hasPredication(DialogueKBFormula.createVar(vName), type);
 		} catch (Exception e) {
-			logger.error(e);
+			logger.error("Error while checking if variable "+vName+" is in KB: ",e);
 		}
 		return false;
 	}

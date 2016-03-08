@@ -721,7 +721,6 @@ public class RewardPolicy {
 			NodeList cs = rootNode.getChildNodes();
 			for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
 		} catch (Exception e) {
-			logger.error(e.getMessage());
 			throw new Exception("Error while parsing file: '"+fileName+"' in node: '"+XMLUtils.domNode2String(sourceNode, true, true)+"':\n\n"+e);
 		}
 	}

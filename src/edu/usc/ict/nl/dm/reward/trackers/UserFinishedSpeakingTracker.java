@@ -26,7 +26,7 @@ public class UserFinishedSpeakingTracker extends ValueTracker {
 		try {
 			userSpeaking = (Boolean) is.evaluate(is.getValueOfVariable(NLBusBase.userSpeakingStateVarName,ACCESSTYPE.AUTO_OVERWRITEAUTO,null),null);
 		} catch (Exception e) {
-			e.printStackTrace();
+			dm.getLogger().error("Error in getter in "+this.getClass().getSimpleName(),e);
 		}
 		boolean ret=userSpeaking==null || !userSpeaking;
 		//call the setter to make sure that other methods depending on the set values are in sinck with the result provided by this getter call.
@@ -48,7 +48,7 @@ public class UserFinishedSpeakingTracker extends ValueTracker {
 				float time = dm.getMessageBus().getTimeUserHasBeenSpeaking();
 				if (time>0) is.setValueOfVariable(NLBusBase.lengthOfLastThingUserSaidVarName,time,ACCESSTYPE.AUTO_OVERWRITEAUTO);
 			} catch (Exception e) {
-				e.printStackTrace();
+				dm.getLogger().error("Error in setter in "+this.getClass().getSimpleName(),e);
 			}
 		}
 	}
@@ -66,8 +66,7 @@ public class UserFinishedSpeakingTracker extends ValueTracker {
 				localIS.store(DialogueOperatorEffect.createAssignment(NLBusBase.timeSinceLastUserActionVariableName,DialogueKBFormula.create("0", null)),ACCESSTYPE.AUTO_OVERWRITEAUTO,false);
 			}
 		} catch (Exception e) {
-			Logger logger=dm.getLogger();
-			logger.error(e);
+			dm.getLogger().error("Error while updating IS in "+this.getClass().getSimpleName(),e);
 		}
 		finally {unlock();}
 	}

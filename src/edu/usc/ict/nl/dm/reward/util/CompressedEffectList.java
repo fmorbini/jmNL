@@ -101,7 +101,7 @@ public class CompressedEffectList {
 		try {
 			mergeTheseEffects(effects);
 		} catch (Exception e) {
-			logger.error(e);
+			logger.error("error while compressing effects: ",e);
 		}
 	}
 

@@ -522,7 +522,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		}
 		return character2DM;
 	}
-	public synchronized DM getDM(Long sid,boolean createIfNotThereAlready) throws Exception {
+	public synchronized DM getDM(Long sid,boolean createIfNotThereAlready) {
 		DM dm=session2PolicyDM.get(sid);
 		if (dm!=null) return dm;
 		else if (createIfNotThereAlready) {
@@ -530,10 +530,14 @@ public abstract class NLBusBase implements NLBusInterface {
 			dm=getDMForCharacter(characterName);
 			Object policy=character2parsedPolicy.get(characterName);
 			if (policy!=null) {
-				dm=dm.createPolicyDM(policy, sid, this);
-				logger.info("Using DM for session "+sid+" for character "+characterName+" with dm class: "+dm.getClass().getName());
-				session2PolicyDM.put(sid, dm);
-				return dm;
+				try {
+					dm=dm.createPolicyDM(policy, sid, this);
+					logger.info("Using DM for session "+sid+" for character "+characterName+" with dm class: "+dm.getClass().getName());
+					session2PolicyDM.put(sid, dm);
+					return dm;
+				} catch (Exception e) {
+					logger.error("Error while starting a new DM for character: "+characterName,e);
+				}
 			} else {
 				logger.warn("NULL policy for character: "+characterName+". Cannot start a session DM.");
 			}
@@ -541,15 +545,15 @@ public abstract class NLBusBase implements NLBusInterface {
 		return null;
 	}
 	@Override
-	public synchronized DM getDM(Long sid) throws Exception {
+	public synchronized DM getDM(Long sid) {
 		return getDM(sid,true);
 	}
-	private synchronized DM getDMForCharacter(String characterName) throws Exception {
+	private synchronized DM getDMForCharacter(String characterName) {
 		DM dm=character2DM.get(characterName);
 		if (dm==null) startDMForCharacter(characterName);
 		return dm;
 	}
-	private void startDMForCharacter(final String characterName) throws Exception {
+	private void startDMForCharacter(final String characterName) {
 		try {
 			if (!StringUtils.isEmptyString(characterName)) {
 				logger.info("starting new template DM for character: "+characterName);
@@ -712,12 +716,12 @@ public abstract class NLBusBase implements NLBusInterface {
 		if (personalizedConfigFile.exists()) {
 			try {
 				context = new FileSystemXmlApplicationContext(personalizedConfigFile.getAbsolutePath());
-			} catch (Exception e) {logger.error(e);}
+			} catch (Exception e) {logger.error("error while getting prsonalized configuration file in filesystem: ",e);}
 		}
 		if (context==null) {
 			try {
 				context = new ClassPathXmlApplicationContext(new String[] {classpathPersonalizedConfigName});
-			} catch (Exception e) {logger.error(e);}
+			} catch (Exception e) {logger.error("error while getting prsonalized configuration file in classpath: ",e);}
 		}
 		if (context!=null) {
 			logger.info("creating NL configuration from file: "+classpathPersonalizedConfigName);
