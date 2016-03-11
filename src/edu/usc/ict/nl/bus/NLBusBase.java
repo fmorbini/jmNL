@@ -1,6 +1,7 @@
 package edu.usc.ict.nl.bus;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
@@ -24,6 +25,7 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.springframework.beans.BeansException;
 import org.springframework.context.support.AbstractXmlApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -559,12 +561,19 @@ public abstract class NLBusBase implements NLBusInterface {
 				logger.info("starting new template DM for character: "+characterName);
 				DMConfig dmConfig = getDMConfigurationForCharacter(characterName);
 				DM dm=(DM) createSubcomponent(dmConfig,dmConfig.getDmClass());
+				deleteOldPolicyIfThere(characterName);
 				parsePolicyForCharacter(dm);
 				character2DM.put(characterName, dm);
 				logger.info("DONE starting template DM for character: "+characterName);
 			}
 		} catch (Exception e) {
 			logger.error("error starting template dm for character: "+characterName,e);
+		}
+	}
+	private void deleteOldPolicyIfThere(String characterName) {
+		if (character2DM.containsKey(characterName) || character2parsedPolicy.containsKey(characterName)) {
+			removePolicyForCharacter(characterName);
+			logger.warn("Removed old policy and dm for character "+characterName+" before it gets replaced with new one.");
 		}
 	}
 	private void parsePolicyForCharacter(DM dm) throws Exception {
@@ -716,12 +725,26 @@ public abstract class NLBusBase implements NLBusInterface {
 		if (personalizedConfigFile.exists()) {
 			try {
 				context = new FileSystemXmlApplicationContext(personalizedConfigFile.getAbsolutePath());
-			} catch (Exception e) {logger.error("error while getting prsonalized configuration file in filesystem: ",e);}
+			} catch (BeansException e) {
+				Throwable cause=e.getRootCause();
+				if (cause==null || !(cause instanceof FileNotFoundException)) {
+					logger.error("error while getting personalized configuration file in filesystem: ",e);
+				} else {
+					logger.warn("personalized config not found in filesystem for: "+characterName);
+				}
+			}
 		}
 		if (context==null) {
 			try {
 				context = new ClassPathXmlApplicationContext(new String[] {classpathPersonalizedConfigName});
-			} catch (Exception e) {logger.error("error while getting prsonalized configuration file in classpath: ",e);}
+			} catch (BeansException e) {
+				Throwable cause=e.getRootCause();
+				if (cause==null || !(cause instanceof FileNotFoundException)) {
+					logger.error("error while getting personalized configuration file in classpath: ",e);
+				} else {
+					logger.warn("personalized config not found in classpath for: "+characterName);
+				}
+			}
 		}
 		if (context!=null) {
 			logger.info("creating NL configuration from file: "+classpathPersonalizedConfigName);
