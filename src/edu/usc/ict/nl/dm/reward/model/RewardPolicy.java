@@ -817,7 +817,7 @@ public class RewardPolicy {
 			op.postProcessOperator(getISUpdatesMatcher(),this);
 		}
 		if (getConfiguration().getApproximatedForwardSearch()) {
-			updateMightEnableTableWith(op);
+			mightEnableTable=updateMightEnableTableWith(mightEnableTable,op);
 		}
 		/*System.out.println(mightEnableTable.size());
 		for(DialogueOperatorEntranceTransition ec1:mightEnableTable.keySet()) {
@@ -900,6 +900,9 @@ public class RewardPolicy {
 	}
 
 	private void mightEnableTableToGDLGraph(String filename,boolean compress) throws IOException {
+		mightEnableTableToGDLGraph(mightEnableTable, filename, compress);
+	}
+	private void mightEnableTableToGDLGraph(HashMap<DialogueOperatorEntranceTransition, Set<DialogueOperatorEntranceTransition>> mightEnableTable,String filename,boolean compress) throws IOException {
 		FileWriter out=new FileWriter(filename);
 		HashSet<Object> visited=new HashSet<Object>();
 		out.write("graph: {display_edge_labels: no\n");
@@ -970,12 +973,14 @@ public class RewardPolicy {
 		}
 		return ret;
 	}
-	private void computeMightEnableTable() {
+	private HashMap<DialogueOperatorEntranceTransition, Set<DialogueOperatorEntranceTransition>> computeMightEnableTable() {
+		HashMap<DialogueOperatorEntranceTransition, Set<DialogueOperatorEntranceTransition>> mightEnableTable=new HashMap<>();
 		for(DialogueOperator op:getOperators(OpType.NORMAL)) {
-			updateMightEnableTableWith(op);
+			mightEnableTable=updateMightEnableTableWith(mightEnableTable,op);
 		}
+		return mightEnableTable;
 	}
-	private void updateMightEnableTableWith(DialogueOperator op) {
+	private HashMap<DialogueOperatorEntranceTransition, Set<DialogueOperatorEntranceTransition>> updateMightEnableTableWith(HashMap<DialogueOperatorEntranceTransition, Set<DialogueOperatorEntranceTransition>> mightEnableTable,DialogueOperator op) {
 		if (op!=null && op.isNormal()) {
 			HashMap<DialogueOperatorEntranceTransition, Set<DialogueKBFormula>> modVars = op.getSetOfModifiedVariables();
 			for(DialogueOperatorEntranceTransition ec:modVars.keySet()) {
@@ -984,6 +989,7 @@ public class RewardPolicy {
 				mightEnableTable.put(ec,getSetOfEntranceOptionsThatCanBeEnabledByThisSetOfChangedVariables(modVarsForEC));
 			}
 		}
+		return mightEnableTable;
 	}
 
 	public EventMatcher<List<DialogueOperatorEffect>> getISUpdatesMatcher() {return eventMatcher4isUpdates;}
@@ -1240,69 +1246,12 @@ public class RewardPolicy {
 	}*/
 	
 	public static void main(String[] args) throws Exception {
-		DialogueOperatorEffect eff=DialogueOperatorEffect.createAssignment("a", 3);
-		eff.setAssignmentProperty(PROPERTY.READONLY, true);
-		eff.setAssignmentProperty(PROPERTY.PERSISTENT, false);
-		System.out.println(eff.toString(false));
-		System.exit(0);
-		String fileName="C:\\Users\\morbini\\simcoach_svn\\trunk\\core\\SCNLModule\\resources\\characters\\Ellie_DCAPS_AI\\policy.xml";
+		String fileName="C:\\Users\\morbini\\jmNL\\resources\\all-characters\\Afib.-1710744728-C3PO-Generator\\dm\\policy.xml";
 		try {
 			RewardPolicy rp = new RewardPolicy(DMConfig.WIN_EXE_CONFIG);
 			RewardPolicy dp=rp.parseDialoguePolicyFile(fileName);
-			
-			dp.getISinitialization();
-			
-			dp.toGDLGraph("policy.gdl");
-			Collection<DialogueOperator> ops = dp.getOperators(OpType.NORMAL);
-			// 0 system initiative
-			// 1 user initiative
-			// 2 re-entrance
-			Map<Integer,List<DialogueOperator>> grouped=new HashMap<Integer, List<DialogueOperator>>();
-			PerformanceResult lengths = new PerformanceResult();
-			PerformanceResult numPaths = new PerformanceResult();
-			PerformanceResult numPathsNoUserInitiative = new PerformanceResult();
-			int i=0;
-			for(DialogueOperator op:ops) {
-				Integer key=0;
-				if (op.isUserTriggerable()) key+=2;
-				if (op.isSystemTriggerable()) key++;
-				if (op.isReEntrable()) key+=4;
-				List<DialogueOperator> gops=grouped.get(key);
-				if (gops==null) grouped.put(key, gops=new ArrayList<DialogueOperator>());
-				gops.add(op);
-				
-				for(DialogueOperatorEntranceTransition ec:op.getAllEntrancePossibilities()) {
-					DialogueOperatorNode start = ec.getTarget();
-					List<DialogueOperatorNodesChain> effSets = op.getEffectsSetsForStartingState(start);
-					numPaths.addMeasure((effSets!=null)?effSets.size():0);
-					if (!op.isUserTriggerable()) {
-						numPathsNoUserInitiative.addMeasure((effSets!=null)?effSets.size():0);
-					}
-				}
-				int count=op.getRoot().countDescendants();
-				lengths.addMeasure(count,op);
-			}
-			for(Integer key:grouped.keySet()) {
-				System.out.println(key+" "+grouped.get(key).size());
-			}
-			numPaths.printHistogram(0,false,false);
-			numPathsNoUserInitiative.printHistogram(0,false,false);
-			lengths.printHistogram(0,false,true);
-			
-			/*
-			ArrayList<String> list = new ArrayList<String>(dp.getAllHandledLines());
-			Collections.sort(list);
-			System.out.println(FunctionalLibrary.printCollection(list, "", "", "\n"));
-			//dp.getTopicTrainingData(null);
-			System.out.println(dp.getFirstTopicForString("qs"));
-			System.out.println(dp.getFirstTopicForString("ptsd"));
-			System.out.println(dp.getAllTopicsForString("ptsd"));
-			System.out.println(dp.getFirstTopicForString("qs.depression"));
-			System.out.println(dp.getFirstTopicForString("qs.post.depression"));
-			System.out.println(dp.getFirstTopicForString("qs.depression").equals(dp.getFirstTopicForString("qs.post.depression")));
-			//System.out.println(XMLUtils.prettyPrintXMLString(dp.toString()," ",true));
-			//dp.toGDLGraph("policy.gdl");
-			 */
+			HashMap<DialogueOperatorEntranceTransition, Set<DialogueOperatorEntranceTransition>> t = dp.computeMightEnableTable();
+			dp.mightEnableTableToGDLGraph(t,"story-met.gdl", true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
