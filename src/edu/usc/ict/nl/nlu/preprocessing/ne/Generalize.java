@@ -130,15 +130,31 @@ public class Generalize extends Preprocesser {
 	private void getNESoptions(Token current, List<Token> sortedTokens,List<Token> sol, List<List<Token>> sols, Map<Token, Set<Token>> overlappingTokens) {
 		Set<Token> ots = overlappingTokens.get(current);
 		
-		if (ots!=null) {
+		if (ots!=null && ots.size()>0) {
 			boolean usedCurrentSolution=false;
+			/**
+			 * combinations to think:
+			 * ots size:
+			 *  null/0
+			 *  1
+			 *  more
+			 * sol:
+			 *  null
+			 *  not null
+			 */
+			List<Token> savedSolution=sol;
+			if (ots.size()>1) savedSolution=(sol!=null && !sol.isEmpty())?new ArrayList<>(sol):null;
 			for(Token ot:ots) {
-				if (usedCurrentSolution || sol==null) {
-					if (sol==null) sol=new ArrayList<>();
-					else sol=new ArrayList<>(sol);
+				if (usedCurrentSolution) {
+					sol=savedSolution!=null?new ArrayList<>(savedSolution):new ArrayList<>();
 					sols.add(sol);
+				} else {
+					if (sol==null) {
+						sol=new ArrayList<>();
+						sols.add(sol);
+					}
+					usedCurrentSolution=true;
 				}
-				usedCurrentSolution=true;
 				sol.add(ot);
 				Token nextToken=getNonOverlappingAhead(ot,sortedTokens);
 				getNESoptions(nextToken,sortedTokens,sol,sols,overlappingTokens);

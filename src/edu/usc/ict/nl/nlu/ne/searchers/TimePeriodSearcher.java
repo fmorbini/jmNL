@@ -29,7 +29,7 @@ public class TimePeriodSearcher {
 			TokenizerI tokenizer=config.getNluTokenizer(type);
 			this.text=input;
 			this.tokens=tokenizer.tokenize1(input);
-			File grammar=new File(new File(config.getNlBusConfigNC().getContentRoot()).getParent(),"preprocessing/time-period-grammar.txt");
+			File grammar=new File(config.getPreprocessingConfig(type).getPreprocessingContentRoot(),"time-period-grammar.txt");
 			if (grammar.exists()) {
 				parser = ChartParser.getParserForGrammar(grammar);
 			}

@@ -127,7 +127,10 @@ public class NLBusConfig extends NLConfig {
 	public String getContentRoot() {return contentRoot;}
 	public void setContentRoot(String root) {this.contentRoot = root;}
 
-	public String getCharacterContentRoot() {return new File(getContentRoot(),getCharacter()).getAbsolutePath();}
+	public String getCharacterContentRoot() {
+		String ch=getCharacter();
+		return new File(getContentRoot(),ch!=null?ch:"null").getAbsolutePath();
+	}
 	public String getPausedSessionsRoot() {return getCharacterContentRoot()+File.separator+"pausedSessions"+File.separator;}
 	public String getDMContentRoot() {return getCharacterContentRoot()+File.separator+"dm"+File.separator;}
 	public String getTargetDialoguesRoot() {return getDMContentRoot()+File.separator+"target dialogues"+File.separator;}

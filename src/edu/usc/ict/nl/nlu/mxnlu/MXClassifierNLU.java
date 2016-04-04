@@ -162,30 +162,32 @@ public class MXClassifierNLU extends NLU {
 		if (options!=null && !options.isEmpty()) {
 			String pt=null;
 			for(List<Token> option:options) {
-				String t=pr.getString(option);
-				String features=null;
-				String[] result=null;
-				if (getLogger().isDebugEnabled()) getLogger().info(" considering preprocessed option: '"+t+"'");
+				if (option!=null && !option.isEmpty()) {
+					String t=pr.getString(option);
+					String features=null;
+					String[] result=null;
+					if (getLogger().isDebugEnabled()) getLogger().info(" considering preprocessed option: '"+t+"'");
 
-				if (pt==null || !t.equals(pt)) {
-					pt=t;
-					features=FunctionalLibrary.printCollection(getFeaturesFromUtterance(t),"",""," ");
-					if (StringUtils.isEmptyString(features)) features=t;
-					result = (nBest!=null)?getNLUProcess().classify(features,nBest):getNLUProcess().classify(features);
-				}
-
-				List<NLUOutput> userSpeechActsWithProb = processNLUOutputs(result,nBest,possibleUserEvents,null);		
-				if (userSpeechActsWithProb!=null) {
-					if (Preprocess.hasAssociatedNamedEntities(option)) {
-						for(NLUOutput o:userSpeechActsWithProb) {
-							o.setText(t);
-							List<NE> fnes=BasicNE.filterNESwithSpeechAct(option,o.getId(),pr.getTokenizer(),o.getRanges());
-							Map<String, Object> payload = BasicNE.createPayload(fnes);
-							o.setPayload(payload);
-						}
+					if (pt==null || !t.equals(pt)) {
+						pt=t;
+						features=FunctionalLibrary.printCollection(getFeaturesFromUtterance(t),"",""," ");
+						if (StringUtils.isEmptyString(features)) features=t;
+						result = (nBest!=null)?getNLUProcess().classify(features,nBest):getNLUProcess().classify(features);
 					}
-					if (ret==null) ret=userSpeechActsWithProb;
-					else ret.addAll(userSpeechActsWithProb);
+
+					List<NLUOutput> userSpeechActsWithProb = processNLUOutputs(result,nBest,possibleUserEvents,null);		
+					if (userSpeechActsWithProb!=null) {
+						if (Preprocess.hasAssociatedNamedEntities(option)) {
+							for(NLUOutput o:userSpeechActsWithProb) {
+								o.setText(t);
+								List<NE> fnes=BasicNE.filterNESwithSpeechAct(option,o.getId(),pr.getTokenizer(),o.getRanges());
+								Map<String, Object> payload = BasicNE.createPayload(fnes);
+								o.setPayload(payload);
+							}
+						}
+						if (ret==null) ret=userSpeechActsWithProb;
+						else ret.addAll(userSpeechActsWithProb);
+					}
 				}
 			}
 		}

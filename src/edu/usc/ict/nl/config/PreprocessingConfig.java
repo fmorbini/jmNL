@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.config;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
+import edu.usc.ict.nl.util.StringUtils;
 
 public class PreprocessingConfig extends NLConfig {
 	
@@ -18,6 +20,8 @@ public class PreprocessingConfig extends NLConfig {
 	private List<PreprocesserI> prs;
 	private List<NamedEntityExtractorI> nes;
 	
+	private String forcedPreprocessingContentRoot=null,preprocessingDir="preprocessing";
+
 	/** NLU preprocessing */
 	public List<PreprocesserI> getNluPreprocessers() {return prs;}
 	public void setNluPreprocessers(List<PreprocesserI> prs) {this.prs=prs;}
@@ -27,6 +31,17 @@ public class PreprocessingConfig extends NLConfig {
 	/** NLU named entities */
 	public List<NamedEntityExtractorI> getNluNamedEntityExtractors() {return nes;}
 	public void setNluNamedEntityExtractors(List<NamedEntityExtractorI> nes) {this.nes=nes;}
+
+	public String getPreprocessingContentRoot() {
+		String forcedContentRoot=getForcedPreprocessingContentRoot();
+		if (!StringUtils.isEmptyString(forcedContentRoot)) return forcedContentRoot+File.separator;
+		else {
+			File file=new File(new File(getNlBusConfigNC().getContentRoot()).getParent(),preprocessingDir);
+			return file.getAbsolutePath();
+		}
+	}
+	public void setForcedPreprocessingContentRoot(String forcedContentRoot) {this.forcedPreprocessingContentRoot = forcedContentRoot;}
+	public String getForcedPreprocessingContentRoot() {return this.forcedPreprocessingContentRoot;}
 
 	public PreprocessingConfig() {
 		super();

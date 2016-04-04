@@ -93,6 +93,8 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 					for(NE ne:nes) {
 						int start=ne.getStart();
 						int end=ne.getEnd();
+						assert(start>=0);
+						assert(end>=0);
 						boolean isWholeWordsSubstring=StringUtils.isWholeWordSubstring(start,end,input);
 						if (isWholeWordsSubstring) {
 							int startToken = getTokenAtPosition(start,tokenStarts);

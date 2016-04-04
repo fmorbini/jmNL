@@ -40,6 +40,7 @@ import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.util.Pair;
 import edu.usc.ict.nl.util.PerformanceResult;
+import edu.usc.ict.nl.util.ProgressTracker;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
 
@@ -537,6 +538,7 @@ public abstract class NLU implements NLUInterface {
 	public List<TrainingDataFormat> prepareTrainingDataForClassification(List<TrainingDataFormat> td) throws Exception {
 		List<TrainingDataFormat> ret=null;
 		Preprocess pr = getPreprocess(PreprocessingType.TRAINING);
+		//ProgressTracker pt=new ProgressTracker(10, System.out);
 		for(TrainingDataFormat d:td) {
 			String sa=d.getLabel();
 			//System.out.println(d.getUtterance()+" :: "+d.getLabel());
@@ -554,6 +556,7 @@ public abstract class NLU implements NLUInterface {
 					}
 				}
 			}
+			//pt.updateDelta(1);
 		}
 		return ret;
 	}

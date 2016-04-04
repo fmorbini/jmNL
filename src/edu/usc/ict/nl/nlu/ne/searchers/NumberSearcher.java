@@ -28,7 +28,7 @@ public class NumberSearcher {
 	public NumberSearcher(NLUConfig nluConfig, PreprocessingType type,String text) {
 		TokenizerI tokenizer=nluConfig.getNluTokenizer(type);
 		m=p.matcher(text);
-		File grammar=new File(new File(nluConfig.getNlBusConfigNC().getContentRoot()).getParent(),"preprocessing/written-numbers-grammar.txt");
+		File grammar=new File(nluConfig.getPreprocessingConfig(type).getPreprocessingContentRoot(),"written-numbers-grammar.txt");
 		if (grammar.exists()) {
 			try {
 				parser = ChartParser.getParserForGrammar(grammar);
