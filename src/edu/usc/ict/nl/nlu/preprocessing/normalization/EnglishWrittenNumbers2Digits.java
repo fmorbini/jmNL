@@ -22,7 +22,7 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 
 	@Override
 	public List<Token> normalize(List<Token> tokens,PreprocessingType type) {
-		return parseWrittenNumbers(getNluConfiguration(), tokens);
+		return parseWrittenNumbers(getNluConfiguration(), tokens,type);
 	}
 
 	public static Pair<String,Integer> findBestMatch(String m,Collection<String> c) {
@@ -35,8 +35,8 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 		return new Pair<String,Integer>(ret,minD);
 	}
 
-	private static List<Token> parseWrittenNumbers(NLUConfig nluConfig,List<Token> tokens) {
-		File grammar=new File(new File(nluConfig.getNlBusConfigNC().getContentRoot()).getParent(),"preprocessing/written-numbers-grammar.txt");
+	private static List<Token> parseWrittenNumbers(NLUConfig nluConfig,List<Token> tokens, PreprocessingType type) {
+		File grammar=new File(nluConfig.getPreprocessingConfig(type).getPreprocessingContentRoot(),"written-numbers-grammar.txt");
 		if (!grammar.exists()) return tokens;
 		else {
 			try {
@@ -79,7 +79,7 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 		String s="i smoke twenty three packets of cigarettes per day";
 		s=s.toLowerCase();
 		List<Token> tokens = tokenizer.tokenize1(s);
-		tokens=parseWrittenNumbers(NLUConfig.WIN_EXE_CONFIG,tokens);
+		tokens=parseWrittenNumbers(NLUConfig.WIN_EXE_CONFIG,tokens,PreprocessingType.RUN);
 		System.out.println(tokens);
 	}
 
