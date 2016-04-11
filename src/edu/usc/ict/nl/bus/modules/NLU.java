@@ -643,4 +643,9 @@ public abstract class NLU implements NLUInterface {
 		}
 		return userEvents;
 	}
+	
+	@Override
+	public Set<String> getKnownWords() {
+		return null;
+	}
 }

@@ -40,15 +40,15 @@ import edu.usc.ict.nl.util.StringUtils;
  */
 public class W2V2 {
 
-    private float[][] vectors;
-    private String[] vocabVects;
-    private int totalSize=-1;
-    int vocabulary;
-    int dimensions;
+	private float[][] vectors;
+	private String[] vocabVects;
+	private int totalSize=-1;
+	int vocabulary;
+	int dimensions;
 
-    public class ElementG<T> implements Comparable<ElementG<T>> {
-    	T thing;
-    	float similarity;
+	public class ElementG<T> implements Comparable<ElementG<T>> {
+		T thing;
+		float similarity;
 		public ElementG(T thing, float similarity) {
 			this.thing=thing;
 			this.similarity=similarity;
@@ -65,8 +65,8 @@ public class W2V2 {
 			}
 			return false;
 		}
-    }
-    public class Element extends ElementG<Integer> {
+	}
+	public class Element extends ElementG<Integer> {
 		public Element(Integer index, float similarity) {
 			super(index, similarity);
 		}
@@ -79,180 +79,180 @@ public class W2V2 {
 			return W2V2.this.getWord(thing)+": "+similarity;
 		}
 		public String getWord() {return W2V2.this.getWord(thing);}
-    }
-    
-    public W2V2(File vectorFile, float portionToLoad) throws Exception {
+	}
+
+	public W2V2(File vectorFile, float portionToLoad) throws Exception {
 		if (portionToLoad<0) portionToLoad=0;
 		else if (portionToLoad>1) portionToLoad=1;
-		
 
-        double len;
 
-        FileInputStream fis = new FileInputStream(vectorFile);
+		double len;
 
-        StringBuilder sb = new StringBuilder();
-        char ch = (char) fis.read();
-        while (ch != '\n') {
-            sb.append(ch);
-            ch = (char) fis.read();
-        }
+		FileInputStream fis = new FileInputStream(vectorFile);
 
-        String line = sb.toString();
-        String[] parts = line.split("\\s+");
-        vocabulary = (int) Long.parseLong(parts[0]);
-        dimensions = (int) Long.parseLong(parts[1]);
-        vectors = new float[vocabulary][];
-        vocabVects = new String[vocabulary];
+		StringBuilder sb = new StringBuilder();
+		char ch = (char) fis.read();
+		while (ch != '\n') {
+			sb.append(ch);
+			ch = (char) fis.read();
+		}
 
-        System.out.println("" + vocabulary + " words with size " + dimensions + " per vector.");
+		String line = sb.toString();
+		String[] parts = line.split("\\s+");
+		vocabulary = (int) Long.parseLong(parts[0]);
+		dimensions = (int) Long.parseLong(parts[1]);
+		vectors = new float[vocabulary][];
+		vocabVects = new String[vocabulary];
 
-        byte[] orig = new byte[4*dimensions];
-        byte[] buf = new byte[4];
-        boolean toLoad;
-        int w=0;
-        for (int wg = 0; wg < vocabulary; wg++) {
-        	toLoad=((float)w/(float)(wg+1))<portionToLoad;
+		System.out.println("" + vocabulary + " words with size " + dimensions + " per vector.");
 
-        	if (((w+1) % 1000000) == 0 && toLoad) {
-                System.out.println("Read " + (w+1) + " words");
-            }
+		byte[] orig = new byte[4*dimensions];
+		byte[] buf = new byte[4];
+		boolean toLoad;
+		int w=0;
+		for (int wg = 0; wg < vocabulary; wg++) {
+			toLoad=((float)w/(float)(wg+1))<portionToLoad;
 
-        	sb.setLength(0);
-            ch = (char) fis.read();
-            while (!Character.isWhitespace(ch) && ch >= 0 && ch <= 256) {
-                sb.append((char) ch);
-                ch = (char) fis.read();
-            }
-            //ch = (char) fis.read();
-            String st = sb.toString();
-            st=normalize(st);
-            float[] m = new float[dimensions];
-        	int q=fis.read(orig);
-        	if (q!=4*dimensions) {
-        		System.err.println("error reading "+(4*dimensions)+" bytes: "+q+" for word: "+w);
-        	}
-        	if (toLoad) {
-        		totalSize=w+1;
-        		vocabVects[w]=st;
-        		for (int i = 0; i < dimensions; i++) {
-        			int offset=i*4;
-        			buf[3] = orig[offset];
-        			buf[2] = orig[offset+1];
-        			buf[1] = orig[offset+2];
-        			buf[0] = orig[offset+3];
-        			float f = ByteBuffer.wrap(buf).getFloat();
-        			m[i]=f;
-        		}
-        		len = 0;
-        		for (int i = 0; i < dimensions; i++)
-        			len += m[i] * m[i];
-        		len = (float) Math.sqrt(len);
-        		for (int i = 0; i < dimensions; i++)
-        			m[i] /= len;
-        		vectors[w] = m;
-        		w++;
-        	}
-        }
-        fis.close();
+			if (((w+1) % 1000000) == 0 && toLoad) {
+				System.out.println("Read " + (w+1) + " words");
+			}
+
+			sb.setLength(0);
+			ch = (char) fis.read();
+			while (!Character.isWhitespace(ch) && ch >= 0 && ch <= 256) {
+				sb.append((char) ch);
+				ch = (char) fis.read();
+			}
+			//ch = (char) fis.read();
+			String st = sb.toString();
+			st=normalize(st);
+			float[] m = new float[dimensions];
+			int q=fis.read(orig);
+			if (q!=4*dimensions) {
+				System.err.println("error reading "+(4*dimensions)+" bytes: "+q+" for word: "+w);
+			}
+			if (toLoad) {
+				totalSize=w+1;
+				vocabVects[w]=st;
+				for (int i = 0; i < dimensions; i++) {
+					int offset=i*4;
+					buf[3] = orig[offset];
+					buf[2] = orig[offset+1];
+					buf[1] = orig[offset+2];
+					buf[0] = orig[offset+3];
+					float f = ByteBuffer.wrap(buf).getFloat();
+					m[i]=f;
+				}
+				len = 0;
+				for (int i = 0; i < dimensions; i++)
+					len += m[i] * m[i];
+				len = (float) Math.sqrt(len);
+				for (int i = 0; i < dimensions; i++)
+					m[i] /= len;
+				vectors[w] = m;
+				w++;
+			}
+		}
+		fis.close();
 	}
-    
+
 	public static String normalize(String in) {
 		if (!StringUtils.isEmptyString(in)) return in.toLowerCase();
 		else return in;
 	}
 
 	public float[] computeAverageVector(String[] words) {
-    	float[] avgV=new float[dimensions];
-    	//System.out.println(Arrays.toString(inputs));
-    	boolean allIn=true;
-    	for(String i:words) {
-    		i=normalize(i);
-    		int index=isWordInVocabulary(i);
-    		if (index>=0) {
-    			float[] v=getVectorForWord(index);
-    			for(int j=0;j<dimensions;j++) {
-    				avgV[j]+=v[j];
-    			}
-    		} else {
-    			allIn=false;
-    			break;
-    		}
-    	}
-    	if (allIn) {
-    		float len = 0;
-    		for (int i = 0; i < dimensions; i++)
-    			len += avgV[i] * avgV[i];
-    		len = (float) Math.sqrt(len);
-    		for (int i = 0; i < dimensions; i++)
-    			avgV[i] /= len;
-    		return avgV;
-    	}
-    	return null;
+		float[] avgV=new float[dimensions];
+		//System.out.println(Arrays.toString(inputs));
+		boolean allIn=true;
+		for(String i:words) {
+			i=normalize(i);
+			int index=isWordInVocabulary(i);
+			if (index>=0) {
+				float[] v=getVectorForWord(index);
+				for(int j=0;j<dimensions;j++) {
+					avgV[j]+=v[j];
+				}
+			} else {
+				allIn=false;
+				break;
+			}
+		}
+		if (allIn) {
+			float len = 0;
+			for (int i = 0; i < dimensions; i++)
+				len += avgV[i] * avgV[i];
+			len = (float) Math.sqrt(len);
+			for (int i = 0; i < dimensions; i++)
+				avgV[i] /= len;
+			return avgV;
+		}
+		return null;
 	}
-	
-    public PriorityQueue<Element> getTopSingleWordsSimilarTo(int nbest,Pattern matcher,String... inputs) {
-    	PriorityQueue<Element> ret=null;
-    	Set<String> inSet=new HashSet<String>();
-    	float[] avgV=computeAverageVector(inputs);
-    	//System.out.println(Arrays.toString(inputs));
-    	for(String i:inputs) {
-    		i=normalize(i);
-    		inSet.add(i);
-    	}
-    	if (avgV!=null) {
-    		float len = 0;
-    		for (int i = 0; i < dimensions; i++)
-    			len += avgV[i] * avgV[i];
-    		len = (float) Math.sqrt(len);
-    		for (int i = 0; i < dimensions; i++)
-    			avgV[i] /= len;
-    		for(int i=0;i<totalSize;i++) {
-    			String w=getWord(i);
-    			Matcher m=matcher.matcher(w);
-    			if (m.matches()) {
-    				if (!inSet.contains(w)) {
-    					float[] v=getVectorForWord(i);
-    					float d=similarity(v,avgV);
-    					if (ret==null) ret=new PriorityQueue<W2V2.Element>();
-    					ret.add(new Element(i,d));
-    					if (ret.size()>nbest) ret.poll();
-    				}
-    			}
-    		}
-    	}
-    	return ret;
-    }
-    public PriorityQueue<Element> getTopSimilarTo(int nbest,String... inputs) {
-    	PriorityQueue<Element> ret=null;
-    	Set<String> inSet=new HashSet<String>();
-    	float[] avgV=computeAverageVector(inputs);
-    	//System.out.println(Arrays.toString(inputs));
-    	for(String i:inputs) {
-    		i=normalize(i);
-    		inSet.add(i);
-    	}
-    	if (avgV!=null) {
-    		float len = 0;
-    		for (int i = 0; i < dimensions; i++)
-    			len += avgV[i] * avgV[i];
-    		len = (float) Math.sqrt(len);
-    		for (int i = 0; i < dimensions; i++)
-    			avgV[i] /= len;
-    		for(int i=0;i<totalSize;i++) {
-    			String w=getWord(i);
-    			if (!inSet.contains(w)) {
-    				float[] v=getVectorForWord(i);
-    				float d=similarity(v,avgV);
-    				if (ret==null) ret=new PriorityQueue<W2V2.Element>();
-    				ret.add(new Element(i,d));
-    				if (ret.size()>nbest) ret.poll();
-    			}
 
-    		}
-    	}
-    	return ret;
-    }
-    
+	public PriorityQueue<Element> getTopSingleWordsSimilarTo(int nbest,Pattern matcher,String... inputs) {
+		PriorityQueue<Element> ret=null;
+		Set<String> inSet=new HashSet<String>();
+		float[] avgV=computeAverageVector(inputs);
+		//System.out.println(Arrays.toString(inputs));
+		for(String i:inputs) {
+			i=normalize(i);
+			inSet.add(i);
+		}
+		if (avgV!=null) {
+			float len = 0;
+			for (int i = 0; i < dimensions; i++)
+				len += avgV[i] * avgV[i];
+			len = (float) Math.sqrt(len);
+			for (int i = 0; i < dimensions; i++)
+				avgV[i] /= len;
+			for(int i=0;i<totalSize;i++) {
+				String w=getWord(i);
+				Matcher m=matcher.matcher(w);
+				if (m.matches()) {
+					if (!inSet.contains(w)) {
+						float[] v=getVectorForWord(i);
+						float d=similarity(v,avgV);
+						if (ret==null) ret=new PriorityQueue<W2V2.Element>();
+						ret.add(new Element(i,d));
+						if (ret.size()>nbest) ret.poll();
+					}
+				}
+			}
+		}
+		return ret;
+	}
+	public PriorityQueue<Element> getTopSimilarTo(int nbest,String... inputs) {
+		PriorityQueue<Element> ret=null;
+		Set<String> inSet=new HashSet<String>();
+		float[] avgV=computeAverageVector(inputs);
+		//System.out.println(Arrays.toString(inputs));
+		for(String i:inputs) {
+			i=normalize(i);
+			inSet.add(i);
+		}
+		if (avgV!=null) {
+			float len = 0;
+			for (int i = 0; i < dimensions; i++)
+				len += avgV[i] * avgV[i];
+			len = (float) Math.sqrt(len);
+			for (int i = 0; i < dimensions; i++)
+				avgV[i] /= len;
+			for(int i=0;i<totalSize;i++) {
+				String w=getWord(i);
+				if (!inSet.contains(w)) {
+					float[] v=getVectorForWord(i);
+					float d=similarity(v,avgV);
+					if (ret==null) ret=new PriorityQueue<W2V2.Element>();
+					ret.add(new Element(i,d));
+					if (ret.size()>nbest) ret.poll();
+				}
+
+			}
+		}
+		return ret;
+	}
+
 	public float similarity(String ws1, String ws2) {
 		return similarity(ws1.split("[\\s]+"), ws2.split("[\\s]+"));
 	}
@@ -263,41 +263,66 @@ public class W2V2 {
 		return d;
 	}
 
-	private float similarity(float[] v1, float[] v2) {
+	public static float similarity(float[] v1, float[] v2) {
 		if (v1==null || v2==null) return Float.NaN;
-    	float d=0;
-    	for(int i=0;i<dimensions;i++) {
-    		d+=v1[i]*v2[i];
-    	}
+		assert(v1.length==v2.length);
+		int l=v1.length;
+		float d=0;
+		for(int i=0;i<l;i++) {
+			d+=v1[i]*v2[i];
+		}
 		return Math.abs(d);
 	}
 
 	public int getTotalSize() {
 		return totalSize;
 	}
-    public float[] getVectorForWord(int i) {
-    	return vectors[i];
-    }
-    public String getWord(int i) {
-    	return vocabVects[i];
-    }
-    public int isWordInVocabulary(String word) {
-    	word=normalize(word);
-    	int l=getTotalSize();
-    	for(int i=0;i<l;i++) {
-    		if (vocabVects[i].equals(word)) return i;
-    	}
-    	return -1;
-    }
-    public boolean containsWord(String... words) {
-    	if (words!=null) {
-    		for(String w:words) {
-    			if (isWordInVocabulary(w)<0) return false;
-    		}
-    		return true;
-    	}else return false;
-    }
-	
+	public float[] getVectorForWord(int i) {
+		return vectors[i];
+	}
+	public String getWord(int i) {
+		return vocabVects[i];
+	}
+	public int isWordInVocabulary(String word) {
+		word=normalize(word);
+		int l=getTotalSize();
+		for(int i=0;i<l;i++) {
+			if (vocabVects[i].equals(word)) return i;
+		}
+		return -1;
+	}
+	public int[] areWordsInVocabulary(String... words) {
+		if (words!=null && words.length>0) {
+			int l=words.length;
+			int[] ret=new int[l];
+			String[] normalizedWords=new String[l];
+			for(int i=0;i<l;i++) {
+				normalizedWords[i]=normalize(words[i]);
+				ret[i]=-1;
+			}
+			int tl=getTotalSize();
+			for(int i=0;i<tl;i++) {
+				for(int j=0;j<l;j++) {
+					String nw=normalizedWords[j];
+					if (vocabVects[i].equals(nw)) {
+						ret[j]=i;
+						break;
+					}
+				}
+			}
+			return ret;
+		}
+		return null;
+	}
+	public boolean containsWord(String... words) {
+		if (words!=null) {
+			for(String w:words) {
+				if (isWordInVocabulary(w)<0) return false;
+			}
+			return true;
+		}else return false;
+	}
+
 	private List<String> getWords() {
 		List<String> ret=null;
 		for(int i=0;i<totalSize;i++) {
@@ -355,21 +380,21 @@ public class W2V2 {
 		}
 		return ret;
 	}
-	
+
 	/**
-     * @param args
-     *            the input C vectors file, output Java vectors file
-     */
-    public static void main(String[] args) throws Exception {
-    	W2V2 w2v = new W2V2(new File("C:/cygwin/home/morbini/word2vec/GoogleNews-vectors-negative300.bin"), 1f);
-    	//w2v.printWords(new PrintStream(new File("w2vdump.txt")));
-    	//System.out.println(w2v.similarity("it", "this"));
-    	//System.out.println(w2v.similarity("cans", "container"));
-    	//System.out.println(w2v.getWord(10));
-    	PriorityQueue<Element> l1=w2v.getTopSimilarTo(10, "cake");
-    	PriorityQueue<Element> l2=w2v.getTopSimilarTo(10, "fruit");
-    	PriorityQueue<Element> l3=w2v.getTopSimilarTo(10, "sugar");
-    	List<Element> r = w2v.intersect(l1,l2,l3);
-    	System.out.println(r);
-    }
+	 * @param args
+	 *            the input C vectors file, output Java vectors file
+	 */
+	public static void main(String[] args) throws Exception {
+		W2V2 w2v = new W2V2(new File("C:/cygwin/home/morbini/word2vec/GoogleNews-vectors-negative300.bin"), 1f);
+		//w2v.printWords(new PrintStream(new File("w2vdump.txt")));
+		//System.out.println(w2v.similarity("it", "this"));
+		//System.out.println(w2v.similarity("cans", "container"));
+		//System.out.println(w2v.getWord(10));
+		PriorityQueue<Element> l1=w2v.getTopSimilarTo(10, "cake");
+		PriorityQueue<Element> l2=w2v.getTopSimilarTo(10, "fruit");
+		PriorityQueue<Element> l3=w2v.getTopSimilarTo(10, "sugar");
+		List<Element> r = w2v.intersect(l1,l2,l3);
+		System.out.println(r);
+	}
 }

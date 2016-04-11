@@ -1,6 +1,7 @@
 package edu.usc.ict.nl.nlu.opennlp;
 
 import java.io.File;
+import java.util.Set;
 
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.Model;
@@ -24,6 +25,12 @@ public class MaxEntOpenNLPClassifierNLU extends JMXClassifierNLU {
 	public Model readModelFileNoCache(File mf) throws Exception {
 		Model ret=null;
 		return ret;
+	}
+	
+	@Override
+	public Set<String> getKnownWords() {
+		MaxEntOpenNLPClassifierProcess p=(MaxEntOpenNLPClassifierProcess) getNLUProcess();
+		return p.getKnownWords();
 	}
 
 }

@@ -8,7 +8,6 @@ import java.util.Set;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.nlu.ConfusionEntry;
 import edu.usc.ict.nl.nlu.NLUOutput;
-import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.util.Pair;
@@ -42,4 +41,6 @@ public interface NLUInterface {
 	public List<Pair<String,Float>> getTokensScoresForLabel(String utt,String label,String modelFileName) throws Exception;
 	public List<String> getFeaturesFromUtterance(String utt);
 	public List<String> getFeaturesFromPositionInUtterance(String[] tokens,int pos);
+	
+	public Set<String> getKnownWords();
 }

@@ -18,6 +18,7 @@ import opennlp.model.AbstractModel;
 import opennlp.model.AbstractModelWriter;
 import opennlp.model.EventStream;
 import opennlp.model.GenericModelReader;
+import opennlp.model.IndexHashTable;
 import opennlp.model.MaxentModel;
 import opennlp.model.OnePassDataIndexer;
 
@@ -84,6 +85,18 @@ public class MaxEntOpenNLPClassifierProcess extends MXClassifierProcess {
 	
 	@Override
 	public void kill() {}
+
+	private String replaceWordsInStringWithMostSimilarKnown(String string, float f) {
+		return null;
+	}
+
+	public Set<String> getKnownWords() {
+		MaxentModel classifier=getClassifier();
+		Object[] ds = classifier.getDataStructures();
+		IndexHashTable<String> pmap=(IndexHashTable<String>) ds[1];
+		String[] words = pmap.toArray(new String[pmap.size()]);
+		return new HashSet<String>(Arrays.asList(words));
+	}
 	
 	@Override
 	public String[] classify(String u,int nBest) throws Exception {
@@ -131,13 +144,13 @@ public class MaxEntOpenNLPClassifierProcess extends MXClassifierProcess {
 			nlu.dumpTrainingDataToFileNLUFormat(tf, data);
 */
 			MaxEntOpenNLPClassifierProcess p = new MaxEntOpenNLPClassifierProcess(null);
-			p.train("test", "resources/characters/Test/nlu/classifier-training.txt");
-			p.run("test", 2);
+			String newString=p.replaceWordsInStringWithMostSimilarKnown("test this string",.5f);
+			//p.train("test", "resources/characters/Test/nlu/classifier-training.txt");
+			p.run("C:\\Users\\morbini\\jmNL\\nlusimcoachevaltest\\classifier-model", 2);
 			String[] r = p.classify("yes");
 			System.out.println(Arrays.asList(r));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 }
