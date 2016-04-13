@@ -1,6 +1,7 @@
 package edu.usc.ict.nl.nlu.preprocessing.ne;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +52,9 @@ public class Generalize extends Preprocesser {
 	 *
 	 */
 	public List<List<Token>> generalize(List<Token> tokens,PreprocessingType type) {
+		if (tokens.size()==6 && tokens.get(0).getName().equals("2.0")) {
+			System.out.println(tokens);
+		}
 		List<NamedEntityExtractorI> nes = getConfiguration(type).getNluNamedEntityExtractors();
 		
 		Map<Token,Set<Token>> overlappingTokens=null; // for a given token, returns the set of other tokens that overlap with it.
@@ -104,7 +108,7 @@ public class Generalize extends Preprocesser {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("error generalizing text", e);
+			logger.error("error generalizing text:",e);
 		}
 		return generalizedTokens;
 	}

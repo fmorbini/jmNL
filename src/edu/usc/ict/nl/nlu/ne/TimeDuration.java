@@ -39,8 +39,9 @@ public class TimeDuration extends BasicNE {
 			int start=ts.getStart(),end=ts.getEnd();
 			logger.info("Extracted time period of "+num+" seconds from the answer '"+text+"'.");
 			if (payloads==null) payloads=new ArrayList<NE>();
-			payloads.add(new NE(MonthsVar.getName(), convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInMonth),this.getClass().getName(),start,end,text.substring(start,end),this));
-			payloads.add(new NE(daysVar.getName(), convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInDay),this.getClass().getName(),start,end,text.substring(start,end),this));
+			NE ne=new NE(MonthsVar.getName(), convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInMonth),this.getClass().getName(),start,end,text.substring(start,end),this);
+			ne.addVariable(daysVar.getName(), convertSecondsIn(num,ParserSemanticRulesTimeAndNumbers.numSecondsInDay));
+			payloads.add(ne);
 		}
 		return payloads;
 	}

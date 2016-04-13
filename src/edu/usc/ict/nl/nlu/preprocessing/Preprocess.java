@@ -45,7 +45,34 @@ public class Preprocess {
 		return tokenizer;
 	}
 	
-	public static String getStringOfTokensSpan(List<Token> tokens,int start, int end) {
+	/**
+	 * from token at position start (included) to token at position end (excluded).
+	 * start is the first and end is the second
+	 * @param tokens
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public static int[] getStringSpanOfTokenSpan(List<Token> tokens,int start, int end) {
+		int[] ret=new int[]{-1,-1};
+		assert(start>=0 && end>start);
+		if (tokens!=null && tokens.size()>=end) {
+			Token t=tokens.get(start);
+			ret[0]=t.getStart();
+			if ((end-1)>start) t=tokens.get(end-1);
+			ret[1]=t.getEnd();
+		}
+		return ret;
+	}
+	
+	/**
+	 * from token at position start (included) to token at position end (excluded).
+	 * @param tokens
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public static String getCurrentStringOfTokensSpan(List<Token> tokens,int start, int end) {
 		StringBuffer ret=null;
 		if (tokens!=null) {
 			int i=0;
@@ -53,6 +80,27 @@ public class Preprocess {
 				if (i>=start && i<end) {
 					if (ret==null) ret=new StringBuffer();
 					ret.append(((ret.length()==0)?"":" ")+t.getName());
+				}
+				i++;
+			}
+		}
+		return (ret!=null)?ret.toString():null;
+	}
+	/**
+	 * from token at position start (included) to token at position end (excluded).
+	 * @param tokens
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public static String getOriginalStringOfTokensSpan(List<Token> tokens,int start, int end) {
+		StringBuffer ret=null;
+		if (tokens!=null) {
+			int i=0;
+			for(Token t:tokens) {
+				if (i>=start && i<end) {
+					if (ret==null) ret=new StringBuffer();
+					ret.append(((ret.length()==0)?"":" ")+t.getOriginal());
 				}
 				i++;
 			}
@@ -85,6 +133,9 @@ public class Preprocess {
 			for(PreprocesserI pr:prs) {
 				if (acceptOnlyUnambigous && tokens!=null && tokens.size()>1) throw new Exception("more than one option created during processing and option for just 1 set.");
 				pr.run(tokens,type);
+				for(List<Token> ts:tokens) {
+					tokenizer.updateStartsAndEnds(ts, null);
+				}
 			}
 		}
 		if (acceptOnlyUnambigous && tokens!=null && tokens.size()>1) throw new Exception("more than one option created during processing and option for just 1 set.");

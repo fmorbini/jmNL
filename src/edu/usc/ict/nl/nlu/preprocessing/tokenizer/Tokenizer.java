@@ -86,20 +86,39 @@ public class Tokenizer implements TokenizerI {
 	public String untokenize(List<Token> tokens,String sa,int stop) {
 		StringBuffer ret=null;
 		if (tokens!=null) {
-			boolean first=true;
 			int l=Math.min(stop,tokens.size());
 			for(int i=0;i<l;i++) {
-				if (ret==null) ret=new StringBuffer();
-				if (first) first=false;
-				else ret.append(" ");
-				
-				String s=toString(tokens, sa, i);
-				ret.append(s);
+				ret=doUntokenizeStep(ret, tokens, sa, i);
 			}
 		}
 		return (ret!=null)?ret.toString():null;
 	}
+	/**
+	 * appends to the stringbuffer ret the string representation of token at position pos. takes care of spacing accordinghly to the tokenizer. 
+	 * @param ret
+	 * @param tokens
+	 * @param sa
+	 * @param pos
+	 * @return
+	 */
+	public StringBuffer doUntokenizeStep(StringBuffer ret,List<Token> tokens,String sa,int pos) {
+		if (tokens!=null) {
+			if (ret==null) ret=new StringBuffer();
+			boolean first=((ret==null) || (ret.length()<=0));
+			if (!first) ret.append(" ");
+			String s=toString(tokens, sa, pos);
+			ret.append(s);
+		}
+		return ret;
+	}
 	
+	/**
+	 * generate the string representation for token at position pos.
+	 * @param tokens
+	 * @param sa
+	 * @param pos
+	 * @return
+	 */
 	private String toString(List<Token> tokens,String sa,int pos) {
 		if (tokens!=null && pos<tokens.size()) {
 			Token m=tokens.get(pos);
@@ -122,16 +141,21 @@ public class Tokenizer implements TokenizerI {
 	}
 
 	@Override
-	public int getStart(List<Token> tokens,String sa,int pos) {
-		String entire=untokenize(tokens, sa,pos);
-		String token=toString(tokens, sa, pos-1);
-		return entire.length()-token.length();
-	}
-
-	@Override
-	public int getEnd(List<Token> tokens,String sa,int pos) {
-		String entire=untokenize(tokens, sa,pos);
-		return entire.length();
+	public void updateStartsAndEnds(List<Token> tokens,String sa) {
+		StringBuffer ret=null;
+		if (tokens!=null) {
+			int l=tokens.size();
+			for(int i=0;i<l;i++) {
+				Token t=tokens.get(i);
+				ret=doUntokenizeStep(ret, tokens, sa, i);
+				String tx=toString(tokens, sa, i);
+				int tl=tx.length();
+				int end=ret.length();
+				int start=end-tl;
+				t.setStart(start);
+				t.setEnd(end);
+			}
+		}
 	}
 	
 	public static void main(String[] args) {

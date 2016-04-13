@@ -19,6 +19,7 @@ import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLUConfig;
 import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
+import edu.usc.ict.nl.nlu.ne.NE.Var;
 import edu.usc.ict.nl.nlu.preprocessing.Preprocess;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.util.Pair;
@@ -100,23 +101,22 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 							int startToken = getTokenAtPosition(start,tokenStarts);
 							int endToken=getTokenAtPosition(end,tokenStarts);
 							boolean generalize=generalizeText();
-							for(int j=startToken;j<=endToken;j++) {
-								Token newToken=null;
-								if (j==startToken) {
-									Token original=inputTokens.get(j);
-									if (original!=null) {
-										if (generalize) { 
-											newToken=new Token(ne.getType().toUpperCase(), original.getType(), ne.getMatchedString(), start, end);
-										} else {
-											newToken=new Token(original.getName(), original.getType(), original.getOriginal(), original.getStart(), original.getEnd());
-										}
-										newToken.setAssociatedNamedEntity(ne);
-										if (ret==null) ret=new ArrayList<>();
-										ret.add(newToken);
-									} else {
-										logger.error("Trying to generalize null NE ("+ne+"). NE list: "+nes);
-									}
+							
+							Token newToken=null;
+							Token original=inputTokens.get(startToken);
+							if (original!=null) {
+								if (generalize) { 
+									newToken=new Token(ne.getType().toUpperCase(), original.getType(), ne.getMatchedString(), start, end);
+								} else {
+									String tokensString=Preprocess.getCurrentStringOfTokensSpan(inputTokens, startToken, endToken+1);
+									String tokensOriginalString=Preprocess.getCurrentStringOfTokensSpan(inputTokens, startToken, endToken+1);
+									newToken=new Token(tokensString, original.getType(), tokensOriginalString, original.getStart(), inputTokens.get(endToken).getEnd());
 								}
+								newToken.setAssociatedNamedEntity(ne);
+								if (ret==null) ret=new ArrayList<>();
+								ret.add(newToken);
+							} else {
+								logger.error("Trying to generalize null NE ("+ne+"). NE list: "+nes);
 							}
 						}
 					}
@@ -209,17 +209,22 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 		if (foundNEs!=null) {
 			for(NE ne:foundNEs) {
 				if (ne!=null) {
-					String vname=ne.getVarName();
-					if (ret==null) ret=new HashMap<String, Object>();
-					Object content=ret.get(vname);
-					if (content==null) ret.put(vname, ne.getValue());
-					else if (content instanceof List) ((List) content).add(ne.getValue());
-					else {
-						Object oldElement=content;
-						content=new ArrayList();
-						ret.put(vname, content);
-						((List) content).add(oldElement);
-						((List)content).add(ne.getValue());
+					List<Var> vars=ne.getVariables();
+					if(vars!=null) {
+						for(Var v:vars) {
+							String vname=v.getName();
+							if (ret==null) ret=new HashMap<String, Object>();
+							Object content=ret.get(vname);
+							if (content==null) ret.put(vname, v.getValue());
+							else if (content instanceof List) ((List) content).add(v.getValue());
+							else {
+								Object oldElement=content;
+								content=new ArrayList();
+								ret.put(vname, content);
+								((List)content).add(oldElement);
+								((List)content).add(v.getValue());
+							}
+						}
 					}
 				}
 			}
@@ -232,13 +237,13 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 	}
 	public static List<NE> filterNESwithSpeechAct(List<Token> option, String speechAct,TokenizerI tokenizer,List<Pair<Integer,Integer>> ranges) {
 		List<NE> ret=null;
+		tokenizer.updateStartsAndEnds(option, speechAct);
 		if (!StringUtils.isEmptyString(speechAct)) {
-			int i=0;
 			for(Token t:option) {
 				NE ne=t.getAssociatedNamedEntity();
 				if (ne!=null) {
-					int start=tokenizer.getStart(option, speechAct, i+1);
-					int end=tokenizer.getEnd(option, speechAct, i+1);
+					int start=t.getStart();
+					int end=t.getEnd();
 					if (isNEinRange(start,end,ranges)) {
 						NamedEntityExtractorI ext=ne.getExtractor();
 						if (ext==null || ext.isNEAvailableForSpeechAct(ne, speechAct)) {
@@ -247,7 +252,6 @@ public abstract class BasicNE implements NamedEntityExtractorI {
 						}
 					}
 				}
-				i++;
 			}
 		}
 		return ret;

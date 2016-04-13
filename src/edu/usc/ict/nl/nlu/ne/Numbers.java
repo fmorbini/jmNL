@@ -34,16 +34,17 @@ public class Numbers extends BasicNE {
 		List<NE> payloads = null;
 		NumberSearcher ns = new NumberSearcher(getConfiguration(), type,text);
 		boolean first=true;
+		NE ne=null;
 		while(ns.possiblyContainingNumber()) {
 			Double num=ns.getNextNumber();
 			if (num!=null) {
 				logger.info("Extracted number "+num+" from the answer '"+text+"'.");
 				if (payloads==null) payloads=new ArrayList<NE>();
 				if (first) {
-					payloads.add(new NE(firstNumVar.getName(),num,firstNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd()),this));
+					payloads.add(ne=new NE(firstNumVar.getName(),num,firstNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd()),this));
 					first=false;
 				}
-				payloads.add(new NE(allNumVar.getName(),num,allNumVar.getName(),ns.getStart(),ns.getEnd(),text.substring(ns.getStart(), ns.getEnd()),this));
+				ne.addVariable(allNumVar.getName(), num);
 			}
 		}
 		return payloads;

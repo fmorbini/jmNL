@@ -48,14 +48,18 @@ public class Token implements Comparable<Token> {
 	public void setOriginal(String original) {
 		this.original = original;
 	}
-	
 	public int getStart() {
 		return start;
 	}
 	public int getEnd() {
 		return end;
 	}
-	
+	public void setEnd(int end) {
+		this.end = end;
+	}
+	public void setStart(int start) {
+		this.start = start;
+	}
 	@Override
 	public String toString() {
 		return "<"+getName()+"("+getOriginal()+"): "+getType()+(getAssociatedNamedEntity()!=null?", NE: "+getAssociatedNamedEntity():"")+">";

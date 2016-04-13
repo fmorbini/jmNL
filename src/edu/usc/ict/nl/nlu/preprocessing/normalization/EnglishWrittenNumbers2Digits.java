@@ -58,12 +58,15 @@ public class EnglishWrittenNumbers2Digits extends Normalizer {
 		List<Token> out=new ArrayList<Token>();
 		int lastInsertedToken=0;
 		for(Item it:numbers) {
+			// get the tokens before the item it.
 			for (int i=lastInsertedToken;i<it.getStart();i++) {
 				out.add(tokens.get(i));
 			}
-			out.add(new Token(it.getSemantics().toString(), TokenTypes.NUM,Preprocess.getStringOfTokensSpan(tokens, it.getStart(), it.getEnd())));
+			int[] startAndEnd=Preprocess.getStringSpanOfTokenSpan(tokens, it.getStart(), it.getEnd());
+			out.add(new Token(it.getSemantics().toString(), TokenTypes.NUM,Preprocess.getCurrentStringOfTokensSpan(tokens, it.getStart(), it.getEnd()),startAndEnd[0],startAndEnd[1]));
 			lastInsertedToken=it.getEnd();
 		}
+		// add whatever is left to add at the end of the input tokens.
 		for (int i=lastInsertedToken;i<tokens.size();i++) out.add(tokens.get(i));
 		tokens.clear();
 		tokens.addAll(out);
