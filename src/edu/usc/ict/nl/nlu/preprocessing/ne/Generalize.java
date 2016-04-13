@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
@@ -52,9 +53,6 @@ public class Generalize extends Preprocesser {
 	 *
 	 */
 	public List<List<Token>> generalize(List<Token> tokens,PreprocessingType type) {
-		if (tokens.size()==6 && tokens.get(0).getName().equals("2.0")) {
-			System.out.println(tokens);
-		}
 		List<NamedEntityExtractorI> nes = getConfiguration(type).getNluNamedEntityExtractors();
 		
 		Map<Token,Set<Token>> overlappingTokens=null; // for a given token, returns the set of other tokens that overlap with it.
@@ -133,6 +131,8 @@ public class Generalize extends Preprocesser {
 	 */
 	private void getNESoptions(Token current, List<Token> sortedTokens,List<Token> sol, List<List<Token>> sols, Map<Token, Set<Token>> overlappingTokens) {
 		Set<Token> ots = overlappingTokens.get(current);
+		ots=filterOverlappingTokensWithCurrentSolution(ots,sol);
+		ots=filterLaterTokenInNonOverlappingPairs(ots);
 		
 		if (ots!=null && ots.size()>0) {
 			boolean usedCurrentSolution=false;
@@ -166,11 +166,77 @@ public class Generalize extends Preprocesser {
 		}
 	}
 	
+	/**
+	 * removes all tokens that do not overlap with and happen after (start-end) another token in the same input list.
+	 * They will be considered by getNonOverlappingAhead in the recursion (getNESoptions) and so should not be considered now.
+	 * @param ots
+	 * @return
+	 */
+	private Set<Token> filterLaterTokenInNonOverlappingPairs(Set<Token> ots) {
+		if (ots!=null) {
+			List<Token> sortedOts=new ArrayList<>(ots);
+			Collections.sort(sortedOts);
+			int l=sortedOts.size();
+			boolean removed=false;
+			for(int i=0;i<l;i++) {
+				Token t=sortedOts.get(i);
+				int laterTokenPos=-1;
+				while((laterTokenPos=getIndexOfNonOverlappingAhead(t, sortedOts))>i) {
+					sortedOts.remove(laterTokenPos);
+					l--;
+					removed=true;
+				}
+			}
+			return removed?new HashSet<>(sortedOts):ots;
+		}
+		return ots;
+	}
+
+	/**
+	 * creates a new ots list with the items in ots that overlap with any of the items in sol removed as they have already been considered.
+	 * @param ots
+	 * @param sol
+	 * @return
+	 */
+	private Set<Token> filterOverlappingTokensWithCurrentSolution(Set<Token> ots, List<Token> sol) {
+		Set<Token> ret=null;
+		if (ots!=null) {
+			for(Token t:ots) {
+				boolean addThisOne=true;
+				if (sol!=null) {
+					for(Token pt:sol) {
+						if (t.overlaps(pt)) {
+							addThisOne=false;
+							break;
+						}
+					}
+				}
+				if (addThisOne) {
+					if (ret==null) ret=new HashSet<>();
+					ret.add(t);
+				}
+			}
+		}
+		return ret;
+	}
+
 	private Token getNonOverlappingAhead(Token current, List<Token> sortedTokens) {
-		for(Token next:sortedTokens) {
-			if (next.getStart()>=current.getEnd()) return next;
+		if (sortedTokens!=null) {
+			for(Token next:sortedTokens) {
+				if (next.getStart()>=current.getEnd()) return next;
+			}
 		}
 		return null;
+	}
+	private int getIndexOfNonOverlappingAhead(Token current, List<Token> sortedTokens) {
+		if (sortedTokens!=null) {
+			int l=sortedTokens.size();
+			for(int i=0;i<l;i++) {
+				Token next=sortedTokens.get(i);
+				if (next.getStart()>=current.getEnd()) return i;
+			}
+		}
+		return -1;
 	}
 	
 	/*

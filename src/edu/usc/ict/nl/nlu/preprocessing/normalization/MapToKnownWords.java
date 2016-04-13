@@ -102,7 +102,8 @@ public class MapToKnownWords extends Normalizer {
 	
 	@Override
 	public List<Token> normalize(List<Token> tokens,PreprocessingType type) {
-		if (nlu==null || nlu!=getNLU()) {
+		if ((nlu==null || nlu!=getNLU()) && getNLU()!=null) {
+			nlu=getNLU();
 			update(nlu.getKnownWords());
 		}
 		if (tokens!=null && !tokens.isEmpty()) {
