@@ -1,8 +1,10 @@
 package edu.usc.ict.nl.nlu.preprocessing.normalization;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.Set;
 
 import javax.ws.rs.client.ClientBuilder;
@@ -24,7 +26,47 @@ public class MapToKnownWords extends Normalizer {
 	//private W2V2 w2v=null;
 	private LocalW2V2 w2v=null;
 	private Info info=null;
+	private Stat stats=null;
 
+	public class Stat {
+		List<Float> changes=null;
+		int lineChanged=0;
+
+		public void update(int size, int changed) {
+			if (size!=0) {
+				if (changes==null) changes=new ArrayList<>();
+				changes.add((float)changed/(float)size);
+				if (changed>0) lineChanged++;
+			}
+		}
+
+		public void clear() {
+			if (changes!=null) changes.clear();
+			lineChanged=0;
+		}
+
+		public Double getAverageChangedPerLine() {
+			if (changes!=null) {
+				OptionalDouble average=changes.stream().mapToDouble(i->i.floatValue()).average();
+				if (average.isPresent()) return average.getAsDouble();
+			}
+			return null;
+		}
+		public int getChangedLines() {
+			return lineChanged;
+		}
+		public Float getAverageLineChanged() {
+			if (changes!=null && !changes.isEmpty()) return (float)lineChanged/(float)changes.size();
+			return null;
+		}
+		
+		@Override
+		public String toString() {
+			return "lines: "+stats.getChangedLines()+" %line changed: "+stats.getAverageLineChanged()+" %word changed: "+stats.getAverageChangedPerLine();
+		}
+		
+	}
+	
 	private class LocalW2V2 {
 		
 		private String baseUrl;
@@ -108,15 +150,20 @@ public class MapToKnownWords extends Normalizer {
 	@Override
 	public List<Token> normalize(List<Token> tokens,PreprocessingType type) {
 		if (tokens!=null && !tokens.isEmpty()) {
+			int changed=0;
 			for(Token t:tokens) {
 				if (t!=null && t.isType(TokenTypes.WORD)) {
 					String word=t.getName();
 					if (!info.contains(word)) {
 						String ckw=searchClosestKnownWord(word, 0f);
-						if (!StringUtils.isEmptyString(ckw)) t.setName(ckw);
+						if (!StringUtils.isEmptyString(ckw)) {
+							changed++;
+							t.setName(ckw);
+						}
 					}
 				}
 			}
+			if (stats!=null) stats.update(tokens.size(),changed);
 		}
 		return tokens;
 	}
@@ -174,6 +221,19 @@ public class MapToKnownWords extends Normalizer {
 			return ret;
 		}
 		return null;
+	}
+	
+	public Stat getStats() {
+		return stats;
+	}
+	public void clearStats() {
+		if (stats!=null) stats.clear();
+	}
+	public void enableStats() {
+		if (stats==null) this.stats=new Stat();
+	}
+	public void disableStats() {
+		if (stats!=null) this.stats=null;
 	}
 	
 	public static void main(String[] args) {
