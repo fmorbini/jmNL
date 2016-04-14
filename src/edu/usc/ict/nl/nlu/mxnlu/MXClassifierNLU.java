@@ -217,6 +217,7 @@ public class MXClassifierNLU extends NLU {
 	public static final Pattern rangePattern=Pattern.compile("([\\d]+)-([\\d]+)");
 	public static final Pattern nluNERangesFormat = Pattern.compile("<("+rangePattern.toString()+"(,"+rangePattern.toString()+")*)>");
 
+	@Override
 	public void kill() {getNLUProcess().kill();}
 
 	public void trainNLUOnThisData(List<TrainingDataFormat> td,File trainingFile, File modelFile) throws Exception {

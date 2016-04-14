@@ -16,6 +16,7 @@ import edu.usc.ict.nl.config.NLUConfig.PreprocessingType;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
 import edu.usc.ict.nl.nlu.distributional.word2vec.W2V2;
+import edu.usc.ict.nl.util.ProgressTracker;
 import edu.usc.ict.nl.util.StringUtils;
 
 public class MapToKnownWords extends Normalizer {
@@ -70,9 +71,6 @@ public class MapToKnownWords extends Normalizer {
 				this.vectors = getVectorsForWords(words);
 			}
 		}
-		public Info(Set<String> kwords) {
-			this((String[]) kwords.toArray());
-		}
 
 		public boolean contains(String word) {
 			return wordsAsSet.contains(word);
@@ -120,9 +118,6 @@ public class MapToKnownWords extends Normalizer {
 		return tokens;
 	}
 
-	private void update(Set<String> knownWords) {
-		this.info=new Info(knownWords);
-	}
 	private void update(String... knownWords) {
 		this.info=new Info(knownWords);
 	}
@@ -157,12 +152,15 @@ public class MapToKnownWords extends Normalizer {
 			int l=words.length;
 			float[][] ret=new float[l][];
 			int[] knownWords=new int[l];
+			ProgressTracker pt=new ProgressTracker(10,l, System.out);
 			for(int i=0;i<l;i++) {
 				knownWords[i]=-1;
 				try {
 					knownWords[i]=w2v.isWordInVocabulary(words[i]);
 				} catch (Exception e) {logger.error(e);}
+				pt.updateDelta(1);
 			}
+			pt=new ProgressTracker(10,l, System.out);
 			for(int i=0;i<l;i++) {
 				ret[i]=null;
 				int kw=knownWords[i];
@@ -172,6 +170,7 @@ public class MapToKnownWords extends Normalizer {
 						ret[i]=v;
 					} catch (Exception e) {logger.error(e);}
 				}
+				pt.updateDelta(1);
 			}
 			return ret;
 		}

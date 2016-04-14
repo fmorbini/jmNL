@@ -90,12 +90,12 @@ public class MaxEntOpenNLPClassifierProcess extends MXClassifierProcess {
 		return null;
 	}
 
-	public Set<String> getKnownWords() {
+	public String[] getKnownWords() {
 		MaxentModel classifier=getClassifier();
 		Object[] ds = classifier.getDataStructures();
 		IndexHashTable<String> pmap=(IndexHashTable<String>) ds[1];
 		String[] words = pmap.toArray(new String[pmap.size()]);
-		return new HashSet<String>(Arrays.asList(words));
+		return words;
 	}
 	
 	@Override

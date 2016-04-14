@@ -119,7 +119,7 @@ public class NoNLU implements NLUInterface {
 	}
 
 	@Override
-	public Set<String> getKnownWords() {
+	public String[] getKnownWords() {
 		return null;
 	}
 

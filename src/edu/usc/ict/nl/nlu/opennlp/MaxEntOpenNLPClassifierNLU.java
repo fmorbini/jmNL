@@ -28,7 +28,7 @@ public class MaxEntOpenNLPClassifierNLU extends JMXClassifierNLU {
 	}
 	
 	@Override
-	public Set<String> getKnownWords() {
+	public String[] getKnownWords() {
 		MaxEntOpenNLPClassifierProcess p=(MaxEntOpenNLPClassifierProcess) getNLUProcess();
 		return p.getKnownWords();
 	}

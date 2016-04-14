@@ -42,5 +42,5 @@ public interface NLUInterface {
 	public List<String> getFeaturesFromUtterance(String utt);
 	public List<String> getFeaturesFromPositionInUtterance(String[] tokens,int pos);
 	
-	public Set<String> getKnownWords();
+	public String[] getKnownWords();
 }
