@@ -9,4 +9,5 @@ import edu.usc.ict.nl.nlu.Token;
 public interface PreprocesserI {
 	public void run(List<List<Token>> input,PreprocessingType type);
 	public void setNlu(NLU nlu);
+	public void update();
 }

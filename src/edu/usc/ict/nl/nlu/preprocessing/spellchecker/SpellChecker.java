@@ -37,4 +37,8 @@ public abstract class SpellChecker extends Preprocesser implements SpellCheckerI
 			}
 		}
 	}
+	
+	@Override
+	public void update() {
+	}
 }

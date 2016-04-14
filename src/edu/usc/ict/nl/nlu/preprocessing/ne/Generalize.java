@@ -305,4 +305,7 @@ public class Generalize extends Preprocesser {
 		things.add(toadd);
 	}
 
+	@Override
+	public void update() {
+	}
 }

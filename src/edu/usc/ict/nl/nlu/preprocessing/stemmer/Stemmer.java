@@ -23,4 +23,7 @@ public abstract class Stemmer extends Preprocesser implements StemmerI {
 		}
 	}
 
+	@Override
+	public void update() {
+	}
 }

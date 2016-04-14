@@ -26,5 +26,7 @@ public abstract class Remover extends Preprocesser implements RemoverI {
 		}
 	}
 
-
+	@Override
+	public void update() {
+	}
 }

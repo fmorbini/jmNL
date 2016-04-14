@@ -20,4 +20,8 @@ public abstract class Normalizer extends Preprocesser implements NormalizerI {
 			}
 		}
 	}
+	
+	@Override
+	public void update() {
+	}
 }

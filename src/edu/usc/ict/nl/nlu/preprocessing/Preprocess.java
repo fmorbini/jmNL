@@ -203,5 +203,12 @@ public class Preprocess {
 		return ret!=null?new ArrayList<>(ret):null;
 	}
 
-
+	public void update() {
+		List<PreprocesserI> prs = config.getNluPreprocessers();
+		if (prs!=null) {
+			for(PreprocesserI pr:prs) {
+				pr.update();
+			}
+		}
+	}
 }

@@ -23,7 +23,6 @@ public class MapToKnownWords extends Normalizer {
 
 	//private W2V2 w2v=null;
 	private LocalW2V2 w2v=null;
-	private NLU nlu=null;
 	private Info info=null;
 
 	private class LocalW2V2 {
@@ -97,13 +96,17 @@ public class MapToKnownWords extends Normalizer {
 			e.printStackTrace();
 		}
 	}
-	
+
+	public void update() {
+		NLU nlu=getNLU();
+		if (nlu!=null) update(nlu.getKnownWords());
+	}
+	private void update(String... knownWords) {
+		this.info=new Info(knownWords);
+	}
+
 	@Override
 	public List<Token> normalize(List<Token> tokens,PreprocessingType type) {
-		if ((nlu==null || nlu!=getNLU()) && getNLU()!=null) {
-			nlu=getNLU();
-			update(nlu.getKnownWords());
-		}
 		if (tokens!=null && !tokens.isEmpty()) {
 			for(Token t:tokens) {
 				if (t!=null && t.isType(TokenTypes.WORD)) {
@@ -116,10 +119,6 @@ public class MapToKnownWords extends Normalizer {
 			}
 		}
 		return tokens;
-	}
-
-	private void update(String... knownWords) {
-		this.info=new Info(knownWords);
 	}
 
 	private String searchClosestKnownWord(String word,float th) {
