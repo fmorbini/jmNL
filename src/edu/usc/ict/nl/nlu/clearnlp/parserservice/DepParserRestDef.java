@@ -13,15 +13,15 @@ import javax.ws.rs.core.MediaType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import edu.emory.clir.clearnlp.dependency.DEPTree;
+import edu.emory.mathcs.nlp.component.template.node.NLPNode;
 import edu.usc.ict.nl.nlu.clearnlp.JsonCONLL;
  
 @Path("/clearnlp/")
 public class DepParserRestDef {
  
-	static Map<String,List<DEPTree>> cache=new LinkedHashMap<String,List<DEPTree>>(10000, 0.75f, true) {
+	static Map<String,List<NLPNode[]>> cache=new LinkedHashMap<String,List<NLPNode[]>>(10000, 0.75f, true) {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<String,List<DEPTree>> eldest) {
+        protected boolean removeEldestEntry(Map.Entry<String,List<NLPNode[]>> eldest) {
             return size() > 10000;
         }
     };
@@ -35,7 +35,7 @@ public class DepParserRestDef {
         if (timeout==null || timeout<1) timeout=10;
 		try {
 	        output.put("result", parseResults);
-			List<DEPTree> result=(cache!=null)?cache.get(sentence):null;
+			List<NLPNode[]> result=(cache!=null)?cache.get(sentence):null;
 			boolean fromcache=result!=null;
 			if (fromcache) System.out.println("retrieving parsing resultfor '"+sentence+"' from cache.");
 			else System.out.println("parsing sentence '"+sentence+"' with timeout of "+timeout+" second(s) (ignored).");
@@ -43,7 +43,7 @@ public class DepParserRestDef {
 			if (!fromcache && cache!=null && result!=null) cache.put(sentence,result);
 			//System.out.println("server result: "+result);
 			if (result!=null) {
-				for(DEPTree po:result) {
+				for(NLPNode[] po:result) {
 					JSONObject parseTable=JsonCONLL.toJson(po);
 					parseResults.put(parseTable);
 				}

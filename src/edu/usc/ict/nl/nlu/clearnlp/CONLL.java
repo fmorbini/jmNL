@@ -5,15 +5,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.emory.clir.clearnlp.dependency.DEPNode;
-import edu.emory.clir.clearnlp.dependency.DEPTree;
-import edu.emory.clir.clearnlp.util.arc.DEPArc;
+import edu.emory.mathcs.nlp.component.template.node.NLPNode;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.graph.Edge;
 import edu.usc.ict.nl.util.graph.GraphElement;
@@ -48,18 +45,18 @@ public class CONLL extends Node {
 			}
 		}
 	}
-	public CONLL(DEPTree tree) throws Exception {
+	public CONLL(NLPNode[] tree) throws Exception {
 		this();
 		setWord("root");
 		dictionary=new HashMap<Integer, CONLL>();
 		dictionary.put(0, this);
-		Iterator<DEPNode> it=tree.iterator();
-		while(it.hasNext()) {
-			DEPNode n=it.next();
-			DEPNode p=n.getHead();
-			String label = n.getLabel();
-			if (p!=null) {
-				updateTree(n.getID(), n.getWordForm(),n.getLemma(), p.getID(), p.getWordForm(),p.getLemma(), label);
+		if (tree!=null) {
+			for(NLPNode n:tree) {
+				NLPNode p=n.getDependencyHead();
+				String label = n.getDependencyLabel();
+				if (p!=null) {
+					updateTree(n.getID(), n.getWordForm(),n.getLemma(), p.getID(), p.getWordForm(),p.getLemma(), label);
+				}
 			}
 		}
 	}

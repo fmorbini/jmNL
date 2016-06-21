@@ -1,8 +1,6 @@
 package edu.usc.ict.nl.nlu.clearnlp;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -10,70 +8,61 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import edu.emory.clir.clearnlp.component.AbstractComponent;
-import edu.emory.clir.clearnlp.component.mode.dep.DEPConfiguration;
-import edu.emory.clir.clearnlp.component.utils.GlobalLexica;
-import edu.emory.clir.clearnlp.component.utils.NLPUtils;
-import edu.emory.clir.clearnlp.dependency.DEPNode;
-import edu.emory.clir.clearnlp.dependency.DEPTree;
-import edu.emory.clir.clearnlp.tokenization.AbstractTokenizer;
-import edu.emory.clir.clearnlp.util.lang.TLanguage;
+import edu.emory.mathcs.nlp.common.util.IOUtils;
+import edu.emory.mathcs.nlp.component.template.node.NLPNode;
+import edu.emory.mathcs.nlp.decode.NLPDecoder;
 import edu.usc.ict.nl.util.graph.Edge;
 import edu.usc.ict.nl.util.graph.Node;
 
 public class DepNLU
 {
-	final TLanguage language = TLanguage.ENGLISH;
-	private AbstractComponent[] components;
-	private AbstractTokenizer tokenizer;
+	private NLPDecoder nlp4j;
 	
 	public DepNLU() {
-		List<String> paths = new ArrayList<>();
-		paths.add("brown-rcv1.clean.tokenized-CoNLL03.txt-c1000-freq1.txt.xz");
-		GlobalLexica.initDistributionalSemanticsWords(paths);
-		tokenizer = NLPUtils.getTokenizer(language);
-		AbstractComponent tagger = NLPUtils.getPOSTagger   (language, "general-en-pos.xz");
-		AbstractComponent parser = NLPUtils.getDEPParser   (language, "general-en-dep.xz", new DEPConfiguration("root"));
-		components = new AbstractComponent[]{tagger, parser};
+		final String configFile = "config-decode-en.xml";
+		NLPDecoder nlp4j = new NLPDecoder(IOUtils.createFileInputStream(configFile));
 	}
-	public List<DEPTree> parse(String text) throws Exception {
-		BufferedReader input=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(text.getBytes()),"UTF-8"));
-		List<DEPTree> result=parse(tokenizer, components, input);
-		return result;
-	}
-	
-	public List<DEPTree> parse(AbstractTokenizer tokenizer, AbstractComponent[] components, BufferedReader input) throws Exception {
-		List<DEPTree> ret=null;
-		String line;
-		while((line=input.readLine())!=null) {
-			DEPTree tree = new DEPTree(tokenizer.tokenize(line));
-			for (AbstractComponent component : components) {
-				component.process(tree);
-			}
-			if (ret==null) ret=new ArrayList<DEPTree>();
-			ret.add(tree);
+	public List<NLPNode[]> parse(String text) throws Exception {
+		List<NLPNode[]> ret=null;
+		NLPNode[] bestResult = nlp4j.decode(text);
+		if (bestResult!=null && bestResult.length>0) {
+			ret=new ArrayList<>();
+			ret.add(bestResult);
 		}
 		return ret;
 	}
 	
-	public String enrichedInputString(DEPTree r,String separator) {
+	public List<NLPNode[]> parse(BufferedReader input) throws Exception {
+		List<NLPNode[]> ret=null;
+		String line;
+		while((line=input.readLine())!=null) {
+			NLPNode[] res=nlp4j.decode(line);
+			if (res!=null && res.length>0) {
+				if (ret==null) ret=new ArrayList<>();
+				ret.add(res);
+			}
+		}
+		return ret;
+	}
+	
+	public String enrichedInputString(NLPNode[] r,String separator) {
 		StringBuffer ret=null;
 		if (r!=null) {
-			int s=r.size();
+			int s=r.length;
 			for(int i=1;i<s;i++) {
-				DEPNode n = r.get(i);
-				DEPNode head=n.getHead();
-				String nPos=n.getPOSTag(),hPos=(head!=null)?head.getPOSTag():null;
+				NLPNode n = r[i];
+				NLPNode head=n.getDependencyHead();
+				String nPos=n.getPartOfSpeechTag(),hPos=(head!=null)?head.getPartOfSpeechTag():null;
 				if (ret==null) ret=new StringBuffer();
 				if (ret.length()>0) ret.append(" ");
-				ret.append(n.getWordForm()+separator+i+separator+n.getPOSTag());
+				ret.append(n.getWordForm()+separator+i+separator+n.getPartOfSpeechTag());
 				if (head!=null) ret.append(separator+head.getWordForm()+separator+hPos);
 			}
 		}
 		return (ret!=null)?ret.toString():null;
 	}
 	
-	private List<Node> getSubject(DEPTree depTree) {
+	private List<Node> getSubject(NLPNode[] depTree) {
 		List<Node> ret=null;
 		try {
 			CONLL conll = new CONLL(depTree);
@@ -126,14 +115,14 @@ public class DepNLU
 	public static void main(String[] args) throws Exception
 	{
 		DepNLU parser=new DepNLU();
-		List<DEPTree> result = parser.parse("A small triangle and a big triangle argue inside the room.");
+		List<NLPNode[]> result = parser.parse("A small triangle and a big triangle argue inside the room.");
 		List subject=parser.getSubject(result.get(0));
 		System.out.println(subject);
 		//List verb=parser.getVerb();
 		
 		int id=1;
 		if (result!=null) {
-			for(DEPTree r:result) {
+			for(NLPNode[] r:result) {
 				System.out.println(parser.enrichedInputString(r,"_"));
 				new CONLL(r).toGDLGraph("sentence-"+id+".gdl");
 				id++;

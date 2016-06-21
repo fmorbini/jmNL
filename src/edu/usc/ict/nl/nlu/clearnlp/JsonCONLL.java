@@ -2,15 +2,12 @@ package edu.usc.ict.nl.nlu.clearnlp;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
-import java.util.Iterator;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.emory.clir.clearnlp.dependency.DEPNode;
-import edu.emory.clir.clearnlp.dependency.DEPTree;
-import edu.emory.clir.clearnlp.util.arc.DEPArc;
+import edu.emory.mathcs.nlp.component.template.node.NLPNode;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 
 public class JsonCONLL {
@@ -36,23 +33,23 @@ public class JsonCONLL {
 		return ret!=null?ret.toString():null;
 	}
 	
-	public static JSONObject toJson(DEPTree tree) throws Exception {
+	public static JSONObject toJson(NLPNode[] tree) throws Exception {
 		JSONObject output=new JSONObject();
-		Iterator<DEPNode> it=tree.iterator();
 		JSONArray table=new JSONArray();
-		while(it.hasNext()) {
-			JSONObject row=new JSONObject();
-			DEPNode n=it.next();
-			DEPNode p=n.getHead();
-			String label=n.getLabel();
-			if (p!=null) {
-				row.put("id", n.getID());
-				row.put("form", n.getWordForm());
-				row.put("lemma", n.getLemma());
-				row.put("pos", n.getPOSTag());
-				row.put("parent", p.getID());
-				row.put("edge", label);
-				table.put(row);
+		if (tree!=null) {
+			for(NLPNode n:tree) {
+				JSONObject row=new JSONObject();
+				NLPNode p=n.getDependencyHead();
+				String label=n.getDependencyLabel();
+				if (p!=null) {
+					row.put("id", n.getID());
+					row.put("form", n.getWordForm());
+					row.put("lemma", n.getLemma());
+					row.put("pos", n.getPartOfSpeechTag());
+					row.put("parent", p.getID());
+					row.put("edge", label);
+					table.put(row);
+				}
 			}
 		}
 		output.put("parse", table);

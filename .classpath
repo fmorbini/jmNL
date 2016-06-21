@@ -53,7 +53,6 @@
 	<classpathentry kind="lib" path="lib/poi-3.10-FINAL-20140208.jar"/>
 	<classpathentry kind="lib" path="lib/poi-ooxml-3.10-FINAL-20140208.jar"/>
 	<classpathentry kind="lib" path="lib/poi-ooxml-schemas-3.10-FINAL-20140208.jar"/>
-	<classpathentry kind="lib" path="lib/prefuse.jar"/>
 	<classpathentry kind="lib" path="lib/scxml.jar"/>
 	<classpathentry kind="lib" path="lib/simplenlg-v4.4.2.jar"/>
 	<classpathentry kind="lib" path="lib/spring-aop-3.2.9.RELEASE.jar"/>
@@ -72,7 +71,7 @@
 	<classpathentry kind="lib" path="lib/xbean.jar"/>
 	<classpathentry kind="lib" path="lib/xml-apis-1.4.01.jar"/>
 	<classpathentry kind="lib" path="lib/xstream-1.4.5.jar"/>
-	<classpathentry kind="lib" path="lib/clearnlp-3.2.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JavaLibs"/>
+	<classpathentry kind="lib" path="lib/nlp4j-1.1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
