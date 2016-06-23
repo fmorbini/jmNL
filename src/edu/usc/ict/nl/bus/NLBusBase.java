@@ -432,6 +432,7 @@ public abstract class NLBusBase implements NLBusInterface {
 		}
 	}
 	public Set<String> getAvailableCharacterNames() {return character2DM.keySet();}
+	public boolean isCharacterPolicyActive(String characterName) {return character2parsedPolicy.containsKey(characterName);}
 
 	//##############################################################################
 	//    Method to deal with storing received DM events 
