@@ -5,15 +5,17 @@
 
 	<!-- directories -->
 	<property name="NLModule.sources"   location="${NLModule}/src"/>
-	<property name="NLModule.resources" location="${NLModule}/resources"/>
 	<property name="NLModule.libraries" location="${NLModule}/lib"/>
 	<property name="NLModule.binaries"  location="${NLModule}/bin"/>
 	<property name="Binaries.nlmodule"  location="${NLModule}/deployed"/>
+	<property name="NLModule.resources" location="${NLModule}/resources"/>
+	<property name="NLModule.spck" location="${NLModule}/spell-checker"/>
 	<property name="Binaries.nlmodule.bin"  location="${Binaries.nlmodule}/bin"/>
 	<property name="Binaries.nlmodule-lib"  location="${Binaries.nlmodule}/lib"/>
 	<property name="Binaries.nlmodule-logs"  location="${Binaries.nlmodule}/logs"/>
 	<property name="Binaries.nlmodule-src"  location="${Binaries.nlmodule}/src"/>
 	<property name="Binaries.nlmodule-res"  location="${Binaries.nlmodule}/resources"/>
+	<property name="Binaries.nlmodule-spck"  location="${Binaries.nlmodule}/spell-checker"/>
 
 	<!-- files -->
 	<property name="NLModule.file.classpath" location="${NLModule}/.classpath"/>
@@ -117,6 +119,9 @@
                 </copy>
                 <copy todir="${Binaries.nlmodule-res}" overwrite="true" includeEmptyDirs="false">
                     <fileset dir="${NLModule.resources}"/>
+                </copy>
+                <copy todir="${Binaries.nlmodule-spck}" overwrite="true" includeEmptyDirs="false">
+                    <fileset dir="${NLModule.spck}"/>
                 </copy>
                 <copy todir="${Binaries.nlmodule-lib}" overwrite="true" enablemultiplemappings="false" includeEmptyDirs="false" flatten="true">
                     <fileset dir="${NLModule.libraries}"/>
