@@ -111,6 +111,14 @@ public abstract class NLConfig {
 				System.err.println("nl bus config with nlu ("+nlBusConfig.nluConfig+") different then this: "+nluConfig);
 				return false;
 			}
+			if (((NLUConfig)this).getPreprocessingRunningConfig().getNlBusConfigNC()!=nlBusConfig) {
+				System.err.println("nlu preprocessing with nl bus config different then this: "+nlBusConfig);
+				return false; 
+			}
+			if (((NLUConfig)this).getPreprocessingTrainingConfig().getNlBusConfigNC()!=nlBusConfig) {
+				System.err.println("nlu preprocessing with nl bus config different then this: "+nlBusConfig);
+				return false; 
+			}
 		} else if (this instanceof NLGConfig) {
 			if (nlBusConfig.nlgConfig!=nlgConfig) {
 				System.err.println("nl bus config with nlg ("+nlBusConfig.nlgConfig+") different then this: "+nlgConfig);
@@ -158,12 +166,13 @@ public abstract class NLConfig {
 		assert(this.checkLinking());
 		if (this instanceof NLUConfig) {
 			NLUConfig ret=nluConfig.cloneObject();
+			if (ret.getPreprocessingRunningConfig()!=null) ret.setPreprocessingRunningConfig(ret.getPreprocessingRunningConfig().cloneObject());
+			if (ret.getPreprocessingTrainingConfig()!=null) ret.setPreprocessingTrainingConfig(ret.getPreprocessingTrainingConfig().cloneObject());
 			if (nlBusConfig!=null) {
 				NLBusConfig retNlBusConfig = nlBusConfig.cloneObject();
 				ret.nlBusConfig=retNlBusConfig;
 				retNlBusConfig.nluConfig=ret;
 			}
-
 			assert(ret.checkLinking());
 			assert(this.checkLinking());
 			return ret;
@@ -194,8 +203,12 @@ public abstract class NLConfig {
 			NLBusConfig ret=nlBusConfig.cloneObject();
 			if (nluConfig!=null) {
 				NLUConfig retNLUConfig = nluConfig.cloneObject();
+				if (retNLUConfig.getPreprocessingRunningConfig()!=null) retNLUConfig.setPreprocessingRunningConfig(retNLUConfig.getPreprocessingRunningConfig().cloneObject());
+				if (retNLUConfig.getPreprocessingTrainingConfig()!=null) retNLUConfig.setPreprocessingTrainingConfig(retNLUConfig.getPreprocessingTrainingConfig().cloneObject());
 				ret.nluConfig=retNLUConfig;
 				retNLUConfig.nlBusConfig=ret;
+				retNLUConfig.getPreprocessingRunningConfig().nlBusConfig=ret;
+				retNLUConfig.getPreprocessingTrainingConfig().nlBusConfig=ret;
 			}
 			if (dmConfig!=null) {
 				DMConfig retDMConfig = dmConfig.cloneObject();

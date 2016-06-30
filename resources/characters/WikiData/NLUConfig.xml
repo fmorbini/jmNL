@@ -11,7 +11,7 @@
         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<import resource="classpath:wikidata/WikiData/PreprocessingConfig.xml"/>
+	<import resource="classpath:characters/WikiData/PreprocessingConfig.xml"/>
 
 	<bean id="wikidataNLUclass" class="edu.usc.ict.nl.config.NLUConfig">
 		<property name="lowConfidenceEvent" value="internal.low-confidence"/>

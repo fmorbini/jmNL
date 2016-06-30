@@ -238,7 +238,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		}
 	}
 
-	private void addEntranceConditionToOperator(DialogueOperatorEntranceTransition ec) {
+	public void addEntranceConditionToOperator(DialogueOperatorEntranceTransition ec) {
 		if (ec!=null) {
 			Set<DialogueOperatorEntranceTransition> list;
 			if (ec.isReEntrable()) {
@@ -1079,7 +1079,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		return result;
 	}
 
-	private DialogueOperator checkOperator() throws Exception {
+	public DialogueOperator checkOperator() throws Exception {
 		clearUnreachablePortions();
 		// no TMP states
 		// set all leaf states as final.

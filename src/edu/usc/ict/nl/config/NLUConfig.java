@@ -71,6 +71,19 @@ public class NLUConfig extends NLConfig {
 	public NLGConfig getNlgConfigNC() {
 		return getNlBusConfigNC().getNlgConfigNC();
 	}
+
+	@Override
+	public void setNlBusConfig(NLBusConfig nlBusConfig) {
+		super.setNlBusConfig(nlBusConfig);
+		Map<String, NLUConfig> inlus = getInternalNluListForMultiNlu();
+		if (inlus!=null && !inlus.isEmpty()) {
+			for(NLUConfig inlu:inlus.values()) {
+				inlu.setNlBusConfig(nlBusConfig);
+			}
+		}
+		if (getPreprocessingRunningConfig()!=null) getPreprocessingRunningConfig().setNlBusConfig(nlBusConfig);
+		if (getPreprocessingTrainingConfig()!=null) getPreprocessingTrainingConfig().setNlBusConfig(nlBusConfig);
+	}
 	
 	public NLUConfig cloneObject() {
 		NLUConfig ret=null;

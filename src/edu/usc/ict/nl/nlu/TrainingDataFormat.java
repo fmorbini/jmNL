@@ -61,7 +61,7 @@ public class TrainingDataFormat {
 		try {
 			fs = FunctionalLibrary.printCollection(nlu.getFeaturesFromUtterance(getUtterance()), "", "", " ");
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		if (!StringUtils.isEmptyString(fs)) return "<s> "+utt+" </s>\n"+fs+"\n\n"+label+"\n\n";
 		else return "<s> "+utt+" </s>\n\n"+label+"\n\n";

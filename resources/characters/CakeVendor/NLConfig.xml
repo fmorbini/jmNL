@@ -14,8 +14,8 @@
 	<import resource="classpath:characters/CakeVendor/DMConfig.xml"/>
 
 	<bean id="CakeVendor" class="edu.usc.ict.nl.config.NLBusConfig">
-		<property name="nluConfig" ref="openNLU"/>
+		<property name="nluConfig" ref="openNLPNLU"/>
 		<property name="dmConfig" ref="RewardDM"/>
-		<property name="nlgConfig" ref="echoNLG"/>
+		<property name="nlgConfig" ref="templateNLG"/>
 	</bean>
 </beans>

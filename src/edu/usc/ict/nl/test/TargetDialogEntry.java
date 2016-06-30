@@ -23,7 +23,6 @@ import edu.usc.ict.nl.nlu.ChartNLUOutput;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.Token;
 import edu.usc.ict.nl.nlu.chart.PartialClassification;
-import edu.usc.ict.nl.nlu.io.BuildTrainingData;
 import edu.usc.ict.nl.nlu.preprocessing.TokenizerI;
 import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
 import edu.usc.ict.nl.util.FileUtils;
@@ -31,7 +30,7 @@ import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.Triple;
 import edu.usc.ict.nl.util.XMLUtils;
 
-public class TargetDialogEntry {
+public class TargetDialogEntry extends edu.usc.ict.nl.util.graph.Node {
 
 	public final static Pattern numberPattern=Pattern.compile("([+-]?(([1-9][0-9]*(\\.[0-9])?)|(\\.[0-9])|(0?\\.[0-9]))[0-9]*)");
 	public final static Pattern typeAndTextLinePattern=Pattern.compile("^[\\s]*("+numberPattern.pattern()+"[\\s]+)?(simcoach|user):[\\s]*(.+)[\\s]*$");
@@ -47,8 +46,8 @@ public class TargetDialogEntry {
 	public void setDeltaT(Float dt) {this.deltaT=dt;}
 	public Type getType() {return type;}
 	public String getText() {return text;}
-	private void setType(Type t) { type=t;}
-	private void setText(String t) {text=t;}
+	public void setType(Type t) { type=t;}
+	public void setText(String t) {text=t;}
 	public void setSpeechActs(ArrayList<NLUOutput> speechActs) {this.speechActs = speechActs;}
 	public ArrayList<NLUOutput> getSpeechActs() {return speechActs;}
 	public List<NLUOutput> getSpeechActsAndSetPayload(NLUInterface nlu) throws Exception {
@@ -64,6 +63,23 @@ public class TargetDialogEntry {
 	public boolean isUserAction() {return getType()==Type.USER;}
 	public boolean isSystemAction() {return getType()==Type.SIMCOACH;}
 	
+	@Override
+	public String getShape() {
+		switch (getType()) {
+		case USER:
+			return "box";
+		case SIMCOACH:
+			return "ellipse";
+		default:
+			return "rhomb";
+		}
+	}
+	
+	@Override
+	public String gdlText() {
+		return "node: { shape: "+getShape()+" title: \""+getID()+"\" label: \""+getName()+"\""+" info1: \""+XMLUtils.escapeStringForXML(getText())+"\"}\n";
+	}
+
 	@Override
 	public String toString() {
 		String ret="";

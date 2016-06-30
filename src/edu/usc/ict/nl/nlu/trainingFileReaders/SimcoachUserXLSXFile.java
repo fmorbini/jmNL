@@ -19,7 +19,7 @@ import edu.usc.ict.nl.utils.ExcelUtils;
 public class SimcoachUserXLSXFile implements NLUTrainingFileI {
 
 	protected int skip=0;
-	private static final int sacolumn=4,uttcolumn=5;
+	public static final int sacolumn=4,uttcolumn=5;
 	
 	public static int getSpeechActColumn() {return sacolumn;}
 	public static int getUtteranceColumn() {return uttcolumn;}

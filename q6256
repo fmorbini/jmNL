@@ -1,0 +1,199 @@
+'Q115'	ethiopia	federal democratic republic of ethiopia	et
+'Q236'	montenegro	me
+'Q1030'	namibia	republic of namibia	na
+'Q238'	san marino	sm
+'Q1032'	niger	republic of niger	republic niger	ne
+'Q117'	ghana	republic of ghana	gh
+'Q233'	malta	republic of malta	mt
+'Q232'	kazakhstan	republic of kazakhstan	kz
+'Q235'	monaco	principality of monaco	mc
+'Q114'	kenya	republic of kenya	ke	ken	ke
+'Q916'	angola	republic of angola	ao
+'Q917'	bhutan	kingdom of bhutan	bt
+'Q912'	mali	republic of mali	république du mali	ml
+'Q1037'	rwanda	republic of rwanda	rw
+'Q242'	belize	bz
+'Q1039'	sao tomé and príncipe	democratic republic of são tomé and príncipe	são tomé og príncipe	sao tome and principe	são tomé and príncipe	st
+'Q241'	cuba	republic of cuba	cu
+'Q1033'	nigeria	federal republic of nigeria	ng
+'Q1036'	uganda	republic of uganda	ug
+'Q347'	liechtenstein	li	principality of liechtenstein	fl	li
+'Q225'	bosnia and herzegovina	bosnia-herzegovina	bosnia	bih	ba
+'Q1041'	senegal	republic of senegal	république du sénégal	sn
+'Q228'	andorra	principality of andorra	principality of the valleys of andorra	ad
+'Q1042'	seychelles	republic of seychelles	sc
+'Q227'	azerbaijan	republic of azerbaijan	az
+'Q222'	albania	republic of albania	al
+'Q221'	macedonia	fyrom	former yugoslav republic of macedonia	republic of macedonia	mk	fyr macedonia
+'Q224'	croatia	republic of croatia	hr	hrv	hr
+'Q229'	cyprus	republic of cyprus	cy
+'Q902'	bangladesh	people's republic of bangladesh	bd
+'Q17'	japan	state of japan	land of the rising sun	nihon	nippon	jp	nippon-koku	nihon-koku	ja	jpn	??	jp
+'Q16'	canada	dominion of canada	british north america	can	ca	??	ca
+'Q1049'	sudan	republic of the sudan	as-s?d?n	sd
+'Q230'	georgia	sakartvelo	gurz-?n	?ur?an	?urzan	gur??n	gruzia	géorgie	ge
+'Q1044'	sierra leone	republic of sierra leone	sl
+'Q1045'	somalia	federal republic of somalia	a?-??m?l	soomaaliya	so
+'Q258'	south africa	republic of south africa	rsa	sa	za
+'Q811'	nicaragua	ni
+'Q810'	jordan	hashemite kingdom of jordan	jo	jor	jo
+'Q1050'	swaziland	kingdom of swaziland	umbuso weswatini	kangwane	eswatini	sz
+'Q817'	kuwait	state of kuwait	dawlat al-kuwait	kw
+'Q819'	laos	lao people's democratic republic	la	lao pdr
+'Q813'	kyrgyzstan	kyrgyz republic	kg
+'Q20'	norway	kingdom of norway	norge	norvège?	norwegen?	no	nor	no
+'Q28'	hungary	hu
+'Q27'	ireland	éire	ie	irl	republic of ireland	hibernia	ireland, republic of	ie
+'Q262'	algeria	people’s democratic republic of algeria	dz
+'Q29'	spain	kingdom of spain	es	españa
+'Q142'	france	french republic	fr	république française	republic of france	la france	fr
+'Q800'	costa rica	republic of costa rica	cr	costa rica
+'Q921'	brunei	nation of brunei, the abode of peace	bn	brunei darussalam
+'Q244'	barbados	bb	bb
+'Q805'	yemen	republic of yemen	ye	rep. yemen
+'Q929'	central african republic	car	ködörösêse tî bêafrîka	république centrafricaine	centrafrique	cf
+'Q928'	philippines	republic of the philippines	ph	ph	the philippines
+'Q801'	israel	state of israel	?????	il	the jewish state
+'Q31'	belgium	kingdom of belgium	be
+'Q804'	panama	republic of panama	pa
+'Q30'	united states of america	usa	america	the states	u.s.	u.s.a.	united states	us	??	the us
+'Q924'	tanzania	united republic of tanzania	tz
+'Q33'	finland	republic of finland	finlande	finlandia	finnland	finnia	land of thousand lakes	fi	suomi
+'Q32'	luxembourg	luxemburg	grand duchy of luxembourg	lu	lu
+'Q35'	denmark	dk	danmark	dnk	dek	dk
+'Q34'	sweden	kingdom of sweden	se	sverige	se	kungariket sverige	konungariket sverige
+'Q37'	lithuania	republic of lithuania	lt
+'Q36'	poland	pl	pol	pl
+'Q39'	switzerland	swiss confederation	ch	ch
+'Q38'	italy	italia	italian republic	it	it
+'Q252'	indonesia	republic of indonesia	nkri	negara kesatuan republik indonesia	republik indonesia	id	idn	ri	id
+'Q710'	kiribati	republic of kiribati
+'Q159'	russia	russian federation	rossiyskaya federatsiya	rossijskaja federatsija	??	ru	ru
+'Q954'	zimbabwe	republic of zimbabwe	zw
+'Q712'	fiji	republic of fiji	fj
+'Q833'	malaysia	my
+'Q711'	mongolia	mn	mongolia	mongol uls	mng
+'Q953'	zambia	republic of zambia	zm	zam
+'Q398'	bahrain	bh
+'Q155'	brazil	federative republic of brazil	brasil	república federativa do brasil	federativa república do brasil	republic federative of brasil	estados unidos del brazil	br	br
+'Q399'	armenia	republic of armenia
+'Q717'	venezuela	república bolivariana de venezuela	ve	rb venezuela
+'Q40'	austria	österreich	republic of austria	republik österreich	at	at
+'Q837'	nepal	federal democratic republic of nepal	np	npl
+'Q958'	south sudan	republic of south sudan	southern sudan	ss
+'Q41'	greece	hellenic republic	hellas	gr
+'Q836'	myanmar	republic of the union of myanmar	union of burma	burma	mm
+'Q43'	turkey	republic of turkey	tr
+'Q45'	portugal	portuguese republic	pt	pt
+'Q148'	people's republic of china	prc	china	cn	cn
+'Q822'	lebanon	lebanese republic	lb
+'Q145'	united kingdom	uk	united kingdom	united kingdom of great britain and northern ireland	gb	ukgbni	great britain
+'Q265'	uzbekistan	republic of uzbekistan	uz
+'Q948'	tunisia	republic of tunisia	t?nis	tunisie	tunisian republic	al-jumh?riyyah at-t?nisiyyah	république tunisienne	tn
+'Q945'	togo	togolese republic	république togolaise	tg
+'Q702'	federated states of micronesia	micronesia	fsm	fm	fed. sts. micronesia	fed. sts. of micronesia
+'Q826'	maldives	mv
+'Q55'	netherlands	holland	the netherlands	nl	ned	nederland	nl
+'Q1008'	ivory coast	republic of côte d'ivoire	côte d'ivoire	ci	cote d'ivoire
+'Q1009'	cameroon	cm
+'Q1246'	kosovo	republic of kosovo
+'Q1005'	gambia	republic of the gambia	the gambia	gm	islamic republic of the gambia
+'Q1006'	guinea	guinea-conakry	republic of guinea	république de guinée	gn
+'Q1007'	guinea-bissau	republic of guinea-bissau	gw
+'Q1000'	gabon	gabonese republic	république gabonaise	ga
+'Q974'	democratic republic of the congo	drc	dr congo	congo-kinshasa	zaire	congo	democratic republic of congo	cd	dem. republic of the congo	dem. republic of congo	dem. rep. congo
+'Q734'	guyana	co-operative republic of guyana	gy
+'Q733'	paraguay	republic of paraguay	py
+'Q854'	sri lanka	democratic socialist republic of sri lanka	ceylon	taprobane	lk
+'Q970'	comoros	juzur al-qumur	juzur al-qamar	union of the comoros	udzima wa komori	union des comores	al-itti??d al-qumur?	al-itti??d al-qamar?	km
+'Q298'	chile	cl
+'Q851'	saudi arabia	kingdom of saudi arabia	ksa	sa
+'Q730'	suriname	surinam	republic of suriname	republic of surinam	dutch guiana	sr
+'Q971'	republic of the congo	congo-brazzaville	congo republic	république du congo	republic of congo	cg	rep. congo
+'Q739'	colombia	co	united states of colombia	república de colombia	republic of colombia
+'Q736'	ecuador	ec
+'Q977'	djibouti	republic of djibouti	jabuuti	gabuuti	j?b?t?	dj
+'Q858'	syria	syrian arab republic	sy
+'Q29999'	kingdom of the netherlands	the netherlands	netherlands
+'Q1019'	madagascar	republic of madagascar	mg
+'Q1016'	libya	state of libya	ly
+'Q184'	belarus	white russia	white ruthenia	republic of belarus	by
+'Q1011'	cape verde	republic of cape verde	cabo verde	cv	cpv	cv
+'Q183'	germany	frg	brd	bundesrepublik deutschland	federal republic of germany	de	de
+'Q1013'	lesotho	kingdom of lesotho	ls
+'Q1014'	liberia	republic of liberia	lr
+'Q842'	oman	om
+'Q963'	botswana	republic of botswana	lefatshe la botswana	bw
+'Q962'	benin	republic of benin	dahomey	bj
+'Q1020'	malawi	republic of malawi	mw
+'Q965'	burkina faso	bf
+'Q843'	pakistan	islamic republic of pakistan	pk
+'Q967'	burundi	republic of burundi	bi
+'Q846'	qatar	qa
+'Q77'	uruguay	oriental republic of uruguay	eastern republic of uruguay	república oriental del uruguay	uy
+'Q79'	egypt	arab republic of egypt	eg	arab rep. egypt
+'Q1027'	mauritius	republic of mauritius	maurice	île maurice	moris	mu
+'Q1028'	morocco	marocco	kingdom of morocco	al-ma?rib	lma?rib	maroc	ma
+'Q1029'	mozambique	republic of mozambique	moçambique	república de moçambique	mz	moz	mz
+'Q1025'	mauritania	islamic republic of mauritania	muritanya	agawej	gànnaar	murutaane	moritani	mr
+'Q754'	trinidad and tobago	republic of trinidad and tobago	tt
+'Q874'	turkmenistan	turkmenia	tm
+'Q750'	bolivia	bo
+'Q757'	saint vincent and the grenadines	vc	st. vincent and the grenadines	st vincent and the grenadines	saint vincent	st. vincent	st vincent
+'Q878'	united arab emirates	uae	ae
+'Q863'	tajikistan	republic of tajikistan	tj
+'Q865'	taiwan	roc	chinese taipei	taiwan	republic of china	tw
+'Q986'	eritrea	state of eritrea	ertr?	iritriy?	er
+'Q189'	iceland	republic of iceland	is
+'Q983'	equatorial guinea	republic of equatorial guinea	gq
+'Q869'	thailand	kingdom of thailand	th
+'Q96'	mexico	united mexican states	mexican republic	república mexicana	estados unidos mexicanos	mx	mx
+'Q191'	estonia	republic of estonia	estland	eesti	ee
+'Q657'	chad	republic of chad	république du tchad	??????? ????	?umh?riyyat tš?d	tchad	td
+'Q778'	the bahamas	bahamas	commonwealth of the bahamas	bs
+'Q414'	argentina	argentine republic	ar	ar
+'Q774'	guatemala	gt
+'Q419'	peru	republic of peru	república del perú	pe
+'Q781'	antigua and barbuda	ag
+'Q403'	serbia	republic of serbia	republika srbija	rs
+'Q766'	jamaica	ja	commonwealth of jamaica	jamdung	jm
+'Q760'	saint lucia	lc	st. lucia	st lucia
+'Q881'	vietnam	viet nam	socialist republic of vietnam	vn
+'Q763'	saint kitts and nevis	saint christopher and nevis	federation of saint kitts and nevis	kn	st. kitts and nevis	st kitts and nevis
+'Q884'	south korea	republic of korea	rok	????	????	daehan minguk	the republic of great han	republic of great han	korea	kory?	kr	rep. korea
+'Q769'	grenada	gd
+'Q889'	afghanistan	islamic republic of afghanistan	af
+'Q408'	australia	commonwealth of australia	au	aus	au
+'Q33946'	czechoslovakia	czecho-slovakia	cs	tch
+'Q678'	tonga	to
+'Q794'	iran	islamic republic of iran	persia	ir	islamic rep. iran
+'Q796'	iraq	republic of iraq	al-‘ir?q	jumh?riyyat al-‘ir?q	komar-i ‘êraq	iq
+'Q424'	cambodia	kingdom of cambodia	kh
+'Q16957'	east germany	gdr	german democratic republic	g.d.r.	ddr	dd
+'Q423'	north korea	democratic people's republic of korea	dprk	prk	kp	dem. rep. korea
+'Q786'	dominican republic	do
+'Q668'	india	bharat	hindustan	bharatvarsh	republic of india	hind	aryavart	in	in	??
+'Q34020'	niue	niu?	nu
+'Q783'	honduras	hn
+'Q664'	new zealand	nz	nzl	dominion of new zealand	aotearoa	nz
+'Q784'	dominica	dm
+'Q40362'	sahrawi arab democratic republic	sadr	????????? ??????? ????????? ???????????
+'Q790'	haiti	republic of haiti	ayiti	ht
+'Q792'	el salvador	sv
+'Q215'	slovenia	republic of slovenia	slovenija	republika slovenija	si
+'Q214'	slovakia	slovak republic	sk
+'Q217'	moldova	republic of moldova	md
+'Q695'	palau	republic of palau	belau	pelew	pw
+'Q574'	east timor	democratic republic of timor-leste	timor-leste	tl
+'Q211'	latvia	republic of latvia	latvian republic	lv
+'Q213'	czech republic	czechia	cz
+'Q697'	nauru	republic of nauru	pleasant island	naoero	nr
+'Q334'	singapore	republic of singapore	sg	sg
+'Q212'	ukraine	ua	ukr	ua	ukrainia
+'Q219'	bulgaria	republic of bulgaria	bg
+'Q218'	romania	roumania	rumania	românia	ro
+'Q683'	samoa	western samoa	independent state of samoa	ws
+'Q686'	vanuatu	republic of vanuatu	vu
+'Q685'	solomon islands	sb
+'Q2001966'	company rule in india	company raj
+'Q691'	papua new guinea	independent state of papua new guinea	png	pg

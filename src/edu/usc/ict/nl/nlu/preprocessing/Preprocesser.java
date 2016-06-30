@@ -27,7 +27,7 @@ public abstract class Preprocesser implements PreprocesserI {
 	}
 	
 	public PreprocessingConfig getConfiguration(PreprocessingType type) {
-		return nlu.getConfiguration().getPreprocessingConfig(type);
+		return getNluConfiguration().getPreprocessingConfig(type);
 	}
 	
 	protected NLU getNLU() {

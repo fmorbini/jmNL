@@ -710,6 +710,9 @@ public abstract class NLBusBase implements NLBusInterface {
 					if (pc.getNlgConfigNC()!=null) config.setNlgConfig(pc.getNlgConfigNC());
 					if (pc.getDmConfigNC()!=null) config.setDmConfig(pc.getDmConfigNC());
 				}
+				if (config.getNluConfigNC()!=null) config.getNluConfigNC().setNlBusConfig(config);
+				if (config.getNlgConfigNC()!=null) config.getNlgConfigNC().setNlBusConfig(config);
+				if (config.getDmConfigNC()!=null) config.getDmConfigNC().setNlBusConfig(config);
 				config.setCharacter(characterName);
 				character2Config.put(characterName, config);
 			}
@@ -727,12 +730,7 @@ public abstract class NLBusBase implements NLBusInterface {
 			try {
 				context = new FileSystemXmlApplicationContext(personalizedConfigFile.getAbsolutePath());
 			} catch (BeansException e) {
-				Throwable cause=e.getRootCause();
-				if (cause==null || !(cause instanceof FileNotFoundException)) {
-					logger.error("error while getting personalized configuration file in filesystem: ",e);
-				} else {
-					logger.warn("personalized config not found in filesystem for: "+characterName);
-				}
+				logger.error("error while getting personalized configuration file in filesystem: ",e);
 			}
 		}
 		if (context==null) {

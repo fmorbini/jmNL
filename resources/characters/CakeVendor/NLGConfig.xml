@@ -12,7 +12,12 @@
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<bean id="echoNLG" class="edu.usc.ict.nl.config.NLGConfig">
+       	<property name="alwaysPreferForms" value="false"/>
 		<property name="nlgClass" value="edu.usc.ict.nl.nlg.echo.EchoNLG"/>
+		<property name="systemUtterances" value="system-utterances.xlsx"/>
+		<property name="nvbs" value="nvb.xlsx"/>
+		<property name="systemResources" value="resources.xlsx"/>
+		<property name="systemForms" value="forms.xlsx"/>
 		<property name="isStrictNLG" value="false"/>
 		<property name="isAsciiNLG" value="false"/>
 		<property name="isNormalizeBlanksNLG" value="false"/>
@@ -29,4 +34,10 @@
 	</bean>
 	<bean id="shuffle_and_least_recent" class="edu.usc.ict.nl.nlg.picker.ShuffleAndLeastRecent">
 	</bean>
+	
+	<bean id="directable" parent="echoNLG">
+		<property name="nlgClass" value="edu.usc.ict.nl.nlg.directablechar.DirectableChar"/>
+		<property name="isStrictNLG" value="false"/>
+	</bean>
+	
 </beans>

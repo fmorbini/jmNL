@@ -9,9 +9,9 @@
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-	<import resource="classpath:wikidata/WikiData/NLUConfig.xml"/>
-	<import resource="classpath:wikidata/WikiData/NLGConfig.xml"/>
-	<import resource="classpath:wikidata/WikiData/DMConfig.xml"/>
+	<import resource="classpath:characters/WikiData/NLUConfig.xml"/>
+	<import resource="classpath:characters/WikiData/NLGConfig.xml"/>
+	<import resource="classpath:characters/WikiData/DMConfig.xml"/>
 
 	<bean id="WikiData" class="edu.usc.ict.nl.config.NLBusConfig">
 		<property name="nluConfig" ref="wikidataNLU"/>
