@@ -36,7 +36,9 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.bus.events.RepeatNLUEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
+import edu.usc.ict.nl.bus.events.SystemUtteranceInterruptedEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceLengthEvent;
 import edu.usc.ict.nl.bus.events.changes.DMVarChangeEvent;
 import edu.usc.ict.nl.bus.events.changes.DMVarChangesEvent;
@@ -265,7 +267,33 @@ public class RewardDM extends DM {
 	private class EventProcessor implements Runnable {
 		@Override
 		public void run() {
+			List<Event> rest=new ArrayList<>();
+			List<Event> ints=new ArrayList<>();
 			while(!isSessionDone()) {
+				if (!events.isEmpty()) {
+					Iterator<Event>it=events.iterator();
+					//compact all interruption towards the head
+					boolean reconstruct=false;
+					ints.clear();
+					rest.clear();
+					int position=0;
+					while(it.hasNext()) {
+						Event e=it.next();
+						if (e instanceof SystemUtteranceInterruptedEvent) {
+							if (position>0) reconstruct=true;
+							ints.add(e);
+						} else {
+							rest.add(e);
+						}
+						position++;
+					}
+					if (reconstruct) {
+						logger.info("reconstructing event queue: #interruptions="+ints.size()+" #other="+rest.size());
+						events.clear();
+						events.addAll(ints);
+						events.addAll(rest);
+					}
+				}
 				final Event ev=events.poll();
 				if (ev!=null) {
 					try {
@@ -303,16 +331,24 @@ public class RewardDM extends DM {
 			if (ev.isEmptyNLUEvent(this)) {
 				logger.info("Empty NLU event received, ignoring.");
 			} else {
-				if (ev instanceof NLUEvent && getConfiguration().getUserAlwaysInterrupts()) {
+				if ((ev instanceof NLUEvent) && !(ev instanceof RepeatNLUEvent) && getConfiguration().getUserAlwaysInterrupts()) {
 					logger.info("/ Interrupting current speaking action (speaking="+getSpeakingTracker().isSpeaking()+") as received user event and global interruption policy is enabled.");
-					interruptCurrentlySpeakingAction(ev);
-					logger.info("\\ Done interruption. (speaking="+getSpeakingTracker().isSpeaking()+")Continue processsing trigger event '"+ev+"' ("+(ev!=null?ev.getClass().getCanonicalName():null)+")");
+					interruptCurrentlySpeakingAction(new RepeatNLUEvent((NLUEvent) ev));
+					logger.info("\\ added event to queue and terminating handling of this event and requesting an immediate repeat after interruption is processed.");
+					return null;
 				}
 				updateInformationStateWithEvent(ev);
 				runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.DAEMON));
 				runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.NORMAL));
 				if (ev instanceof SystemUtteranceDoneEvent) {
 					handleDoneEvent((SystemUtteranceDoneEvent)ev);
+					if (ev instanceof SystemUtteranceInterruptedEvent) {
+						Event sev = ((SystemUtteranceInterruptedEvent)ev).getSourceEvent();
+						if (sev!=null && sev instanceof RepeatNLUEvent) {
+							logger.info("source event request an immediate repeat of event: "+sev);
+							actualHandleEvent(sev);
+						}
+					}
 				} else if (ev instanceof SystemUtteranceLengthEvent) {
 					handleLengthEvent((SystemUtteranceLengthEvent)ev);
 				} else if (ev instanceof DMSpeakEvent) {
@@ -357,16 +393,23 @@ public class RewardDM extends DM {
 	}
 
 	public void interruptCurrentlySpeakingAction(Event sourceEvent) {
-		try {
-			NLGEvent ev=getSpeakingTracker().getCurrentlySpeakingEvent();
-			if (ev!=null) {
+		if (sourceEvent!=null) {
+			try {
+				NLGEvent ev=getSpeakingTracker().getCurrentlySpeakingEvent();
 				logger.info("executing interruption of event: "+ev);
 				getMessageBus().handleDMResponseEvent(new DMInterruptionRequest(sourceEvent, getSessionID(), ev));
-			} else {
-				logger.warn("not executing interruption as the system speacking tracker says that there is nothing to be interrupted.");
+				/*
+				if (ev!=null) {
+					logger.info("executing interruption of event: "+ev);
+					getMessageBus().handleDMResponseEvent(new DMInterruptionRequest(sourceEvent, getSessionID(), ev));
+				} else {
+					logger.warn("not executing interruption as the system speaking tracker says that there is nothing to be interrupted.");
+					
+				}
+				*/
+			} catch (Exception e) {
+				logger.error("Error while interrupting current action: ",e);
 			}
-		} catch (Exception e) {
-			logger.error("Error while interrupting current action: ",e);
 		}
 	}
 
@@ -495,7 +538,7 @@ public class RewardDM extends DM {
 	private Event sendEventToCurrentActionOrToSearchOrUserProvidedSearchResult(Event ev,FoundDialogueOperatorEntranceTransition op_mode) throws Exception {
 		DialogueAction currentAction=getCurrentActiveAction();
 		Event handledEvent=null; // contains the event that the selected action handles.
-		if ((currentAction==null) || ((ev!=null) && !currentAction.handles(ev))) {
+		if ((currentAction==null) || ((ev!=null) && ((handledEvent=currentAction.handlesWhich(ev))==null))) {
 			logger.info("  current action '"+currentAction+"' cannot handle event '"+ev+"'. Searching for other action.");
 
 			op_mode=(op_mode!=null)?op_mode:selectAndPushBestOperatorForGivenEvent(ev,currentAction);
@@ -511,7 +554,7 @@ public class RewardDM extends DM {
 				}
 			}
 		} else if (currentAction!=null && ev!=null) {
-			handledEvent=currentAction.handlesWhich(ev);
+			if (handledEvent==null) handledEvent=currentAction.handlesWhich(ev);
 			logger.info("  the current action handles event '"+handledEvent+"'.");
 		}
 

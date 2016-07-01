@@ -638,6 +638,17 @@ public class DialogueAction {
 		public void clear() {
 			activeStates.clear();
 		}
+		
+		@Override
+		public String toString() {
+			if (!isEmpty()) {
+				StringBuffer b=new StringBuffer();
+				for(DialogueOperatorNode n:activeStates) {
+					b.append(" "+n.toString());
+				}
+				return b.toString();
+			} else return "no active states";
+		}
 	}
 
 }

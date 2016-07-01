@@ -74,7 +74,8 @@ public abstract class NLG implements NLGInterface {
 	public void interrupt(DMInterruptionRequest ev) throws Exception {
 		Long sessionID=ev.getSessionID();
 		DM dm=nlModule.getDM(sessionID);
-		dm.handleEvent(new SystemUtteranceInterruptedEvent(ev.getPayload().getDMEventName(), sessionID,ev.getSourceEvent()));
+		String toBeInterrupted=(ev.getPayload()!=null)?ev.getPayload().getDMEventName():null;
+		dm.handleEvent(new SystemUtteranceInterruptedEvent(toBeInterrupted, sessionID,ev.getSourceEvent()));
 	}
 
 	@Override

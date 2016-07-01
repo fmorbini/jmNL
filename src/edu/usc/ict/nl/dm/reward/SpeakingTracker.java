@@ -145,8 +145,9 @@ public class SpeakingTracker {
 	public void finishedSpeakingThis(Event evSaid) throws Exception {
 		String thingSaid=evSaid.getName();
 		String spokenSpeechAct=getSpeakingSpeechAct();
-		if (tasks.containsKey(thingSaid))
+		if (!StringUtils.isEmptyString(thingSaid) && tasks.containsKey(thingSaid)) {
 			tasks.remove(thingSaid).cancel();
+		}
 		Logger logger = dm.getLogger();
 		if (!StringUtils.isEmptyString(spokenSpeechAct) && hasAlreadyAWaitingAction()) {
 			if (speakingActionState.isPaused()) {

@@ -816,7 +816,7 @@ public class RewardPolicy {
 		if (op!=null && op.isNormal()) {
 			op.postProcessOperator(getISUpdatesMatcher(),this);
 		}
-		if (getConfiguration().getApproximatedForwardSearch()) {
+		if (getConfiguration()!=null && getConfiguration().getApproximatedForwardSearch()) {
 			mightEnableTable=updateMightEnableTableWith(mightEnableTable,op);
 		}
 		/*System.out.println(mightEnableTable.size());

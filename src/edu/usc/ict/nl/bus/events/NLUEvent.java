@@ -7,7 +7,7 @@ import edu.usc.ict.nl.nlu.NLUOutput;
 
 public class NLUEvent extends UserEvent {
 
-	private NLUEvent(String speechActID,Long sid,NLUOutput nlu) {
+	protected NLUEvent(String speechActID,Long sid,NLUOutput nlu) {
 		super(speechActID,sid,nlu);
 	}
 	public NLUEvent(String speechActID, long sid) {
