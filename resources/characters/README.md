@@ -8,3 +8,10 @@ It'll not work out of the box as it needs smartbody and also a running abduction
 
 The Wikidata character shows how named entities can be used to query a local lucen wikidata index to answer certain
 factual questions.
+
+to use wikidata you need to create lucene local indexes.
+For that you need to:
+
+1. download a recent [wikidata json dump](https://dumps.wikimedia.org/wikidatawiki/entities/)
+2. run edu.usc.ict.nl.nlu.wikidata.dumps.WikidataJsonProcessing.createItemsFile(8, new File(json_dump_file)) (adjust parameters as needed)
+3. run edu.usc.ict.nl.nlu.wikidata.dumps.WikidataJsonProcessing.createPropertiesFile(8, new File(json_dump_file)) (adjust parameters as needed)
