@@ -13,6 +13,7 @@ import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.bus.events.TextUtteranceEvent;
 import edu.usc.ict.nl.bus.special_variables.SpecialEntitiesRepository;
 import edu.usc.ict.nl.bus.special_variables.SpecialVar;
 import edu.usc.ict.nl.config.NLBusConfig;
@@ -56,7 +57,7 @@ public abstract class Protocol implements ExternalListenerInterface {
 	public void handleNLUEvent(Long sessionId, NLUEvent selectedUserSpeechAct) throws Exception {
 	}
 	@Override
-	public void handleTextUtteranceEvent(Long sessionId, String text) throws Exception {
+	public void handleTextUtteranceEvent(Long sessionId, TextUtteranceEvent ev) throws Exception {
 	}
 	@Override
 	public Long startSession(String characterName,Long sid){

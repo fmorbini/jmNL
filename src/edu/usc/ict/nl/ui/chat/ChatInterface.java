@@ -77,6 +77,7 @@ import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.bus.events.TextUtteranceEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLG;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
@@ -390,8 +391,9 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 
 	}
 	@Override
-	public void handleTextUtteranceEvent(Long sessionId, String text) {
-		addTextToList(text,MessageType.USER);
+	public void handleTextUtteranceEvent(Long sessionId, TextUtteranceEvent ev) {
+		String text=ev.getText();
+		addTextToList(ev);
 		if (showDMReplies.isSelected()) {
 			try {
 				NLUInterface nlu = nlModule.getNlu(sid);
@@ -986,20 +988,21 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	public void keyPressed(KeyEvent e) {
 		int key = e.getKeyCode();
 		int mod=e.getModifiers();
+		String ch=nlModule.getCharacterName4Session(sid);
 		if (key == KeyEvent.VK_ENTER) {
 			String text=input.getText();
 			input.setText("");
 
 			try {
 				nlModule.setSpeakingStateVarForSessionAs(sid, false);
-				nlModule.handleTextUtteranceEvent(sid, text);
+				nlModule.handleTextUtteranceEvent(sid, new TextUtteranceEvent(text, sid, ch));
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		} else if (key==reloadKey.getKeyCode() && ((mod&reloadKey.getModifiers())>0)) {			
 			try {
 				reloadLock.acquire();
-				sid=nlModule.startSession(nlModule.getCharacterName4Session(sid),chatInterfaceSingleSessionID);
+				sid=nlModule.startSession(ch,chatInterfaceSingleSessionID);
 			} catch (Exception e1) {
 				displayError(e1,false);
 			} finally {
@@ -1014,24 +1017,31 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	}
 
 
+	private void addTextToList(TextUtteranceEvent ev) {
+		addTextToList(ev.getText(), ev.getSpeaker());
+	}
 	private void addTextToList(String text,MessageType type) {
+		String agent=generateAgent(type);
+		addTextToList(text, agent);
+	}
+	private String generateAgent(MessageType type) {
+		String agent=null;
 		switch (type) {
 		case USER:
-			content.append((++line)+" ("+type+"): ");
-			content.append(text+"\n");
+			agent=type.toString();
 			break;
 		case SYSTEM:
-			String ch=nlModule.getCharacterName4Session(sid);
-			content.append((++line)+" ("+ch+"): ");
-			content.append(text+"\n");
+			agent=nlModule.getCharacterName4Session(sid);
 			break;
 		case SPECIALDM:
-			content.append((++line)+" ("+type+"): ");
-			content.append(text+"\n");
-			break;
-		default:
-			break;
+			agent=nlModule.getCharacterName4Session(sid);
+			agent=agent+"["+type.toString()+"]";
 		}
+		return agent;
+	}
+	private void addTextToList(String text,String agent) {
+		content.append((++line)+" ("+agent+"): ");
+		content.append(text+"\n");
 
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override

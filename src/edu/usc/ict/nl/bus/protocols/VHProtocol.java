@@ -13,6 +13,7 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceDoneEvent;
 import edu.usc.ict.nl.bus.events.SystemUtteranceLengthEvent;
+import edu.usc.ict.nl.bus.events.TextUtteranceEvent;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.bus.modules.NLGInterface;
 import edu.usc.ict.nl.config.NLBusConfig;
@@ -97,7 +98,7 @@ public class VHProtocol extends Protocol {
 							for(Long sessionID : bus.getSessions()) {
 								try {
 									bus.setSpeakingStateVarForSessionAs(sessionID, false);
-									bus.handleTextUtteranceEvent(sessionID, msg.getUtterance());
+									bus.handleTextUtteranceEvent(sessionID, new TextUtteranceEvent(msg.getUtterance(), sessionID, msg.getSpeaker()));
 								} catch (Exception e1) {
 									logger.error("Error processing vrSpeech message: ",e1);
 								}
@@ -244,7 +245,7 @@ public class VHProtocol extends Protocol {
 						for(Long sessionID : bus.getSessions()) {
 							try {
 								bus.setSpeakingStateVarForSessionAs(sessionID, false);
-								bus.handleTextUtteranceEvent(sessionID, msg.getText());
+								bus.handleTextUtteranceEvent(sessionID, new TextUtteranceEvent(msg.getText(), sessionID, msg.getSpeaker()));
 							} catch (Exception e1) {
 								logger.error("Error processing vrSpoke event from "+vhOther+" into an utterance event for myself:",e1);
 							}
@@ -274,7 +275,7 @@ public class VHProtocol extends Protocol {
 						} else {
 							for(Long sessionID : bus.getSessions()) {
 								try {
-									bus.handleTextUtteranceEvent(sessionID, msg.getText());
+									bus.handleTextUtteranceEvent(sessionID, new TextUtteranceEvent(msg.getText(), sessionID, msg.getSpeaker()));
 								} catch (Exception e1) {
 									logger.error("Error processing vrSpoke event from "+vhOther+" into an utterance event for myself:",e1);
 								}
@@ -304,7 +305,7 @@ public class VHProtocol extends Protocol {
 						try {
 							for(Long sessionID : bus.getSessions()) {
 								try {
-									bus.handleTextUtteranceEvent(sessionID, msg.getSpeech());
+									bus.handleTextUtteranceEvent(sessionID, new TextUtteranceEvent(msg.getSpeech(), sessionID, msg.getAgent()));
 								} catch (Exception e1) {
 									logger.error("Error processing vrexpress event from "+vhOther+" into an utterance event for myself:",e1);
 								}
@@ -427,4 +428,5 @@ public class VHProtocol extends Protocol {
 	public boolean canDetectUtteranceCompleted() {
 		return true;
 	}
+
 }

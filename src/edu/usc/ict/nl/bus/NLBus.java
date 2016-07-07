@@ -14,6 +14,7 @@ import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLGEvent;
 import edu.usc.ict.nl.bus.events.NLUEvent;
+import edu.usc.ict.nl.bus.events.TextUtteranceEvent;
 import edu.usc.ict.nl.bus.events.changes.DMStateChangeEvent;
 import edu.usc.ict.nl.bus.events.changes.DMVarChangeEvent;
 import edu.usc.ict.nl.bus.events.changes.DMVarChangesEvent;
@@ -183,24 +184,25 @@ public class NLBus extends NLBusBase {
 	 * @throws Exception 
 	 */
 	@Override
-	public void handleTextUtteranceEvent(Long sessionId, String text) throws Exception {
+	public void handleTextUtteranceEvent(Long sessionId, TextUtteranceEvent ev) throws Exception {
+		String text=ev.getText();
 		logger.info("Text utterance event received for session "+sessionId+": '"+text+"'");
 		if (isInExecuteMode()) {
 			if (hasListeners()) {
 				for(ExternalListenerInterface l:getListeners()) {
-					l.handleTextUtteranceEvent(sessionId,text);
+					l.handleTextUtteranceEvent(sessionId,ev);
 				}
 			}
 			NLUOutput nluOutput=getNLUOutput(sessionId, text);
 			logger.info("Text utterance classified into: '"+nluOutput+"'");
 			if (nluOutput!=null) {
-				NLUEvent ev = new NLUEvent(nluOutput, sessionId);
+				NLUEvent nluev = new NLUEvent(nluOutput, sessionId);
 				if (!getConfiguration().getDmVhListening()) {
-					handleNLUEvent(sessionId,ev);
+					handleNLUEvent(sessionId,nluev);
 				}
 				if (hasProtocols()) {
 					for(Protocol p:getProtocols()) {
-						p.handleNLUEvent(sessionId, ev);
+						p.handleNLUEvent(sessionId, nluev);
 					}
 				}
 			}
