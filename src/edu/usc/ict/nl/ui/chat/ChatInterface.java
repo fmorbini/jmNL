@@ -922,7 +922,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private boolean isFormPreferred(DMSpeakEvent ev) {
 		NLGInterface nlg;
 		try {
-			nlg = nlModule.getNlg(sid);
+			nlg = nlModule.getNlg(ev.getSessionID());
 			DialogueKBInterface is = nlg.getKBForEvent(ev);
 			return DM.isFormPreferred(ev,is);
 		} catch (Exception e) {
@@ -940,6 +940,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	}
 	private boolean setFormForEvent(DMSpeakEvent ev) throws Exception {
 		if (ev!=null) {
+			Long sid=ev.getSessionID();
 			String sa=ev.getName();
 			NLGInterface nlg = nlModule.getNlg(sid,false);
 			EchoNLGData data = nlg.getData();
