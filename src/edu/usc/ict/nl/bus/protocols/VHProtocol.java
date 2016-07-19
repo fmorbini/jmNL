@@ -301,13 +301,16 @@ public class VHProtocol extends Protocol {
 					//logger.warn("MessageListener.messageAction received non vrPerception message.");
 				}
 				if (msg!=null) {
-					if (inTwoVHCharactersMode && usingJustVRExpress && !vhMyself.equals(msg.getAgent())) {
+					if (inTwoVHCharactersMode && usingJustVRExpress) {
 						try {
 							for(Long sessionID : bus.getSessions()) {
-								try {
-									bus.handleTextUtteranceEvent(sessionID, new TextUtteranceEvent(msg.getSpeech(), sessionID, msg.getAgent()));
-								} catch (Exception e1) {
-									logger.error("Error processing vrexpress event from "+vhOther+" into an utterance event for myself:",e1);
+								String vhMyself=bus.getCharacterName4Session(sessionID);
+								if (!vhMyself.equals(msg.getAgent())) {
+									try {
+										bus.handleTextUtteranceEvent(sessionID, new TextUtteranceEvent(msg.getSpeech(), sessionID, msg.getAgent()));
+									} catch (Exception e1) {
+										logger.error("Error processing vrexpress event from "+vhOther+" into an utterance event for myself:",e1);
+									}
 								}
 							}
 						} catch (Exception e1) {

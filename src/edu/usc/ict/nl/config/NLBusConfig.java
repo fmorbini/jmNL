@@ -30,8 +30,6 @@ public class NLBusConfig extends NLConfig {
 	//vh setup
 	private String vhSpeaker=null,vhTopic=null,vhServer=null,vhComponentId=null;
 	private String vhOtherSpeaker=null;
-	private boolean pmlListening=false;
-	private boolean minatListening=false;
 	private boolean useVrExpressOnly=false;
 	private boolean useVrSpeakOnly=false;
 	
@@ -166,10 +164,6 @@ public class NLBusConfig extends NLConfig {
 	public void setVhServer(String s) {this.vhServer=s;}
 	public String getVhComponentId() {return vhComponentId;}
 	public void setVhComponentId(String s) {this.vhComponentId=s;}
-	public boolean getPmlListening() {return pmlListening;}
-	public void setPmlListening(boolean s) {this.pmlListening=s;}
-	public boolean getMinatListening() {return minatListening;}
-	public void setMinatListening(boolean s) {this.minatListening=s;}
 
 	public void setUseVrExpressOnly(Boolean s) {this.useVrExpressOnly=s;}
 	public void setUseVrSpeakOnly(Boolean s) {this.useVrSpeakOnly=s;}

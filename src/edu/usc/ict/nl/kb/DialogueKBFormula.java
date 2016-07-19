@@ -1,6 +1,5 @@
 package edu.usc.ict.nl.kb;
 
-import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -675,6 +674,8 @@ public class DialogueKBFormula extends Node {
 	}
 
 	public static void main(String[] args) throws Exception {
+		DialogueKBFormula ffff=parse("sendVH('vrmeta CakeVendor start')");
+		System.out.println(ffff);
 		//MacroRepository.loadFromXML(new File("C:\\Users\\morbini\\jmNL\\resources\\story\\Story\\dm\\macros.xml"));
 		TrivialDialogueKB mykb22 = new TrivialDialogueKB();
 		//mykb22.store(DialogueOperatorEffect.createAssignment("systemEvent", "'question.1'"), ACCESSTYPE.AUTO_OVERWRITEAUTO, false);

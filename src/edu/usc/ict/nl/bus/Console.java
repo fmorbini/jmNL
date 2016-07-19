@@ -26,6 +26,8 @@ public class Console {
 	private static String vhServer="localhost",vhScope="DEFAULT_SCOPE";
 	private static String beanName=null;
 	private static VHBridge vhBridge=null;
+	private static Long sid=null;
+	
 	private static MessageListener createVHDMMessageListener() {
 		return new MessageListener() {
 			public void messageAction(MessageEvent e) {
@@ -33,7 +35,7 @@ public class Console {
 				if (map!=null) {
 					String msg=(String) map.get("dm");
 					if (msg!=null && msg.equals("reset")) {
-						nlModule.startSession(nlModule.getCharacterName4Session(ChatInterface.chatInterfaceSingleSessionID),ChatInterface.chatInterfaceSingleSessionID);
+						sid=nlModule.startSession(nlModule.getCharacterName4Session(sid),sid);
 					}
 				}
 			}

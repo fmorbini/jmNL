@@ -62,7 +62,7 @@ public class CFgetLastTimeMark implements CustomFunctionInterface {
 		Thread.sleep(300);
 		tt.setMark(aa.getOperator().getName(), TimemarksTracker.TYPES.ENTER,null);
 		TestDialogueOperator op = (TestDialogueOperator) aa.getOperator();
-		EvalContext context=new EvalContext();
+		EvalContext context=new EvalContext(null,null);
 		Long r=eval(DialogueKBFormula.parse(getName()+"('DONE')"),dm.getInformationState(),false,context);
 		if (r!=null) return false;
 		context.setFormulaOperator(op);

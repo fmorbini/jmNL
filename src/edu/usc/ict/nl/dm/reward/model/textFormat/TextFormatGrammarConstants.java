@@ -29,71 +29,73 @@ public interface TextFormatGrammarConstants {
   /** RegularExpression Id. */
   int SEND = 17;
   /** RegularExpression Id. */
-  int FORGET = 18;
+  int VHSEND = 18;
   /** RegularExpression Id. */
-  int TTCND = 19;
+  int FORGET = 19;
   /** RegularExpression Id. */
-  int TOPIC = 20;
+  int TTCND = 20;
   /** RegularExpression Id. */
-  int USER = 21;
+  int TOPIC = 21;
   /** RegularExpression Id. */
-  int SYSTEM = 22;
+  int USER = 22;
   /** RegularExpression Id. */
-  int ISYSTEM = 23;
+  int SYSTEM = 23;
   /** RegularExpression Id. */
-  int ESYSTEM = 24;
+  int ISYSTEM = 24;
   /** RegularExpression Id. */
-  int EISYSTEM = 25;
+  int ESYSTEM = 25;
   /** RegularExpression Id. */
-  int WAIT = 26;
+  int EISYSTEM = 26;
   /** RegularExpression Id. */
-  int SYSWAIT = 27;
+  int WAIT = 27;
   /** RegularExpression Id. */
-  int EC = 28;
+  int SYSWAIT = 28;
   /** RegularExpression Id. */
-  int UI = 29;
+  int EC = 29;
   /** RegularExpression Id. */
-  int SI = 30;
+  int UI = 30;
   /** RegularExpression Id. */
-  int GV = 31;
+  int SI = 31;
   /** RegularExpression Id. */
-  int RO = 32;
+  int GV = 32;
   /** RegularExpression Id. */
-  int IS = 33;
+  int RO = 33;
   /** RegularExpression Id. */
-  int NETWORK = 34;
+  int IS = 34;
   /** RegularExpression Id. */
-  int FINAL = 35;
+  int NETWORK = 35;
   /** RegularExpression Id. */
-  int DAEMON = 36;
+  int FINAL = 36;
   /** RegularExpression Id. */
-  int CONDITION = 37;
+  int DAEMON = 37;
   /** RegularExpression Id. */
-  int CE = 38;
+  int CONDITION = 38;
   /** RegularExpression Id. */
-  int OR = 39;
+  int CE = 39;
   /** RegularExpression Id. */
-  int END = 40;
+  int OR = 40;
   /** RegularExpression Id. */
-  int GOTOEND = 41;
+  int END = 41;
   /** RegularExpression Id. */
-  int NOP = 42;
+  int GOTOEND = 42;
   /** RegularExpression Id. */
-  int IF = 43;
+  int NOP = 43;
   /** RegularExpression Id. */
-  int ELSE = 44;
+  int IF = 44;
   /** RegularExpression Id. */
-  int CM = 45;
+  int ELSE = 45;
   /** RegularExpression Id. */
-  int IGNORE = 46;
+  int CM = 46;
   /** RegularExpression Id. */
-  int ID = 47;
+  int IGNORE = 47;
   /** RegularExpression Id. */
-  int ENDTEXT = 48;
+  int ID = 48;
   /** RegularExpression Id. */
-  int URL = 49;
+  int ENDTEXT = 49;
   /** RegularExpression Id. */
-  int ANY = 50;
+  int URL = 50;
+  /** RegularExpression Id. */
+  int ANY = 51;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -124,6 +126,7 @@ public interface TextFormatGrammarConstants {
     "<VAR>",
     "<GOAL>",
     "<SEND>",
+    "<VHSEND>",
     "<FORGET>",
     "<TTCND>",
     "<TOPIC>",
@@ -158,7 +161,7 @@ public interface TextFormatGrammarConstants {
     "<URL>",
     "<ANY>",
     "\"*/\"",
-    "<token of kind 52>",
+    "<token of kind 53>",
   };
 
 }

@@ -19,6 +19,7 @@ public class XMLConstants {
 	public static final String SPEECHACTID="speech-act";
 	public static final String EFFECTID="effect";
 	public static final String SENDID="send";
+	public static final String VHSENDID="vhsend";
 	public static final String WAITID="wait";
 	public static final String AssignmentLISTID="assignlist";
 	public static final String AssignmentID="assign";

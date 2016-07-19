@@ -24,13 +24,6 @@ public class EvalContext {
 	 */
 	private DialogueKB is=null;
 	
-	public EvalContext() {}
-	public EvalContext(DialogueOperator o) {
-		setFormulaOperator(o);
-	}
-	public EvalContext(DialogueKB is) {
-		setInformationState(is);
-	}
 	public EvalContext(DialogueKB is, DialogueOperator o) {
 		setInformationState(is);
 		setFormulaOperator(o);

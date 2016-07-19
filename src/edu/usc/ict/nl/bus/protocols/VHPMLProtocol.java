@@ -21,14 +21,14 @@ public class VHPMLProtocol extends Protocol {
 
 	public VHPMLProtocol(NLBus bus) throws Exception {
 		super(bus);
-		if (config.hasVHConfig() &&  config.getPmlListening()) {
+		if (config.hasVHConfig()) {
 			vhBridge=new VHBridge(config.getVhServer(), config.getVhTopic());
 			JAXBContext jc = JAXBContext.newInstance(Pml.class);
 			pmlParser = jc.createUnmarshaller();
 			pmlStateKeeper=new PMLStateKeeper(bus);
 			vhBridge.addMessageListenerFor("vrPerception", createVrPerceptionMessageListener());
 		} else {
-			logger.error(this.getClass()+" requested to start but no VH/PML configuration.");
+			logger.error(this.getClass()+" requested to start but no VH configuration.");
 		}
 	}
 	

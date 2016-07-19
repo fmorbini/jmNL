@@ -18,7 +18,7 @@
 		<property name="staticURLs" value="true"/>
 		<property name="loginEventName" value="login"/>
 		<property name="timerEvent" value="internal.timer"/>
-		<property name="systemEventsHaveDuration" value="true"/>
+		<property name="systemEventsHaveDuration" value="false"/>
         <property name="unhandledEventName" value="default"/>
  		<property name="forcedIgnoreEventName" value="ignored"/>
 		<property name="loopEventName" value="loop"/>

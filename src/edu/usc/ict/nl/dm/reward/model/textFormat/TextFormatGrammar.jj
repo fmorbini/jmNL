@@ -175,6 +175,7 @@ SKIP:
 | <VAR: <AN>"var:"(<SPACE>)*>:TEXT
 | <GOAL: <AN>"goal:"(<SPACE>)*>
 | <SEND: <AN>"send:"(<SPACE>)*>
+| <VHSEND: <AN>"vhsend:"(<SPACE>)*>:TEXT
 | <FORGET: <AN>"forget:"(<SPACE>)*>:TEXT
 | <TTCND: <AN>"turntaking condition:"(<SPACE>)*>:TEXT
 | <TOPIC: <AN>"topic:"(<SPACE>)*>
@@ -487,6 +488,10 @@ void CurrentStateAnnotation(int cs,int ss,boolean isRoot):{
 	} |
 	(<SEND> t1=<ID>) {
 		ret="<send id=\""+t1.image+"\"/>";
+		addToState(cs,ret+"\n");
+	} |
+	(<VHSEND> t1=<ANY><ENDTEXT>) {
+		ret="<vhsend id=\""+StringUtils.cleanupSpaces(t1.image)+"\"/>";
 		addToState(cs,ret+"\n");
 	} |
 	(<IS> t1=<ANY><ENDTEXT>) {

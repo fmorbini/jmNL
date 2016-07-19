@@ -29,7 +29,7 @@ public class TestRewardDM extends RewardDM {
 		super(config);
 		logger=Logger.getLogger(TestRewardDM.class.getName());
 		logger.setLevel(Level.OFF);
-		context=new EvalContext(new TrivialDialogueKB(this));
+		context=new EvalContext(new TrivialDialogueKB(this),null);
 		op=new TestDialogueOperator("TestDialogueOperator");
 		ec=new DialogueOperatorEntranceTransition();
 		ec.setOperator(op);

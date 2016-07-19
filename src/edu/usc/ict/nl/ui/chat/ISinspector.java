@@ -59,7 +59,7 @@ public class ISinspector extends JPanel implements KeyListener {
 			try {
 				DialogueKBFormula pf=DialogueKBFormula.parse(f);
 				DialogueKB is=selectIS(ISinspector.this.is, level);
-				Object result = is.evaluate(pf,new EvalContext(is));
+				Object result = is.evaluate(pf,new EvalContext(is,null));
 				output.setText(result!=null?result.toString():null);
 			} catch (Exception ee) {
 				try {

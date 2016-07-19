@@ -83,7 +83,7 @@ public class DialogueAction {
 		this.entranceCondition=ec;
 		this.dm=rewardDM;
 		sayStateTracker=new HashMap<DialogueOperatorNodeTransition, DialogueAction.SAYState>();
-		context=new EvalContext(ec.getOperator());
+		context=new EvalContext(null,ec.getOperator());
 		setAsCreated();
 	}
 	public DialogueOperatorEntranceTransition getEntranceTransition() {return entranceCondition;}

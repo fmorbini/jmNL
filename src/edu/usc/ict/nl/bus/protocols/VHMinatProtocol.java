@@ -22,14 +22,14 @@ public class VHMinatProtocol extends Protocol {
 
 	public VHMinatProtocol(NLBus bus) throws Exception {
 		super(bus);
-		if (config.hasVHConfig() && config.getMinatListening()) {
+		if (config.hasVHConfig()) {
 			vhBridge=new VHBridgewithMinat(config.getVhServer(), config.getVhTopic());
 			vhBridge.addMessageListenerFor("minat", createMinatMessageListener());
 			svs=new SpecialEntitiesRepository(config);
 			new SpecialVar(svs,minatTriageVarName,"BBN Minat triage class.","TR3",String.class);
 			new SpecialVar(svs,minatLabelsVarName,"BBN Minat distress labels.","null",List.class);
 		} else {
-			logger.error(this.getClass()+" requested to start but no VH/minat configuration.");
+			logger.error(this.getClass()+" requested to start but no VH configuration.");
 		}
 	}
 	

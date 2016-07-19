@@ -46,7 +46,7 @@ public class NLTester {
 	
 	
 	public Long initDM(String characterName) throws Exception {
-		Long sid = nlModule.startSession(characterName,ChatInterface.chatInterfaceSingleSessionID);
+		Long sid = nlModule.startSession(characterName,null);
 		return sid;
 	}
 	public boolean batchDM(String characterName,String inputFile, boolean fakeNLU) throws Exception {

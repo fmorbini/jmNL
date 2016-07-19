@@ -51,7 +51,6 @@ import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.ne.NamedEntityExtractorI;
-import edu.usc.ict.nl.ui.chat.ChatInterface;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.utils.LogConfig;
 
@@ -153,6 +152,17 @@ public abstract class NLBusBase implements NLBusInterface {
 	}
 	public ReferenceToVirtualCharacter getCharacter4Session(Long sid) {return session2Character.get(sid);}
 
+	public Long getNewSessionNumber() {
+		if (session2Character.isEmpty()) return 1l;
+		else {
+			ArrayList<Long> sids = new ArrayList<>(session2Character.keySet());
+			Collections.sort(sids);
+			Long last=sids.get(sids.size()-1);
+			while(session2Character.containsKey(last)) last+=1;
+			return last;
+		}
+	}
+
 	/**
 	 * Picks one {@link HasAnnotations} object of the given list of replies 
 	 * @param sessionId Session ID
@@ -215,7 +225,7 @@ public abstract class NLBusBase implements NLBusInterface {
 	}
 	public String getDialogSessionUser(Long sessionID) {return session2User.get(sessionID);}
 	public boolean existDialogSession(Long sessionID) {
-		return session2User.containsKey(sessionID);
+		return session2Character.containsKey(sessionID);
 	}
 	public List<Long> getTerminatedSessions(Set<Long> activeSessionsIDs) {
 		List<Long> terminatedSessions = new ArrayList<Long>();
@@ -244,7 +254,7 @@ public abstract class NLBusBase implements NLBusInterface {
 				terminateSession(sid);
 			}
 		} catch (Exception e) {}
-		if (sid==null) sid=new Long(ChatInterface.chatInterfaceSingleSessionID);
+		if (sid==null) sid=getNewSessionNumber();
 		setCharacter4Session(sid,characterName);
 		getSpecialVariables(characterName, true);
 		try {
@@ -278,7 +288,7 @@ public abstract class NLBusBase implements NLBusInterface {
 			String d=dm.getConfiguration().getNlBusConfigNC().getPausedSessionsRoot();
 			File sessionDir=new File(d+sid+File.separator);
 			sessionDir.mkdirs();
-			sessionDump=File.createTempFile(sid+"-", ".is", sessionDir);
+			sessionDump=File.createTempFile("infostate-"+sid+"-", ".is", sessionDir);
 		}
 		return sessionDump;
 	}
@@ -407,10 +417,13 @@ public abstract class NLBusBase implements NLBusInterface {
 		if (characterRoot.isDirectory()) {
 			for (File file:characterRoot.listFiles()) {
 				String characterName=file.getName();
-				String name=contentRoot+File.separator+characterName;
-				logger.info(" Adding possible characher name: '"+characterName+"'");
-				if (ret==null) ret=new HashSet<>();
-				ret.add(characterName);
+				String name=contentRoot+File.separator+characterName+File.separator;
+				File chFolder=new File(name);
+				if (chFolder.isDirectory()) {
+					logger.info(" Adding possible characher name: '"+characterName+"'");
+					if (ret==null) ret=new HashSet<>();
+					ret.add(characterName);
+				}
 			}
 		} else throw new Exception("Error: POLICY root must be a directory.");
 		return ret;

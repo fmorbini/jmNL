@@ -33,9 +33,11 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -72,7 +74,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import edu.usc.ict.nl.bus.ExternalListenerInterface;
 import edu.usc.ict.nl.bus.NLBus;
-import edu.usc.ict.nl.bus.NLBusBase;
 import edu.usc.ict.nl.bus.events.DMInterruptionRequest;
 import edu.usc.ict.nl.bus.events.DMSpeakEvent;
 import edu.usc.ict.nl.bus.events.NLGEvent;
@@ -105,8 +106,6 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	public static final long chatInterfaceSingleSessionID=999l;
-
 	private static final int hSize=400,vSize=600;
 	private static boolean startMinimized=false;
 
@@ -128,7 +127,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 					if (msg!=null && msg.equals("reset")) {
 						try {
 							reloadLock.acquire();
-							sid=nlModule.startSession(nlModule.getCharacterName4Session(chatInterfaceSingleSessionID),chatInterfaceSingleSessionID);
+							sid=nlModule.startSession(nlModule.getCharacterName4Session(sid),sid);
 						} catch (Exception e1) {
 							displayError(e1,false);
 						} finally {
@@ -145,6 +144,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	private JTextArea content;
 	private JScrollPane listScrollPane;
 	private JTextField input;
+	private JComboBox<Long> addressees = null;
 	private JTextArea nluOutput;
 	private JTextArea selectedNluOutput;
 	private boolean nluOutputEnabled;
@@ -361,6 +361,11 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			c.fill=GridBagConstraints.BOTH;
 			add(feedbackScrollPane,c);
 		}
+	
+		addressees=new JComboBox<>();
+		addressees.setRenderer(new SessionBoxRenderer(nlModule));
+		buttonPane.add(addressees);
+		
 		c = new GridBagConstraints();
 		c.fill=GridBagConstraints.BOTH;
 		c.gridx = 0;
@@ -378,7 +383,8 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		if (StringUtils.isEmptyString(systext)) {
 			systext="("+nlgOutput.getDMEventName()+")";
 		}
-		addTextToList(systext,MessageType.SYSTEM);
+		String agent=nlModule.getCharacterName4Session(nlgOutput.getSessionID());
+		addTextToList(systext,agent);
 
 		DMSpeakEvent ev=nlgOutput.getPayload();
 		if (ev!=null) {
@@ -462,8 +468,20 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	@Override
 	public Long startSession(String characterName,Long sid) {
 		try {
-			this.sid=sid;
-			setInterfaceForSessionRestarted(characterName);
+			addressees.removeAllItems();
+			int si=0,i=0;
+			for(Long s:nlModule.getSessions()) {
+				addressees.addItem(s);
+				if (sid==s) si=i;
+				i++;
+			}
+			addressees.setSelectedIndex(si);
+			if (ChatInterface.sid==null || !nlModule.existDialogSession(ChatInterface.sid) || nlModule.sessionReadyForTermination(ChatInterface.sid)) { 
+				ChatInterface.sid=sid;
+				setInterfaceForSessionRestarted(characterName);
+			} else {
+				NLBus.logger.info("chat interface ignoring session start event for session "+sid+" for character "+characterName+" as current session is not done yet.");
+			}
 		} catch (Exception e) {
 			NLBus.logger.error("Error while restarting the session.",e);
 		}
@@ -474,8 +492,8 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	@Override
 	public void terminateSession(Long sid) {
 		try {
-			if (ChatInterface.sid!=null) {
-				if (!ChatInterface.sid.equals(sid)) NLBus.logger.warn("chat interface received a terminated session with id ("+sid+") different from chat session id: "+ChatInterface.sid);
+			removeAddressee(sid);
+			if (ChatInterface.sid!=null && sid==ChatInterface.sid) {
 				ChatInterface.sid=null;
 				if (input.isEnabled() && !finishedSession) {
 					disableInput("");
@@ -487,12 +505,27 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 					displayState=MainDisplayStatus.FEEDBACK;
 					setDisplayAccordingToState();
 				}
+			} else {
+				NLBus.logger.warn("ignoring terminate of session: "+sid+" as different from main chat interface id: "+ChatInterface.sid);
 			}
 		} catch (Exception e) {
 			displayError(e,true);
 		}
 	}
 
+	private void removeAddressee(Long sid) {
+		int count=addressees.getItemCount();
+		int found=-1;
+		for(int i=0;i<count;i++) {
+			Long x=addressees.getItemAt(i);
+			if (x==sid) {
+				found=i;
+				break;
+			}
+		}
+		if (found>=0) addressees.removeItemAt(found);
+	}
+	
 	private void disableInput(String msg) {
 		if (msg!=null) input.setText(msg);
 		input.setEnabled(false);
@@ -687,7 +720,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 					public void actionPerformed(ActionEvent e) {
 						try {
 							reloadLock.acquire();
-							sid=nlModule.startSession(c,chatInterfaceSingleSessionID);
+							sid=nlModule.startSession(c,sid);
 							pauseEventsMenuItem.setSelected(false);
 						} catch (Exception e1) {
 							displayError(e1,false);
@@ -955,7 +988,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	 */
 	private static ChatInterface createAndShowGUI() throws Exception {
 		//Create and set up the window.
-		window = new JFrame(buildTitleString(ChatInterface.chatInterfaceSingleSessionID));
+		window = new JFrame(buildTitleString(null));
 		window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		window.setState(startMinimized?JFrame.ICONIFIED:JFrame.NORMAL);
 
@@ -994,15 +1027,16 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 			input.setText("");
 
 			try {
-				nlModule.setSpeakingStateVarForSessionAs(sid, false);
-				nlModule.handleTextUtteranceEvent(sid, new TextUtteranceEvent(text, sid, ch));
+				Long destID=(Long) addressees.getSelectedItem();
+				nlModule.setSpeakingStateVarForSessionAs(destID, false);
+				nlModule.handleTextUtteranceEvent(destID, new TextUtteranceEvent(text, destID, "IU"));
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		} else if (key==reloadKey.getKeyCode() && ((mod&reloadKey.getModifiers())>0)) {			
 			try {
 				reloadLock.acquire();
-				sid=nlModule.startSession(ch,chatInterfaceSingleSessionID);
+				sid=nlModule.startSession(ch,null);
 			} catch (Exception e1) {
 				displayError(e1,false);
 			} finally {

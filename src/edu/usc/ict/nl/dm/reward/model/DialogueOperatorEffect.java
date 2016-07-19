@@ -36,7 +36,7 @@ import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.XMLUtils;
 
 public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect> {
-	public enum EffectType {ASSIGNMENT,ASSERTION,GOAL,IMPLICATION,SWAPOUT,SEND,INTERRUPT,AssignmentLIST};
+	public enum EffectType {ASSIGNMENT,ASSERTION,GOAL,IMPLICATION,SWAPOUT,SEND,VHSEND,INTERRUPT,AssignmentLIST};
 	DialogueKBFormula left,right;
 	String goalName,eventName;
 	Object value;
@@ -45,10 +45,10 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 	EffectType type;
 	VariableProperties varPropertiesForAssignment=VariableProperties.defaultProperties;
 	
-	public static DialogueOperatorEffect createSend(String eventName) throws Exception {
+	public static DialogueOperatorEffect createSend(String eventName,boolean vh) throws Exception {
 		if (StringUtils.isEmptyString(eventName)) throw new Exception("empty event used to create a send effect.");
 		DialogueOperatorEffect f=new DialogueOperatorEffect();
-		f.type=EffectType.SEND;
+		f.type=vh?EffectType.VHSEND:EffectType.SEND;
 		f.eventName=eventName;
 		return f;
 	}
@@ -201,12 +201,13 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 	public boolean isSwapOut() {return type==EffectType.SWAPOUT;}
 	public boolean isInterrupt() {return type==EffectType.INTERRUPT;}
 	public boolean isSend() {return type==EffectType.SEND;}
+	public boolean isVHSend() {return type==EffectType.VHSEND;}
 	public boolean isAssertion() {return type==EffectType.ASSERTION;}
 	public boolean isAssignment() {return type==EffectType.ASSIGNMENT;}
 	public boolean isGoalAchievement() {return type==EffectType.GOAL;}
 	public boolean isImplication() {return type==EffectType.IMPLICATION;}
 	public boolean isAssignmentList() {return type==EffectType.AssignmentLIST;}
-	public String getSendEvent() {return (isSend())?eventName:null;}
+	public String getSendEvent() {return (isSend()||isVHSend())?eventName:null;}
 	public DialogueKBFormula getAntecedent() {return (isImplication())?left:null;}
 	public DialogueOperatorEffect getConsequent() {if (isImplication()) return (DialogueOperatorEffect) value; else return null;}
 	public DialogueOperatorEffect getElseConsequent() {if (isImplication()) return (DialogueOperatorEffect) implyElse; else return null;}
@@ -253,6 +254,7 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 			else if (isSwapOut()) ret+=XMLConstants.SWAPOUTID;
 			else if (isInterrupt()) ret+=XMLConstants.INTERRUPTID;
 			else if (isSend()) ret+=XMLConstants.SENDID+"("+eventName+")";
+			else if (isVHSend()) ret+=XMLConstants.VHSENDID+"("+eventName+")";
 			else if (isAssignmentList()) {
 				boolean first=true;
 				for(DialogueOperatorEffect e:getAssignmentList()) {
@@ -292,6 +294,7 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 			else if (isImplication()) ret+=XMLConstants.EXPRID+"=\""+XMLConstants.implyID+"("+left+","+value+","+implyElse+")\"";
 			else if (isSwapOut()) ret="<"+XMLConstants.SWAPOUTID;
 			else if (isSend()) ret="<"+XMLConstants.SENDID+" "+XMLConstants.IDID+"=\""+eventName+"\"";
+			else if (isVHSend()) ret="<"+XMLConstants.VHSENDID+" "+XMLConstants.IDID+"=\""+eventName+"\"";
 			else return super.toString();
 			ret+="/>";
 		}
@@ -367,13 +370,14 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 		boolean isSwapOut=c.getNodeName().toLowerCase().equals(XMLConstants.SWAPOUTID);
 		boolean isInterrupt=c.getNodeName().toLowerCase().equals(XMLConstants.INTERRUPTID);
 		boolean isSend=c.getNodeName().toLowerCase().equals(XMLConstants.SENDID);
+		boolean isVHSend=c.getNodeName().toLowerCase().equals(XMLConstants.VHSENDID);
 		if (isSwapOut) return createSwapOut();
 		else if (isInterrupt) return createInterrupt();
-		else if (isSend) {
+		else if (isSend || isVHSend) {
 			Node send = att.getNamedItem(XMLConstants.IDID);
 			if (send!=null) {
 				String sendEventName=send.getNodeValue();
-				return createSend(sendEventName);
+				return createSend(sendEventName,isVHSend);
 			}
 		}
 		else {
@@ -417,6 +421,7 @@ public class DialogueOperatorEffect implements Comparable<DialogueOperatorEffect
 		return (n.getNodeType()==Node.ELEMENT_NODE) && (
 				n.getNodeName().toLowerCase().equals(XMLConstants.EFFECTID) ||
 				n.getNodeName().toLowerCase().equals(XMLConstants.SENDID) ||
+				n.getNodeName().toLowerCase().equals(XMLConstants.VHSENDID) ||
 				n.getNodeName().toLowerCase().equals(XMLConstants.SWAPOUTID) ||
 				n.getNodeName().toLowerCase().equals(XMLConstants.INTERRUPTID)
 		);

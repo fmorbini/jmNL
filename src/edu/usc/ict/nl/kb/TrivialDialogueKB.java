@@ -139,6 +139,8 @@ public class TrivialDialogueKB extends DialogueKB {
 					// nothing to do
 				} else if (e.isSend()) {
 					// nothing to do
+				} else if (e.isVHSend()) {
+					// nothing to do
 				} else throw new Exception("type of formula unknown: "+e);
 			}
 		} else throw new Exception("Formula not supported for storage: "+e);
@@ -829,7 +831,7 @@ public class TrivialDialogueKB extends DialogueKB {
 	 *   if it changes the KB, restart traversal from THIS kb.
 	 */
 	public void runForwardInference(ACCESSTYPE type) throws Exception {
-		EvalContext context=new EvalContext();
+		EvalContext context=new EvalContext(null,null);
 		if (type!=ACCESSTYPE.AUTO_OVERWRITEAUTO && type!=ACCESSTYPE.AUTO_OVERWRITETHIS) throw new Exception("Invalid access type: "+type);
 		DialogueKBInterface currentKB=this;
 		DM dm=getDM();

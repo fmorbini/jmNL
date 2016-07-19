@@ -1444,7 +1444,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 								ret.add(current);
 								activeStates=new DialogueAction().getActiveStates();
 							}
-							simulateTakeTransition(trc,new EvalContext(new TrivialDialogueKB(tmp)),nluEvent,activeStates,ret,current);
+							simulateTakeTransition(trc,new EvalContext(new TrivialDialogueKB(tmp),null),nluEvent,activeStates,ret,current);
 						}
 					} else if (first.isNoEventTransition()) {
 						// check and take the first one in order that is executable

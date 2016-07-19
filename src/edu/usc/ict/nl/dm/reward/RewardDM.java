@@ -1415,7 +1415,7 @@ public class RewardDM extends DM {
 			forcedIgnoreUserEvent=new DMInternalEvent(config.getForcedIgnoreEventName(), sessionID);
 
 		//informationState.addTracingFor("donequestion");
-		this.context=new EvalContext(new TrivialDialogueKB(this));
+		this.context=new EvalContext(new TrivialDialogueKB(this),null);
 
 		DialogueKB informationState=getInformationState();
 		initializeInformationState(informationState);

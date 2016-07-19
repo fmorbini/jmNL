@@ -184,6 +184,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
       case VAR:
       case GOAL:
       case SEND:
+      case VHSEND:
       case FORGET:
       case TTCND:
       case TOPIC:
@@ -231,6 +232,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         case VAR:
         case GOAL:
         case SEND:
+        case VHSEND:
         case FORGET:
         case TTCND:
         case TOPIC:
@@ -305,6 +307,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         case VAR:
         case GOAL:
         case SEND:
+        case VHSEND:
         case FORGET:
         case TTCND:
         case TOPIC:
@@ -403,6 +406,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         case VAR:
         case GOAL:
         case SEND:
+        case VHSEND:
         case FORGET:
         case TTCND:
         case TOPIC:
@@ -512,6 +516,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         case VAR:
         case GOAL:
         case SEND:
+        case VHSEND:
         case FORGET:
         case TTCND:
         case TOPIC:
@@ -556,6 +561,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         case VAR:
         case GOAL:
         case SEND:
+        case VHSEND:
         case FORGET:
         case TTCND:
         case TOPIC:
@@ -857,6 +863,13 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
                 ret="<send id=\u005c""+t1.image+"\u005c"/>";
                 addToState(cs,ret+"\u005cn");
       break;
+    case VHSEND:
+      jj_consume_token(VHSEND);
+      t1 = jj_consume_token(ANY);
+      jj_consume_token(ENDTEXT);
+                ret="<vhsend id=\u005c""+StringUtils.cleanupSpaces(t1.image)+"\u005c"/>";
+                addToState(cs,ret+"\u005cn");
+      break;
     case IS:
       jj_consume_token(IS);
       t1 = jj_consume_token(ANY);
@@ -969,10 +982,10 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x0,0x0,0x0,0x901f8000,0x7e00200,0x901f8000,0x0,0x7e00200,0x901f8000,0x0,0x0,0x0,0x901f8000,0x7e00200,0x7e00200,0x0,0x901f8000,0x7e00200,0x901f8000,0x7e00000,0x0,0x0,0x0,0x0,0x3c00000,0x8000000,0x7e00000,0x60000000,0x0,0x0,0x0,0x0,0x0,0x901f8000,};
+      jj_la1_0 = new int[] {0x0,0x0,0x0,0x203f8000,0xfc00200,0x203f8000,0x0,0xfc00200,0x203f8000,0x0,0x0,0x0,0x203f8000,0xfc00200,0xfc00200,0x0,0x203f8000,0xfc00200,0x203f8000,0xfc00000,0x0,0x0,0x0,0x0,0x7800000,0x10000000,0xfc00000,0xc0000000,0x0,0x0,0x0,0x0,0x0,0x203f8000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x1c,0x8,0x10,0x4003,0xe00,0x4003,0x100,0xe00,0x4003,0x80,0x80,0x1000,0x4003,0xe00,0xe00,0x1000,0x4003,0xe00,0x4003,0x200,0x40,0x20,0x60,0x60,0x0,0x0,0x0,0x0,0x20,0x40000,0x20,0x40000,0x20,0x4003,};
+      jj_la1_1 = new int[] {0x38,0x10,0x20,0x8007,0x1c00,0x8007,0x200,0x1c00,0x8007,0x100,0x100,0x2000,0x8007,0x1c00,0x1c00,0x2000,0x8007,0x1c00,0x8007,0x400,0x80,0x40,0xc0,0xc0,0x0,0x0,0x0,0x0,0x40,0x80000,0x40,0x80000,0x40,0x8007,};
    }
 
   /** Constructor with InputStream. */
@@ -1089,7 +1102,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[53];
+    boolean[] la1tokens = new boolean[54];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -1106,7 +1119,7 @@ public class TextFormatGrammar implements TextFormatGrammarConstants {
         }
       }
     }
-    for (int i = 0; i < 53; i++) {
+    for (int i = 0; i < 54; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

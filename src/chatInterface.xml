@@ -16,7 +16,6 @@
 		<property name="displayNluOutputChat" value="true"/>
 		<property name="zoomFactorChat" value="1"/>
 		<property name="allowNluTraining" value="true"/>
-		<property name="minatListening" value="false"/>
 		
 		<property name="nluConfig" ref="openNLU"/>
 		<property name="dmConfig" ref="RewardDM"/>

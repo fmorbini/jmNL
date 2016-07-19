@@ -49,7 +49,7 @@ public class CFhasBeenInterrupted implements CustomFunctionInterface {
 		DialogueAction aa = dm.getCurrentActiveAction();
 		TestDialogueOperator op = (TestDialogueOperator) aa.getOperator();
 		DialogueOperatorNode.doSwapOut(aa, new SwapoutReason(aa.getEntranceTransition()));
-		EvalContext context=new EvalContext();
+		EvalContext context=new EvalContext(null,null);
 		Boolean r=eval(DialogueKBFormula.parse(getName()+"()"),dm.getInformationState(),false,context);
 		if (!r.equals(false)) return false;
 		context.setFormulaOperator(op);

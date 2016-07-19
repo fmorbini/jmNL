@@ -17,6 +17,7 @@ import edu.usc.ict.nl.bus.events.Event;
 import edu.usc.ict.nl.bus.events.NLUEvent;
 import edu.usc.ict.nl.bus.events.changes.VarChange;
 import edu.usc.ict.nl.bus.modules.DMEventsListenerInterface;
+import edu.usc.ict.nl.config.NLBusConfig;
 import edu.usc.ict.nl.dm.reward.RewardDM;
 import edu.usc.ict.nl.dm.reward.SwapoutReason;
 import edu.usc.ict.nl.dm.reward.SwapoutReason.Reason;
@@ -27,12 +28,14 @@ import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.XMLUtils;
 import edu.usc.ict.nl.util.graph.Edge;
+import edu.usc.ict.nl.vhmsg.VHBridge;
 
 public class DialogueOperatorNode extends edu.usc.ict.nl.util.graph.Node{
 	private boolean reportStateChange=false;
 	public enum TYPE {NORMAL,FINAL,TMP,SWAPOUT};
 	private TYPE type;
 	private List<DialogueOperatorEffect> effects;
+	private VHBridge vhBridge=null;
 
 	private static DialogueOperatorNodeTransition trFactory=new DialogueOperatorNodeTransition();
 
@@ -282,6 +285,23 @@ public class DialogueOperatorNode extends edu.usc.ict.nl.util.graph.Node{
 						@Override
 						public void run() {
 							dm.handleEvent(new NLUEvent(eff.getSendEvent(), sid));
+						}
+					}, 1);
+				} else if (eff.isVHSend()) {
+					logger.info("sending vh event: "+eff.getSendEvent());
+					
+					if (vhBridge==null) {
+						NLBusConfig config = dm.getMessageBus().getConfiguration();
+						if (config.hasVHConfig()) vhBridge=new VHBridge(config.getVhServer(), config.getVhTopic());
+					}
+					
+					dm.getTimerThread().schedule(new TimerTask() {
+						@Override
+						public void run() {
+							if (vhBridge!=null) {
+								String[] parts=eff.getSendEvent().split("[\\s]+",2);
+								vhBridge.sendMessage(parts[0], parts[1]);
+							}
 						}
 					}, 1);
 				} else {
