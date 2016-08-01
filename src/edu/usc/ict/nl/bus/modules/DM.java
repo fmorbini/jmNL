@@ -117,7 +117,7 @@ public abstract class DM implements DMInterface {
 
 	private String getIDPortionLogFileName() {
 		Calendar cal = Calendar.getInstance();
-		SimpleDateFormat sdf = new SimpleDateFormat("[yyyy_MM_dd]-[HH_mm_ss]");
+		SimpleDateFormat sdf = new SimpleDateFormat("[yyyy_MM_dd]-[HH_mm_ss_SSS]");
 
 		String baseFileName=Network.getHostname()+"-"+System.getProperty("user.name")+"-"+sdf.format(cal.getTime())+"-sid="+getSessionID()+"-pid="+getPersonalSessionID();
 		return baseFileName;
