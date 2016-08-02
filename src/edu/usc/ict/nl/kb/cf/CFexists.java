@@ -22,7 +22,9 @@ import edu.usc.ict.nl.nlu.ne.Numbers;
 /**
  * 
  * @author morbini
- *	this custom function requires 2 arguments: the nlu interpretation, the nlu idenditier and the length of the history to inspect.
+ *	3 arguments, arg1: variable name
+ *  arg2: function that returns the list of values on which arg1 loops over.
+ *  arg3: boolean predicate
  */
 public class CFexists implements CustomFunctionInterface {
 
