@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.clearnlp.parserservice;
+package edu.usc.ict.nl.nlu.nlp4j.parserservice;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,7 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import edu.emory.mathcs.nlp.component.template.node.NLPNode;
-import edu.usc.ict.nl.nlu.clearnlp.JsonCONLL;
+import edu.usc.ict.nl.nlu.nlp4j.JsonCONLL;
  
 @Path("/clearnlp/")
 public class DepParserRestDef {

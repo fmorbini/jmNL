@@ -626,6 +626,7 @@ public class RewardDM extends DM {
 			if (ev instanceof DMSpeakEvent)	{
 				updateUserEventsHistory(ev);
 			} else if (ev instanceof NLGEvent) {
+				runISautoUpdatesWithSpeechAct(ev, localIS);
 				updateSystemSayTracker((NLGEvent) ev);
 				localIS.store(DialogueOperatorEffect.createAssignment(NLBusBase.counterConsecutiveUnhandledUserActionsSinceLastSystemActionVariableName,DialogueKBFormula.create("0", null)),ACCESSTYPE.AUTO_OVERWRITEAUTO,true);
 				Float value=null;

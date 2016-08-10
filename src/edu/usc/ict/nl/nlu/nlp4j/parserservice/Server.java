@@ -1,9 +1,9 @@
-package edu.usc.ict.nl.nlu.clearnlp.parserservice;
+package edu.usc.ict.nl.nlu.nlp4j.parserservice;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import edu.usc.ict.nl.nlu.clearnlp.DepNLU;
+import edu.usc.ict.nl.nlu.nlp4j.DepNLU;
 
 
 public class Server {

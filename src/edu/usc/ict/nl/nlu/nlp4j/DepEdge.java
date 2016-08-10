@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.clearnlp;
+package edu.usc.ict.nl.nlu.nlp4j;
 
 import edu.usc.ict.nl.util.graph.Edge;
 

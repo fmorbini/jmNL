@@ -12,9 +12,9 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import edu.usc.ict.nl.nlu.clearnlp.CONLL;
-import edu.usc.ict.nl.nlu.clearnlp.JsonCONLL;
-import edu.usc.ict.nl.nlu.clearnlp.parserservice.Client;
+import edu.usc.ict.nl.nlu.nlp4j.CONLL;
+import edu.usc.ict.nl.nlu.nlp4j.JsonCONLL;
+import edu.usc.ict.nl.nlu.nlp4j.parserservice.Client;
 import edu.usc.ict.nl.nlu.wikidata.WikiThing.TYPE;
 import edu.usc.ict.nl.nlu.wikidata.utils.JsonUtils;
 import edu.usc.ict.nl.util.FunctionalLibrary;

@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.clearnlp.parserservice;
+package edu.usc.ict.nl.nlu.nlp4j.parserservice;
 
 import javax.ws.rs.client.ClientBuilder;
 

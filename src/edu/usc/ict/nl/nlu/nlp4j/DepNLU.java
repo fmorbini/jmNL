@@ -1,14 +1,16 @@
-package edu.usc.ict.nl.nlu.clearnlp;
+package edu.usc.ict.nl.nlu.nlp4j;
 
 import java.io.BufferedReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import edu.emory.mathcs.nlp.common.util.IOUtils;
+import edu.emory.mathcs.nlp.component.template.node.AbstractNLPNode;
 import edu.emory.mathcs.nlp.component.template.node.NLPNode;
 import edu.emory.mathcs.nlp.decode.NLPDecoder;
 import edu.usc.ict.nl.util.graph.Edge;
@@ -20,7 +22,7 @@ public class DepNLU
 	
 	public DepNLU() {
 		final String configFile = "config-decode-en.xml";
-		NLPDecoder nlp4j = new NLPDecoder(IOUtils.createFileInputStream(configFile));
+		nlp4j = new NLPDecoder(IOUtils.createFileInputStream(configFile));
 	}
 	public List<NLPNode[]> parse(String text) throws Exception {
 		List<NLPNode[]> ret=null;
@@ -62,6 +64,28 @@ public class DepNLU
 		return (ret!=null)?ret.toString():null;
 	}
 	
+	private List<NLPNode> getSubject2(NLPNode[] r) {
+		if (r!=null) {
+			int s=r.length;
+			for(int i=1;i<s;i++) {
+				NLPNode n = r[i];
+				String l=n.getDependencyLabel();
+				if (l.equalsIgnoreCase("nsubj")) {
+					List<NLPNode> list = n.getDependentList();
+					list.add(n);
+					list.sort(new Comparator<NLPNode>() {
+
+						@Override
+						public int compare(NLPNode o1, NLPNode o2) {
+							return o1.getDependentIndex(o1)-o2.getDependentIndex(o2);
+						}
+					});
+					System.out.println(list);
+				}
+			}
+		}
+		return null;
+	}
 	private List<Node> getSubject(NLPNode[] depTree) {
 		List<Node> ret=null;
 		try {
@@ -74,6 +98,7 @@ public class DepNLU
 						for(Edge oe:oes) {
 							if (oe.getConsume().equals("nsubj")) {
 								Node target = oe.getTarget();
+								System.out.println(target);
 								return getLeavesInOrder(target);
 							}
 						}
@@ -115,9 +140,11 @@ public class DepNLU
 	public static void main(String[] args) throws Exception
 	{
 		DepNLU parser=new DepNLU();
-		List<NLPNode[]> result = parser.parse("A small triangle and a big triangle argue inside the room.");
-		List subject=parser.getSubject(result.get(0));
-		System.out.println(subject);
+		//List<NLPNode[]> result = parser.parse("A small triangle and a big triangle argue inside the room.");
+		List<NLPNode[]> result = parser.parse("My wife, Donna, has served on a jury.");
+		//List subject=parser.getSubject(result.get(0));
+		//System.out.println(subject);
+		parser.getSubject2(result.get(0));
 		//List verb=parser.getVerb();
 		
 		int id=1;

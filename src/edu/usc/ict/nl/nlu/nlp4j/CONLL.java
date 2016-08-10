@@ -1,4 +1,4 @@
-package edu.usc.ict.nl.nlu.clearnlp;
+package edu.usc.ict.nl.nlu.nlp4j;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;
