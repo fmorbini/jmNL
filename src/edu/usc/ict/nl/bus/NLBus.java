@@ -219,6 +219,7 @@ public class NLBus extends NLBusBase {
 			List<NLUOutput> userSpeechActs = nlu.getNLUOutput(userUtterance, null,null);
 			if (userSpeechActs!=null) {
 				selectedUserSpeechAct=dm.selectNLUOutput(userUtterance,sessionId, userSpeechActs);
+				selectedUserSpeechAct.setOriginalText(userUtterance);
 			}
 		}
 		return selectedUserSpeechAct;

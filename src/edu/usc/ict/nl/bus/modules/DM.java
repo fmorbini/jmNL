@@ -38,6 +38,7 @@ import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.util.Network;
+import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.XMLUtils;
 import edu.usc.ict.nl.utils.LogConfig;
 
@@ -241,8 +242,10 @@ public abstract class DM implements DMInterface {
 				//byte[] bytes = text.getBytes("UTF-8");
 				//text=new String(bytes, "UTF-8");
 
-				String nluInputText=nlu.getText();
-				out.write("<text>"+((nluInputText!=null)?XMLUtils.escapeStringForXML(nluInputText):nlu.getId())+"</text>\n");
+				String nluText=nlu.getText();
+				out.write("<text>"+((nluText!=null)?XMLUtils.escapeStringForXML(nluText):nlu.getId())+"</text>\n");
+				nluText=nlu.getOriginalText();
+				out.write("<otext>"+((nluText!=null)?XMLUtils.escapeStringForXML(nluText):nlu.getId())+"</otext>\n");
 				out.write(nlu.toXml());
 				out.write("</"+tagType+">\n");
 				out.flush();

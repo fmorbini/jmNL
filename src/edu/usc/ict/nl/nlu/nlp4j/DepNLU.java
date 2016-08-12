@@ -63,7 +63,7 @@ public class DepNLU
 		}
 		return (ret!=null)?ret.toString():null;
 	}
-	
+	/*
 	private List<NLPNode> getSubject2(NLPNode[] r) {
 		if (r!=null) {
 			int s=r.length;
@@ -77,7 +77,7 @@ public class DepNLU
 
 						@Override
 						public int compare(NLPNode o1, NLPNode o2) {
-							return o1.getDependentIndex(o1)-o2.getDependentIndex(o2);
+							return o1.getStartOffset()
 						}
 					});
 					System.out.println(list);
@@ -85,7 +85,7 @@ public class DepNLU
 			}
 		}
 		return null;
-	}
+	}*/
 	private List<Node> getSubject(NLPNode[] depTree) {
 		List<Node> ret=null;
 		try {
@@ -144,7 +144,7 @@ public class DepNLU
 		List<NLPNode[]> result = parser.parse("My wife, Donna, has served on a jury.");
 		//List subject=parser.getSubject(result.get(0));
 		//System.out.println(subject);
-		parser.getSubject2(result.get(0));
+		parser.getSubject(result.get(0));
 		//List verb=parser.getVerb();
 		
 		int id=1;

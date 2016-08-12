@@ -381,7 +381,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 	public void handleNLGEvent(Long sessionID,NLGEvent nlgOutput) throws Exception {
 		String systext=nlgOutput.getName();
 		if (StringUtils.isEmptyString(systext)) {
-			systext="("+nlgOutput.getDMEventName()+")";
+			systext="(empty nlg output for: "+nlgOutput.getDMEventName()+")";
 		}
 		String agent=nlModule.getCharacterName4Session(nlgOutput.getSessionID());
 		addTextToList(systext,agent);

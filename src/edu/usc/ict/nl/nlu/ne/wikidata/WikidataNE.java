@@ -20,8 +20,8 @@ import edu.usc.ict.nl.util.ProgressTracker;
 
 public class WikidataNE extends BasicNE {
 	
-	private static final SpecialVar wikiThingVar=new SpecialVar(null,null,
-			"Wikidata thing extracted from text.","0",Number.class);
+	private final SpecialVar wikiThingVar=new SpecialVar(null,null,
+			"Wikidata thing extracted from text.",null,String.class);
 	
 	private AhoCorasickList searcher=null;
 	private String neName=null;

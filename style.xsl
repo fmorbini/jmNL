@@ -61,7 +61,8 @@
 	<td><xsl:value-of select="@delta"/></td>
 	<td>
 		<xsl:variable name="spanid" select="generate-id(.)"/>
-		<a href="javascript:exp_coll('{$spanid}');"><span  style="font-size: 24px;"><xsl:value-of select="text"/></span></a>
+		<p><span  style="font-size: 24px;"><xsl:value-of select="otext"/></span></p>
+		<a href="javascript:exp_coll('{$spanid}');"><p><span  style="font-size: 24px;"><xsl:value-of select="text"/></span></p></a>
 		<span id="{$spanid}" style="display:none;">
 			<div style="font-size: 12px;">
 			<table>
