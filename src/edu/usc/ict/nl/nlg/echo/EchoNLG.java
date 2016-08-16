@@ -113,6 +113,16 @@ public class EchoNLG extends NLG {
 		return output;
 	}
 
+	@Override
+	public boolean canGenerate(Long sessionID,DMSpeakEvent ev) throws Exception {
+		String evName=ev.getName();
+		DMEventsListenerInterface nl = getNLModule();
+		DM dm = (nl!=null)?nl.getDM(sessionID):null;
+		DialogueKBInterface is = (dm!=null)?dm.getInformationState():null;
+		SpeechActWithProperties out = pickLineForSpeechActIfThere(sessionID, evName, is, false);
+		return out!=null;
+	}
+	
 	public static HashMap<String,String> getTemplateParams(InformationStateInterface infoState, String text) {
 		Collection<String> keys = TemplateProcessing.getTemplateKeys(text);
 		HashMap<String,String> ret=new HashMap<String, String>();
@@ -138,8 +148,7 @@ public class EchoNLG extends NLG {
 		return text;
 	}
 
-
-	protected SpeechActWithProperties pickLineForSpeechAct(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+	private SpeechActWithProperties pickLineForSpeechActIfThere(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
 		Map<String, List<SpeechActWithProperties>> vsas = getValidSpeechActs();
 		Map<String, List<Pair<String, String>>> resources = getResources();
 		if (vsas!=null && vsas.containsKey(sa)) {
@@ -179,11 +188,16 @@ public class EchoNLG extends NLG {
 			ret.setText(r.getFirst());
 			ret.setProperty(NLG.PROPERTY_URL, r.getSecond());
 			return ret;
-		} else {
-			SpeechActWithProperties ret = new SpeechActWithProperties();
-			ret.setText(sa);
-			return ret;
 		}
+		return null;
+	}
+	protected SpeechActWithProperties pickLineForSpeechAct(Long sessionID, String sa, DialogueKBInterface is, boolean simulate) throws Exception {
+		SpeechActWithProperties ret = pickLineForSpeechActIfThere(sessionID, sa, is, simulate);
+		if (ret==null) {
+			ret = new SpeechActWithProperties();
+			ret.setText(sa);
+		}
+		return ret;
 	}
 
 	protected NLGEvent buildOutputEvent(String text,Long sessionID,DMSpeakEvent sourceEvent) {

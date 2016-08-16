@@ -113,7 +113,8 @@ public abstract class DM implements DMInterface {
 				}
 			}
 		}
-		logger.info("Finished setting session id to: "+getSessionID());
+		Long sid = getSessionID();
+		logger.info("Finished setting session id to: "+sid+" for character: "+getMessageBus().getCharacterName4Session(sid));
 	}
 
 	private String getIDPortionLogFileName() {
@@ -184,10 +185,11 @@ public abstract class DM implements DMInterface {
 				while(f.exists()) {
 					f=new File(baseFileName+"."+(i++)+".xml");		
 				}
+				Long sid=getSessionID();
 				out = new ChatLogFile(f);
 				out.write("<?xml version=\"1.0\"?>\n");
 				out.write("<?xml-stylesheet type=\"text/xsl\" href=\"style.xsl\"?>\n");
-				out.write("<log id=\""+getSessionID()+"\">\n");
+				out.write("<log id=\""+sid+" for character "+getMessageBus().getCharacterName4Session(sid)+"\">\n");
 				out.flush();
 			} catch (Exception e) {e.printStackTrace();}
 		}

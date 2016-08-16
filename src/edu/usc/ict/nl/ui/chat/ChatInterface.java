@@ -1037,7 +1037,7 @@ public class ChatInterface extends JPanel implements KeyListener, WindowListener
 		} else if (key==reloadKey.getKeyCode() && ((mod&reloadKey.getModifiers())>0)) {			
 			try {
 				reloadLock.acquire();
-				sid=nlModule.startSession(ch,null);
+				sid=nlModule.startSession(ch,sid);
 			} catch (Exception e1) {
 				displayError(e1,false);
 			} finally {

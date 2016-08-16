@@ -53,6 +53,7 @@ import edu.usc.ict.nl.kb.cf.CFset;
 import edu.usc.ict.nl.kb.cf.CFsubtract;
 import edu.usc.ict.nl.kb.cf.CFtoUnit;
 import edu.usc.ict.nl.kb.cf.CFunion;
+import edu.usc.ict.nl.kb.cf.CFwillNLGsayThis;
 import edu.usc.ict.nl.kb.cf.CustomFunctionInterface;
 import edu.usc.ict.nl.kb.parser.FormulaGrammar;
 import edu.usc.ict.nl.nlu.Token.TokenTypes;
@@ -99,6 +100,7 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFtoUnit());
 		addCustomFunction(new CFTrace());
 		addCustomFunction(new CFunion());
+		addCustomFunction(new CFwillNLGsayThis());
 	}
 	public static void addCustomFunction(CustomFunctionInterface cf) {
 		customFunctions.put(cf.getName(),cf);

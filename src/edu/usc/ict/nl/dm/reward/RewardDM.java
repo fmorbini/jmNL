@@ -257,8 +257,12 @@ public class RewardDM extends DM {
 	public List<Event> handleEvent(Event ev) {
 		logger.info("=> received event '"+ev+"' ("+(ev!=null?ev.getClass().getCanonicalName():null)+")");
 		if (!getPauseEventProcessing()) {
-			events.add(ev);
-			logger.info("length of queue: "+events.size());
+			if (!isSessionDone()) {
+				events.add(ev);
+				logger.info("length of queue: "+events.size());
+			} else {
+				logger.warn("received event but session is done. discarding.");
+			}
 		} else {
 			logger.info("Event received but processing paused, ignoring: "+ev);
 		}
@@ -269,7 +273,7 @@ public class RewardDM extends DM {
 		public void run() {
 			List<Event> rest=new ArrayList<>();
 			List<Event> ints=new ArrayList<>();
-			while(!isSessionDone()) {
+			while(!isSessionDone() || !events.isEmpty()) {
 				if (!events.isEmpty()) {
 					Iterator<Event>it=events.iterator();
 					//compact all interruption towards the head

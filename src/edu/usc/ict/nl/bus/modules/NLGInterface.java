@@ -15,6 +15,7 @@ import edu.usc.ict.nl.nlg.echo.EchoNLGData;
 public interface NLGInterface {
 	//NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,boolean simulate) throws Exception;
 	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception;
+	public boolean canGenerate(Long sessionID, DMSpeakEvent ev) throws Exception;
 	public DialogueKBInterface getKBForEvent(DMSpeakEvent ev) throws Exception;
 	public void setNLModule(NLBusInterface nlModule);
 	public Float getDurationOfThisDMEvent(Long sessionID, NLGEvent ev) throws Exception;
