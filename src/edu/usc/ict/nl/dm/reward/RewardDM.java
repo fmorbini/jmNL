@@ -331,53 +331,53 @@ public class RewardDM extends DM {
 	private List<Event> actualHandleEvent(Event ev) {
 		logger.info("==> processing event '"+ev+"' ("+(ev!=null?ev.getClass().getCanonicalName():null)+")");
 		super.handleEvent(ev);
-		try {
-			if (ev.isEmptyNLUEvent(this)) {
-				logger.info("Empty NLU event received, ignoring.");
-			} else {
-				if ((ev instanceof NLUEvent) && !(ev instanceof RepeatNLUEvent) && getConfiguration().getUserAlwaysInterrupts()) {
-					logger.info("/ Interrupting current speaking action (speaking="+getSpeakingTracker().isSpeaking()+") as received user event and global interruption policy is enabled.");
-					interruptCurrentlySpeakingAction(new RepeatNLUEvent((NLUEvent) ev));
-					logger.info("\\ added event to queue and terminating handling of this event and requesting an immediate repeat after interruption is processed.");
-					return null;
-				}
-				updateInformationStateWithEvent(ev);
-				runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.DAEMON));
-				runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.NORMAL));
-				if (ev instanceof SystemUtteranceDoneEvent) {
-					handleDoneEvent((SystemUtteranceDoneEvent)ev);
-					if (ev instanceof SystemUtteranceInterruptedEvent) {
-						Event sev = ((SystemUtteranceInterruptedEvent)ev).getSourceEvent();
-						if (sev!=null && sev instanceof RepeatNLUEvent) {
-							logger.info("source event request an immediate repeat of event: "+sev);
-							actualHandleEvent(sev);
-						}
-					}
-				} else if (ev instanceof SystemUtteranceLengthEvent) {
-					handleLengthEvent((SystemUtteranceLengthEvent)ev);
-				} else if (ev instanceof DMSpeakEvent) {
-					// update info state covers this case
-				} else if (ev instanceof NLGEvent) {
-					// update info state covers this case
-				} else if (ev instanceof DMInternalEvent || ev instanceof NLUEvent) {
-					// NLU and timer events
-					try {
-						handleDefaultEvent(ev);
-					} catch (Exception e) {
-						logger.error("error while calling handleDefaultEvent.",e);
-						e.printStackTrace();
-					}
+		if (!isSessionDone()) {
+			try {
+				if (ev.isEmptyNLUEvent(this)) {
+					logger.info("Empty NLU event received, ignoring.");
 				} else {
-					logger.error("Unhandled event type: "+ev.getClass().getCanonicalName());
+					if ((ev instanceof NLUEvent) && !(ev instanceof RepeatNLUEvent) && getConfiguration().getUserAlwaysInterrupts()) {
+						logger.info("/ Interrupting current speaking action (speaking="+getSpeakingTracker().isSpeaking()+") as received user event and global interruption policy is enabled.");
+						interruptCurrentlySpeakingAction(new RepeatNLUEvent((NLUEvent) ev));
+						logger.info("\\ added event to queue and terminating handling of this event and requesting an immediate repeat after interruption is processed.");
+						return null;
+					}
+					updateInformationStateWithEvent(ev);
+					runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.DAEMON));
+					runForwardInferenceInTheseDormantActionsLocalKBs(getDormantActions(OpType.NORMAL));
+					if (ev instanceof SystemUtteranceDoneEvent) {
+						handleDoneEvent((SystemUtteranceDoneEvent)ev);
+						if (ev instanceof SystemUtteranceInterruptedEvent) {
+							Event sev = ((SystemUtteranceInterruptedEvent)ev).getSourceEvent();
+							if (sev!=null && sev instanceof RepeatNLUEvent) {
+								logger.info("source event request an immediate repeat of event: "+sev);
+								actualHandleEvent(sev);
+							}
+						}
+					} else if (ev instanceof SystemUtteranceLengthEvent) {
+						handleLengthEvent((SystemUtteranceLengthEvent)ev);
+					} else if (ev instanceof DMSpeakEvent) {
+						// update info state covers this case
+					} else if (ev instanceof NLGEvent) {
+						// update info state covers this case
+					} else if (ev instanceof DMInternalEvent || ev instanceof NLUEvent) {
+						// NLU and timer events
+						try {
+							handleDefaultEvent(ev);
+						} catch (Exception e) {
+							logger.error("error while calling handleDefaultEvent.",e);
+							e.printStackTrace();
+						}
+					} else {
+						logger.error("Unhandled event type: "+ev.getClass().getCanonicalName());
+					}
 				}
+			} catch (Exception e) {
+				logger.error("error in main event loop handleEvent",e);
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			logger.error("error in main event loop handleEvent",e);
-			e.printStackTrace();
+			if (visualizer!=null) visualizer.updatedKB();
 		}
-
-		if (visualizer!=null) visualizer.updatedKB();
-
 		return null;
 	}
 
