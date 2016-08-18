@@ -47,6 +47,10 @@ public abstract class NLG implements NLGInterface {
 	public NLGEvent doNLG(Long sessionID, DMSpeakEvent ev,SpeechActWithProperties line,boolean simulate) throws Exception {
 		throw new Exception("un-implemented");
 	}
+	@Override
+	public boolean canGenerate(Long sessionID, DMSpeakEvent ev) throws Exception {
+		return true;
+	}
 
 	@Override
 	public DialogueKBInterface getKBForEvent(DMSpeakEvent ev) throws Exception {
