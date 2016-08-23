@@ -1,8 +1,10 @@
 package edu.usc.ict.nl.config;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -159,6 +161,26 @@ public abstract class NLConfig {
 			}
 			if (toBeRemoved!=null) for(String k:toBeRemoved) mTable.remove(k);
 		}
+	}
+	public List<String> getAllConfigurationFields() {
+		List<String> ret=null;
+		try {
+			// get all methods for which we have a getter and a setter.
+			Constructor<? extends NLConfig> constructor = this.getClass().getConstructor();
+			Method[] publicMethods = getClass().getMethods();
+			if (publicMethods!=null) {
+				Map<String,Method> mTable=new HashMap<String, Method>();
+				for(Method m:publicMethods) mTable.put(m.getName(),m);
+				filterMethodsLeavingOnlyGettersAndSetters(mTable);
+				for(String m:mTable.keySet()) {
+					if (isGetter(m)) {
+						if (ret==null) ret=new ArrayList<>();
+						ret.add(m.substring(3));
+					}
+				}
+			}
+		} catch (Exception e) {e.printStackTrace();}
+		return ret;
 	}
 
 	@Override

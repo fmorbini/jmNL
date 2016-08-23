@@ -3,6 +3,8 @@ package edu.usc.ict.nl.ui.chat;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
@@ -27,7 +29,6 @@ import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
-import edu.usc.ict.nl.bus.ReferenceToVirtualCharacter;
 import edu.usc.ict.nl.bus.modules.DM;
 import edu.usc.ict.nl.config.DMConfig;
 import edu.usc.ict.nl.dm.reward.model.DialogueOperatorEffect;
@@ -58,16 +59,20 @@ public class ISinspector extends JPanel implements KeyListener {
 			String f=input.getText();
 			try {
 				DialogueKBFormula pf=DialogueKBFormula.parse(f);
+				if (pf!=null) input.setText(pf.toString());
 				DialogueKB is=selectIS(ISinspector.this.is, level);
 				Object result = is.evaluate(pf,new EvalContext(is,null));
 				output.setText(result!=null?result.toString():null);
 			} catch (Exception ee) {
+				input.setToolTipText(ee.getMessage());
 				try {
 					DialogueOperatorEffect ef=DialogueOperatorEffect.parse(f);
+					if (ef!=null) input.setText(ef.toString());
 					is.store(ef, ACCESSTYPE.AUTO_OVERWRITETHIS, true);
 					refreshTable();
 				} catch (Exception eee) {
 					eee.printStackTrace();
+					input.setToolTipText(eee.getMessage());
 				}
 			}
 		}
@@ -77,8 +82,7 @@ public class ISinspector extends JPanel implements KeyListener {
 	public ISinspector(DM dm) {
 		super(new GridBagLayout());
 		this.dm=dm;
-		
-		
+
 		//Create the list and put it in a scroll pane.
 		list = new JTable(listModel);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

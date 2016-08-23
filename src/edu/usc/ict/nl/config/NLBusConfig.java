@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -219,4 +220,10 @@ public class NLBusConfig extends NLConfig {
 		//WIN_EXE_CONFIG.setSystemForms("forms.xlsx");
 	}
 
+	public static void main(String[] args) {
+		List<String> list = WIN_EXE_CONFIG.getAllConfigurationFields();
+		Collections.sort(list);
+		System.out.println(list);
+	}
+	
 }

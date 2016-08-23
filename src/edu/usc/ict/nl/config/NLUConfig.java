@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -268,6 +269,12 @@ public class NLUConfig extends NLConfig {
 		WIN_EXE_CONFIG.setUserUtterances("user-utterances.xlsx");
 		WIN_EXE_CONFIG.setMaximumNumberOfLabels(255);
 		//WIN_EXE_CONFIG.nlBusConfig=NLBusConfig.WIN_EXE_CONFIG;
+	}
+
+	public static void main(String[] args) {
+		List<String> list = WIN_EXE_CONFIG.getAllConfigurationFields();
+		Collections.sort(list);
+		System.out.println(list);
 	}
 
 }

@@ -21,6 +21,7 @@ import edu.usc.ict.nl.dm.reward.model.macro.FormulaMacro;
 import edu.usc.ict.nl.dm.reward.model.macro.Macro;
 import edu.usc.ict.nl.dm.reward.model.macro.MacroRepository;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
+import edu.usc.ict.nl.kb.cf.CFMax;
 import edu.usc.ict.nl.kb.cf.CFMin;
 import edu.usc.ict.nl.kb.cf.CFPrint;
 import edu.usc.ict.nl.kb.cf.CFRandom;
@@ -85,6 +86,7 @@ public class DialogueKBFormula extends Node {
 		addCustomFunction(new CFisQuestion());
 		addCustomFunction(new CFlen());
 		addCustomFunction(new CFmatch());
+		addCustomFunction(new CFMax());
 		addCustomFunction(new CFMin());
 		addCustomFunction(new CFnluQuery());
 		addCustomFunction(new CFnewMap());

@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -182,6 +183,9 @@ public class DMConfig extends NLConfig {
 	}
 
 	public static final DMConfig WIN_EXE_CONFIG=new DMConfig();
-	static{
+	public static void main(String[] args) {
+		List<String> list = WIN_EXE_CONFIG.getAllConfigurationFields();
+		Collections.sort(list);
+		System.out.println(list);
 	}
 }
