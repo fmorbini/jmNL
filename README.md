@@ -3,7 +3,7 @@
 see the [LICENSE](LICENSE) file for information on the license and 3rd party libraries included in this project.
 
 There is no comprehensive documentation, if you have questions please ask.
-A somewhat out-of-date [guide](doc/vhtk-guide.pdf) was written for the [VHTK](https://vhtoolkit.ict.usc.edu/).
+A [guide](https://confluence.ict.usc.edu/display/VHTK/Creating+a+New+Virtual+Human+with+the+FLoReS+Dialogue+Manager) was written for the [VHTK](https://vhtoolkit.ict.usc.edu/). It is a work in progress, so some aspects are still undocumented and may not be fully in sink with the current capabilities in the trunk. If you have any questions please submit an [Issue](https://github.com/fmorbini/jmNL/issues).
 
 Check out the [example characters](resources/characters).
 
