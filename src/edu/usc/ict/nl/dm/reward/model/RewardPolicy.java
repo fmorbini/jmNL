@@ -3,10 +3,13 @@ package edu.usc.ict.nl.dm.reward.model;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
 
 import org.apache.log4j.Level;
@@ -45,12 +47,11 @@ import edu.usc.ict.nl.dm.reward.model.textFormat.TextFormatGrammar;
 import edu.usc.ict.nl.kb.DialogueKBFormula;
 import edu.usc.ict.nl.kb.DialogueKBInterface;
 import edu.usc.ict.nl.kb.InformationStateInterface.ACCESSTYPE;
-import edu.usc.ict.nl.kb.VariableProperties.PROPERTY;
+import edu.usc.ict.nl.kb.TrivialDialogueKB;
 import edu.usc.ict.nl.nlg.SpeechActWithProperties;
 import edu.usc.ict.nl.util.FileUtils;
 import edu.usc.ict.nl.util.FunctionalLibrary;
 import edu.usc.ict.nl.util.Pair;
-import edu.usc.ict.nl.util.PerformanceResult;
 import edu.usc.ict.nl.util.StringUtils;
 import edu.usc.ict.nl.util.XMLUtils;
 import edu.usc.ict.nl.util.graph.Edge;
@@ -80,6 +81,8 @@ public class RewardPolicy {
 	private Set<DialogueOperator> systemInitiativeOperators,systemInitiativeDaemonOperators;
 
 	private EventMatcher<List<DialogueOperatorEffect>> eventMatcher4isUpdates=null;
+
+	private Map<String,Template> templates=null;
 	
 	// NL configuration
 	private DMConfig config;
@@ -204,7 +207,7 @@ public class RewardPolicy {
 		List<DialogueOperator> operatorsToBeAdded=null;
 		if (isDialoguePolicy(rootNode)) {
 			dp.setPolicyDirectory(f.getParentFile());
-			Queue<Node> q=new LinkedList<Node>();
+			LinkedList<Node> q=new LinkedList<Node>();
 			NodeList cs = rootNode.getChildNodes();
 			for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
 			while(!q.isEmpty()) {
@@ -214,15 +217,16 @@ public class RewardPolicy {
 					cs = c.getChildNodes();
 					for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
 				} else if (DialogueOperator.isOperatorNode(c)) {
-					DialogueOperator o = new DialogueOperator().parseOperator(c);
+					DialogueOperator o = DialogueOperator.parseOperator(c);
 					if (o!=null) {
 						if (operatorsToBeAdded==null) operatorsToBeAdded=new ArrayList<DialogueOperator>();
 						operatorsToBeAdded.add(o);
 					}
 					else throw new Exception("parse of operator failed: "+XMLUtils.prettyPrintDom(c, " ", true, true));
-				} else if (isInitsNode(c) || isMacrosNode(c)) {
+				} else if (isInitsNode(c) || isMacrosNode(c) || isTemplatesNode(c) || isGoalsNode(c) || isISUpdatesNode(c)) {
 					cs = c.getChildNodes();
-					for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
+					int addAt=0;
+					for (int i = 0; i < cs.getLength(); i++) q.add(addAt++,cs.item(i));
 				} else if (isInitNode(c)) {
 					DialogueOperatorEffect eff=null;
 					try {
@@ -252,9 +256,6 @@ public class RewardPolicy {
 					} catch (Exception e) {
 						logger.error("error parsing macro: '"+left+"' => '"+right+"'");
 					}
-				} else if (isGoalsNode(c)) {
-					cs = c.getChildNodes();
-					for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
 				} else if (isGoalNode(c)) {
 					String name=getGoalNameNodeValue(childAtt),desc=getGoalDescriptionNodeValue(childAtt);
 					DialogueKBFormula value=DialogueKBFormula.parse(getGoalValueNodeValue(childAtt));
@@ -265,9 +266,6 @@ public class RewardPolicy {
 					} else throw new Exception("Problem loading goal: "+XMLUtils.prettyPrintDom(c, " ", true, true));
 				} else if (isUserModelNode(c)) {
 					dp.setUserModelFileName(getUserModelNodeValue(childAtt));
-				} else if (isISUpdatesNode(c)) {
-					cs = c.getChildNodes();
-					for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
 				} else if (isISUpdateNode(c)) {
 					String event=getISUpdateEventNodeValue(childAtt);
 					DialogueOperatorEffect update=DialogueOperatorEffect.parse(getISUpdateEffectNodeValue(childAtt));
@@ -279,9 +277,31 @@ public class RewardPolicy {
 					dp.setStepLoss(getStepLossNodeValue(childAtt));
 				} else if (isIncludeTxtFormatNode(c)) {
 					if (!StringUtils.isEmptyString(getIncludeTxtFormatMacroFile(childAtt))) throw new Exception("Old macro format detected. Change to new format (xml file).");
-					dp.importTxtFormat(getIncludeTxtFormatNodeValue(childAtt),c,q);
+					try {
+						String txtFile=getIncludeTxtFormatNodeValue(childAtt);
+						File tff=new File(getPolicyDirectory(),txtFile);
+						List<Node> nodes = dp.importTxtFormat(new FileReader(tff),c,txtFile);
+						if (nodes!=null && !nodes.isEmpty()) q.addAll(0, nodes);
+					} catch (Exception e) {
+						throw new Exception("Error while parsing file: '"+fileName+"' in node: '"+XMLUtils.domNode2String(c, true, true)+"':\n\n"+e);
+					}
 				} else if (c.getNodeType()==Node.COMMENT_NODE) {
 					//TODO: should save the comment too so that it can be printed back
+				} else if (isTemplateNode(c)) {
+					Template t=getTemplate(c,childAtt);
+					if (t!=null) {
+						if (templates==null) templates=new HashMap<>();
+						templates.put(t.getName(), t);
+					}
+				} else if (isInstantiateNode(c)) {
+					String template=getTemplateName(childAtt);
+					List<DialogueOperator> ops=instantiateTemplate(c,template);
+					if (ops!=null && !ops.isEmpty()) {
+						for(DialogueOperator op:ops) {
+							if (operatorsToBeAdded==null) operatorsToBeAdded=new ArrayList<DialogueOperator>();
+							operatorsToBeAdded.add(op);
+						}
+					}
 				} else {
 					String cText=StringUtils.cleanupSpaces(XMLUtils.prettyPrintDom(c, " ", true, true));
 					if (!StringUtils.isEmptyString(cText)) logger.warn("unknown item in the input file: "+cText);
@@ -706,23 +726,22 @@ public class RewardPolicy {
 		}
 		return found;
 	}
-	private void importTxtFormat(String fileName, Node sourceNode, Queue<Node> q) throws Exception {
-		try {
-			File f=new File(getPolicyDirectory(),fileName);
-			
-			TextFormatGrammar parser = new TextFormatGrammar(new FileInputStream(f));
-			String result;
-			//System.out.println(f);
-			result = parser.Input();
-			if (logger.getLevel()==Level.DEBUG) FileUtils.dumpToFile(result, f.getName()+"-dump-to-xml.xml");
-			Document doc = XMLUtils.parseXMLString(result, true, true);
-			//System.out.println(XMLUtils.prettyPrintDom(doc, " ", true, true));
-			Node rootNode = doc.getDocumentElement();
-			NodeList cs = rootNode.getChildNodes();
-			for (int i = 0; i < cs.getLength(); i++) q.add(cs.item(i));
-		} catch (Exception e) {
-			throw new Exception("Error while parsing file: '"+fileName+"' in node: '"+XMLUtils.domNode2String(sourceNode, true, true)+"':\n\n"+e);
+	private List<Node> importTxtFormat(Reader f, Node sourceNode,String dumpfilePrefix) throws Exception {
+		List<Node> ret=null;
+		TextFormatGrammar parser = new TextFormatGrammar(f);
+		String result;
+		//System.out.println(f);
+		result = parser.Input();
+		if (logger.getLevel()==Level.DEBUG) FileUtils.dumpToFile(result, dumpfilePrefix+"-dump-to-xml.xml");
+		Document doc = XMLUtils.parseXMLString(result, true, true);
+		//System.out.println(XMLUtils.prettyPrintDom(doc, " ", true, true));
+		Node rootNode = doc.getDocumentElement();
+		NodeList cs = rootNode.getChildNodes();
+		for (int i = 0; i < cs.getLength(); i++) {
+			if (ret==null) ret=new ArrayList<>();
+			ret.add(cs.item(i));
 		}
+		return ret;
 	}
 
 	public void addOperator(DialogueOperator o) throws Exception {
@@ -1109,7 +1128,132 @@ public class RewardPolicy {
 	public static boolean isDialoguePolicy(Node n) {
 		return (n.getNodeType()==Node.ELEMENT_NODE) && n.getNodeName().toLowerCase().equals(XMLConstants.POLICYID);
 	}
-
+	
+	public static boolean isTemplatesNode(Node c) {
+		return (c.getNodeType()==Node.ELEMENT_NODE) && c.getNodeName().toLowerCase().equals(XMLConstants.TEMPLATESID);
+	}
+	public static boolean isTemplateNode(Node c) {
+		return (c.getNodeType()==Node.ELEMENT_NODE) && c.getNodeName().toLowerCase().equals(XMLConstants.TEMPLATEID);
+	}
+	public static boolean isInstantiateNode(Node c) {
+		return (c.getNodeType()==Node.ELEMENT_NODE) && c.getNodeName().toLowerCase().equals(XMLConstants.INSTANTIATEID);
+	}
+	public static boolean isArgumentNode(Node c) {
+		return (c.getNodeType()==Node.ELEMENT_NODE) && c.getNodeName().toLowerCase().equals(XMLConstants.ARGID);
+	}
+	private Template getTemplate(Node c, NamedNodeMap childAtt) throws Exception {
+		String tname=getName(childAtt);
+		String content=XMLUtils.getStringContent(c);
+		return new Template(tname,content);
+	}
+	private static String getName(NamedNodeMap att) {
+		Node node = att.getNamedItem(XMLConstants.NAMEID);
+		if (node!=null) return StringUtils.cleanupSpaces(node.getNodeValue());
+		else return null;
+	}
+	private static String getTemplateName(NamedNodeMap att) {
+		Node node = att.getNamedItem(XMLConstants.TEMPLATEID);
+		if (node!=null) return StringUtils.cleanupSpaces(node.getNodeValue());
+		else return null;
+	}
+	private DialogueKBFormula getValues(NamedNodeMap att) {
+		Node node = att.getNamedItem(XMLConstants.VALUESID);
+		if (node!=null) {
+			String sv=node.getNodeValue();
+			try {
+				return DialogueKBFormula.parse(sv);
+			} catch (Exception e) {
+				logger.error("error while parsing values formula '"+sv+"'",e);
+			}
+		}
+		return null;
+	}
+	private List<DialogueOperator> instantiateTemplate(Node c, String template) throws Exception {
+		List<DialogueOperator> ret=null;
+		Map<String,List<String>> vars=null;
+		int numArgs=-1;
+		if (c!=null && !StringUtils.isEmptyString(template)) {
+			NodeList cs = c.getChildNodes();
+			for (int i = 0; i < cs.getLength(); i++) {
+				Node cc=cs.item(i);
+				if (isArgumentNode(cc)) {
+					NamedNodeMap att=cc.getAttributes();
+					String vName=getName(att);
+					DialogueKBFormula valuesF=getValues(att);
+					List<String> subs=null;
+					if (valuesF!=null) {
+						if (valuesF.isConstant()) {
+							//NUMBER,STRING,TRUE,FALSE,NULL
+							String v=valuesF.toString();
+							if (valuesF.isString()) v=DialogueKBFormula.getStringValue(v);
+							if (v!=null) {
+								if (subs==null) subs=new ArrayList<>();
+								subs.add(v);
+							}
+						} else {
+							TrivialDialogueKB is = new TrivialDialogueKB();
+							Collection<DialogueOperatorEffect> effs = getISinitialization();
+							is.storeAll(effs, ACCESSTYPE.AUTO_OVERWRITEAUTO, true);
+							Object r=is.evaluate(valuesF, null);
+							if (r!=null) {
+								if (r instanceof Collection) {
+									for(Object o:(Collection)r) {
+										if (o!=null) {
+											String v=o.toString();
+											if (o instanceof DialogueKBFormula && ((DialogueKBFormula) o).isString()) v=DialogueKBFormula.getStringValue(v);
+											if (v!=null) {
+												if (subs==null) subs=new ArrayList<>();
+												subs.add(v);
+											}
+										}
+									}
+								} else {
+									String v=valuesF.toString();
+									if (v!=null) {
+										if (subs==null) subs=new ArrayList<>();
+										subs.add(v);
+									}
+								}
+							}
+						}
+					}
+					if (!StringUtils.isEmptyString(vName) && subs!=null) {
+						if (vars==null) vars=new HashMap<>();
+						vars=new HashMap<>();
+						if (vars.containsKey(vName)) logger.error("duplicated assignment for variable: "+vName+" in "+XMLUtils.prettyPrintDom(c, " ", true, true));
+						if (numArgs<0) numArgs=subs.size();
+						else if (numArgs!=subs.size()) {
+							logger.error("unequal number of arguments, expected: "+numArgs+" but for variable "+vName+" got "+subs.size());
+							logger.error(" in "+XMLUtils.prettyPrintDom(cc, " ", true, true));
+							logger.error(" eval result is: "+subs);
+						}
+						vars.put(vName, subs);
+					}
+				}
+			}
+		}
+		if (templates!=null) {
+			Template t=templates.get(template);
+			if (t!=null && vars!=null) {
+				for(int i=0;i<numArgs;i++) {
+					String opS=t.applySubstitutions(vars,i);
+					List<Node> nodes=importTxtFormat(new StringReader(opS),c,"");
+					if (nodes!=null) {
+						for(Node n:nodes) {
+							if (n!=null && DialogueOperator.isOperatorNode(n)) {
+								DialogueOperator op=DialogueOperator.parseOperator(n);
+								if (op!=null) {
+									if (ret==null) ret=new ArrayList<>();
+									ret.add(op);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return ret;
+	}
 	
 	@Override
 	public String toString() {

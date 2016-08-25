@@ -9,14 +9,13 @@ import edu.usc.ict.nl.util.StringUtils;
 public class Function implements Comparable<Function> {
 	public enum BT {CURLY,ROUND};
 
-	private final TemplatedNLG templatedNLG;
-
 	private Method m=null;
 	private int start=-1,end=-1,startBracket=-1;
 	private BT bracketType=BT.ROUND;
 	private String functionName;
 	private int beforeDelta=0,withinDelta=0;
 	private boolean requiredOutput=false;
+	private Map<String, Method> methodMap;
 	
 	@Override
 	public int compareTo(Function o) {
@@ -26,11 +25,11 @@ public class Function implements Comparable<Function> {
 	}
 	
 	/**
-	 * @param templatedNLG
+	 * @param methodMap
 	 * @throws Exception 
 	 */
-	Function(TemplatedNLG templatedNLG,int start,char[] inputa) throws Exception {
-		this.templatedNLG = templatedNLG;
+	Function(Map<String, Method> methodMap,int start,char[] inputa) throws Exception {
+		this.methodMap = methodMap;
 		this.start=start;
 		searchStartBracket(inputa);
 		searchEndBracket(inputa);
@@ -106,9 +105,8 @@ public class Function implements Comparable<Function> {
 	public boolean getRequiredOutput() {return requiredOutput;}
 	
 	private boolean findMethod() {
-		Map<String, Method> mm=null;
-		if (this.templatedNLG!=null && ((mm=templatedNLG.getMethodMap())!=null)) {
-			m=mm.get(functionName.toLowerCase());
+		if (this.methodMap!=null) {
+			m=methodMap.get(functionName.toLowerCase());
 			return m!=null;
 		}
 		return false;

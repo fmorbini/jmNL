@@ -169,10 +169,10 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		return null;
 	}
 	
-	public DialogueOperator parseOperator(Node n) throws Exception {
-		return parseOperator(n, this);
+	public static DialogueOperator parseOperator(Node n) throws Exception {
+		return parseOperator(n,new DialogueOperator());
 	}
-	public DialogueOperator parseOperator(Node n,DialogueOperator o) throws Exception {
+	public static DialogueOperator parseOperator(Node n,DialogueOperator o) throws Exception {
 		try {
 			String id=null;
 			assert(isOperatorNode(n));
@@ -186,7 +186,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 					Node c = cs.item(i);
 					try {
 						NamedNodeMap childAtt = c.getAttributes();
-						if (isEntranceConditionNode(c)) o.addEntranceConditionToOperator(getEntranceCondition(c,childAtt));
+						if (isEntranceConditionNode(c)) o.addEntranceConditionToOperator(o.getEntranceCondition(c,childAtt));
 						else if (isVarNode(c)) o.addLocalVarToOperator(c,childAtt);
 						else if (DialogueOperatorNode.isStateNode(c)) o.addStateToOperator(DialogueOperatorNode.parseState(c,childAtt,o));
 						else if (DialogueOperatorTopic.isTopicNode(c)) o.addTopicToOperator(DialogueOperatorTopic.getTopicName(childAtt));
@@ -202,7 +202,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 				return o;
 			} else return null;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage()+" in operator: "+getName());
+			throw new Exception(e.getMessage()+" in operator: "+o.getName());
 		}
 	}
 
@@ -1223,12 +1223,12 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		return (n.getNodeType()==Node.ELEMENT_NODE) && n.getNodeName().toLowerCase().equals(XMLConstants.TTID);
 	}
 	
-	private String getOperatorName(NamedNodeMap att) {
+	private static String getOperatorName(NamedNodeMap att) {
 		Node nodeID = att.getNamedItem(XMLConstants.IDID);
 		if (nodeID!=null) return StringUtils.cleanupSpaces(nodeID.getNodeValue());
 		else return null;
 	}
-	private boolean isOperatorFinal(NamedNodeMap att) {
+	private static boolean isOperatorFinal(NamedNodeMap att) {
 		Node nodeID = att.getNamedItem(XMLConstants.FINALID);
 		if (nodeID!=null) {
 			String id=StringUtils.cleanupSpaces(nodeID.getNodeValue()).toLowerCase();
@@ -1236,7 +1236,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		}
 		else return false;
 	}
-	private boolean isOperatorDaemon(NamedNodeMap att) {
+	private static boolean isOperatorDaemon(NamedNodeMap att) {
 		Node nodeID = att.getNamedItem(XMLConstants.DAEMONID);
 		if (nodeID!=null) {
 			String id=StringUtils.cleanupSpaces(nodeID.getNodeValue()).toLowerCase();
@@ -1244,7 +1244,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		}
 		else return false;
 	}
-	private Integer getOperatorForgetTime(NamedNodeMap att) {
+	private static Integer getOperatorForgetTime(NamedNodeMap att) {
 		Node nodeID = att.getNamedItem(XMLConstants.FORGETID);
 		if (nodeID!=null) {
 			Integer time=Integer.parseInt(nodeID.getNodeValue());
@@ -1252,7 +1252,7 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		}
 		return null;
 	}
-	private DialogueKBFormula getOperatorForgetCondition(NamedNodeMap att) throws Exception {
+	private static DialogueKBFormula getOperatorForgetCondition(NamedNodeMap att) throws Exception {
 		Node nodeID = att.getNamedItem(XMLConstants.FORGETCNDID);
 		if (nodeID!=null) {
 			return DialogueKBFormula.parse(nodeID.getNodeValue());
@@ -1273,23 +1273,23 @@ public class DialogueOperator extends edu.usc.ict.nl.util.graph.Node {
 		}
 		return null;
 	}
-	private String getIgnoredVarName(NamedNodeMap att, DialogueOperator o) {
+	private static String getIgnoredVarName(NamedNodeMap att, DialogueOperator o) {
 		Node nodeID = att.getNamedItem(XMLConstants.IDID);
 		if (nodeID!=null) return StringUtils.cleanupSpaces(nodeID.getNodeValue());
 		else return null;
 	}
-	private Integer getForgetTime(NamedNodeMap att) {
+	private static Integer getForgetTime(NamedNodeMap att) {
 		Node nodeID = att.getNamedItem(XMLConstants.FORGETTIMEID);
 		if (nodeID!=null) return Integer.parseInt(nodeID.getNodeValue());
 		else return null;
 	}
-	private DialogueKBFormula getForgetCnd(NamedNodeMap att) throws DOMException, Exception {
+	private static DialogueKBFormula getForgetCnd(NamedNodeMap att) throws DOMException, Exception {
 		Node nodeID = att.getNamedItem(XMLConstants.FORGETCNDID);
 		if (nodeID!=null) return DialogueKBFormula.parse(nodeID.getNodeValue());
 		else return null;
 	}
 
-	private DialogueKBFormula getTurnTakingCnd(NamedNodeMap att) throws DOMException, Exception {
+	private static DialogueKBFormula getTurnTakingCnd(NamedNodeMap att) throws DOMException, Exception {
 		Node nodeID = att.getNamedItem(XMLConstants.TTCNDID);
 		if (nodeID!=null) return DialogueKBFormula.parse(nodeID.getNodeValue());
 		else return null;

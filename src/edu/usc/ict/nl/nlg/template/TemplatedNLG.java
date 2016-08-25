@@ -129,7 +129,7 @@ public class TemplatedNLG extends EchoNLG {
 		if (line!=null) {
 			output=buildOutputEvent(null, sessionID, null);
 			String text=line.getText();
-			List<Function> functions = getFunctions(text);
+			List<Function> functions = getFunctions(text,getMethodMap());
 			text=applyFunctions(output,text,functions,is,sa,simulate);
 			output.setName(text);
 		}
@@ -168,7 +168,7 @@ public class TemplatedNLG extends EchoNLG {
 	}
 
 
-	private String getReplacement(Object obj) {
+	public static String getReplacement(Object obj) {
 		String replacement="";
 		if (obj!=null) {
 			if (obj instanceof String) {
@@ -177,7 +177,7 @@ public class TemplatedNLG extends EchoNLG {
 				DialogueKBFormula f=(DialogueKBFormula)obj;
 				if (f.isString()) {
 					try {
-						replacement=f.getStringValue(f.getName());
+						replacement=DialogueKBFormula.getStringValue(f.getName());
 					} catch (Exception e) {
 						replacement=f.toString();
 					}
@@ -217,9 +217,10 @@ public class TemplatedNLG extends EchoNLG {
 	 * extract the list of function and sort them by inclusion. that is, if f1 is included within the brackets of f2 then f1 must come before f2.
 	 * this ordered list is the evaluation order.
 	 * @param input
+	 * @param mm 
 	 * @throws Exception 
 	 */
-	public List<Function> getFunctions(String input) throws Exception {
+	public static List<Function> getFunctions(String input, Map<String, Method> mm) throws Exception {
 		List<Integer> dollarPositions=null;
 		List<Function> ret=null;
 		int i=0;
@@ -240,7 +241,7 @@ public class TemplatedNLG extends EchoNLG {
 		if (dollarPositions!=null && !dollarPositions.isEmpty()) {
 			for(Integer j:dollarPositions) {
 				try {
-					Function f=new Function(this,j,inputa);
+					Function f=new Function(mm,j,inputa);
 					if (ret==null) ret=new ArrayList<Function>();
 					ret.add(f);
 				} catch (Exception e) {
@@ -264,7 +265,7 @@ public class TemplatedNLG extends EchoNLG {
 		 * this is a sequnece, of meaningless! words that i tell ${name} but if also $makeSentence($makeNP(i am \,\(\) great!!!),$makeVP($get(verb12),$makeNP(the ${name})))
 		 */
 		TemplatedNLG nlg = new TemplatedNLG(null);
-		List<Function> r = nlg.getFunctions("$playCutScene(Player_Scored_Poor)");
+		List<Function> r = TemplatedNLG.getFunctions("$playCutScene(Player_Scored_Poor)",nlg.getMethodMap());
 		System.out.println(r);
 	}
 }

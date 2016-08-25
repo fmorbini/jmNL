@@ -13,6 +13,7 @@ public class XMLConstants {
 	public static final String CONSUMEID="consume";
 	public static final String COUNTID = "count";
 	public static final String VALUEID = "value";
+	public static final String VALUESID = "values";
 	public static final String TYPEID = "type";
 	public static final String STATEID="state";
 	public static final String REWARDID="reward";
@@ -101,4 +102,9 @@ public class XMLConstants {
 	public static final String EVENTMACROID = "eventmacro";
 	public static final String LEFTID = "left";
 	public static final String RIGHTID = "right";
+	
+	public static final String TEMPLATESID = "templates";
+	public static final String TEMPLATEID = "template";
+	public static final String INSTANTIATEID = "instantiate";
+	public static final String ARGID = "arg";
 }
