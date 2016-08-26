@@ -76,7 +76,7 @@
 	<bean id="SimcoachPunctuationFilter" class="edu.usc.ict.nl.nlu.preprocessing.normalization.SimcoachPunctuationNormalizer"/>
 	<bean id="Uk2Us" class="edu.usc.ict.nl.nlu.preprocessing.normalization.UK2USNormalizer"/>
 	
-	<bean id="Hunspell" class="edu.usc.ict.nl.nlu.preprocessing.spellchecker.Hunspell"/>
+	<!--<bean id="Hunspell" class="edu.usc.ict.nl.nlu.preprocessing.spellchecker.Hunspell"/>-->
 	
 	<bean id="KStemmer" class="edu.usc.ict.nl.nlu.preprocessing.stemmer.KStemmer"/>
 	<bean id="PorterStemmer" class="edu.usc.ict.nl.nlu.preprocessing.stemmer.PorterStemmer"/>
