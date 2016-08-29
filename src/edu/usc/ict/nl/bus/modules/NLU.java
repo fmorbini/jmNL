@@ -251,6 +251,8 @@ public abstract class NLU implements NLUInterface {
 		btd=getBTD();
 		if (trainingFile.exists()) trainingFile.delete();
 		List<TrainingDataFormat> preparedTrainingData=prepareTrainingDataForClassification(td);
+		File parent=trainingFile.getParentFile();
+		if (!parent.exists()) parent.mkdirs();
         BufferedWriter outputStream = new BufferedWriter(new FileWriter(trainingFile));
 		for(TrainingDataFormat row:preparedTrainingData) {
 			outputStream.write(row.toNluformat(this));
