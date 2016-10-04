@@ -15,17 +15,26 @@ import org.apache.log4j.Logger;
 
 import edu.usc.ict.nl.bus.NLBus;
 import edu.usc.ict.nl.bus.modules.NLU;
-import edu.usc.ict.nl.config.NLConfig;
 import edu.usc.ict.nl.config.NLUConfig;
+import edu.usc.ict.nl.config.PreprocessingConfig;
 import edu.usc.ict.nl.nlu.DynamicFoldsData;
 import edu.usc.ict.nl.nlu.NLUOutput;
 import edu.usc.ict.nl.nlu.TrainingDataFormat;
 import edu.usc.ict.nl.nlu.fst.FSTNLU;
 import edu.usc.ict.nl.nlu.fst.sps.SAMapper;
 import edu.usc.ict.nl.nlu.io.BuildTrainingData;
+import edu.usc.ict.nl.nlu.preprocessing.PreprocesserI;
+import edu.usc.ict.nl.nlu.preprocessing.normalization.Chattifier;
+import edu.usc.ict.nl.nlu.preprocessing.normalization.ContractEnglish;
+import edu.usc.ict.nl.nlu.preprocessing.normalization.EnglishWrittenNumbers2Digits;
+import edu.usc.ict.nl.nlu.preprocessing.normalization.Lowercase;
+import edu.usc.ict.nl.nlu.preprocessing.normalization.SimcoachNormalizer;
+import edu.usc.ict.nl.nlu.preprocessing.normalization.SimcoachPunctuationNormalizer;
+import edu.usc.ict.nl.nlu.preprocessing.normalization.UK2USNormalizer;
+import edu.usc.ict.nl.nlu.preprocessing.stemmer.KStemmer;
+import edu.usc.ict.nl.nlu.preprocessing.tokenizer.Tokenizer;
 import edu.usc.ict.nl.util.PerformanceResult;
 import edu.usc.ict.nl.util.Triple;
-import edu.usc.ict.nl.utils.ExcelUtils;
 
 
 public class NLURunner {
@@ -33,13 +42,34 @@ public class NLURunner {
 	public static String defaultInternalNluClass = "edu.usc.ict.nl.nlu.mxnlu.MXClassifierNLU";
 	public static String defaultFeatureBuilderClass = "edu.usc.ict.nl.nlu.features.FeaturesBuilderForMXClassifier";
 	
-	public static NLU createNLU(File nluroot, File nluexeroot, String internalNluClass, String featureBuilderClass, Float acceptanceThreshold) throws SecurityException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, CloneNotSupportedException {
+	public static NLU createNLU(File nluroot, File nluexeroot, File preprocessingDir, String internalNluClass, String featureBuilderClass, Float acceptanceThreshold) throws SecurityException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, CloneNotSupportedException {
 		NLUConfig config=(NLUConfig) NLUConfig.WIN_EXE_CONFIG.clone();
 		Logger.getRootLogger().setLevel(Level.OFF);
 		//System.out.println("Building mx NLU");
 		config.setForcedNLUContentRoot(nluroot.getAbsolutePath());
 		config.setUserUtterances("user-utterances.xlsx");
 		config.setNluExeRoot(nluexeroot.getAbsolutePath());
+		
+		// preprocessing
+		List<PreprocesserI> pre = new ArrayList<>();
+		pre.add(new Lowercase()); // lower cases input
+		pre.add(new UK2USNormalizer()); // UK -> US
+		pre.add(new SimcoachNormalizer()); // handles SimCoach specific words
+		pre.add(new SimcoachPunctuationNormalizer()); // remove unnecessary punctuation
+		pre.add(new Chattifier()); // chat to words (u -> you)
+		pre.add(new ContractEnglish()); // you are -> you're
+		pre.add(new EnglishWrittenNumbers2Digits()); // spelled out numbers -> digits
+		pre.add(new KStemmer()); // converts input to standard present (was -> is)
+		
+		PreprocessingConfig preConfig = new PreprocessingConfig();
+		preConfig.setNluTokenizer(new Tokenizer());
+		preConfig.setNluPreprocessers(pre);
+		preConfig.setForcedPreprocessingContentRoot(preprocessingDir.getAbsolutePath());
+		
+		config.setForcedNLUContentRoot(nluroot.getAbsolutePath());
+		config.setPreprocessingTrainingConfig(preConfig);
+		config.setPreprocessingRunningConfig(preConfig);
+		
 		//config.setInternalNluClass4Hier("edu.usc.ict.nl.nlu.jmxnlu.JMXClassifierNLU");
 		//config.setNluClass("edu.usc.ict.nl.nlu.jmxnlu.JMXClassifierNLU");
 		//config.setNluFeaturesBuilderClass("edu.usc.ict.nl.nlu.features.FeatureBuilderForJMXClassifier");
@@ -414,7 +444,7 @@ public class NLURunner {
 	
 	static int nbest = 1;
 	public static void usage() {
-		System.out.println("Usage: runnlu [--outputResults filename.xlsx] [--dir nlurootdir] [--dirBackup nlubackuprootdir] [--type mx | mxhier | spsfst | spsnlu | spsnlu_nofst] [--mxDir mxnlu-dir] {--train trainingfile-1 trainingfile-2... trainingfile-n} {--listValuesForLabels [label1 ... labeln] {--relabel trainingfile-1 ... trainingfile-n } {--test testfile-1 testfile-2... testfile-n}");
+		System.out.println("Usage: runnlu [--outputResults filename.xlsx] [--dir nlurootdir] [--dirBackup nlubackuprootdir] [--preprocessingDir preprocessingdirectory] [--type mx | mxhier | spsfst | spsnlu | spsnlu_nofst] [--mxDir mxnlu-dir] {--train trainingfile-1 trainingfile-2... trainingfile-n} {--listValuesForLabels [label1 ... labeln] {--relabel trainingfile-1 ... trainingfile-n } {--test testfile-1 testfile-2... testfile-n}");
 	}
 	public static void main(String[] args) throws Exception {
 		
@@ -426,6 +456,7 @@ public class NLURunner {
 		File nluRoot = null;
 		File nluRootBackup = null;
 		File mxDir = null;
+		File preprocessingDir = null;
 		String nluClass = NLURunner.defaultInternalNluClass;
 		String featureBuilderClass = NLURunner.defaultFeatureBuilderClass;
 		String nluType = null;
@@ -532,8 +563,14 @@ public class NLURunner {
 			if (args[i].equalsIgnoreCase("--featureBuilderClass")) {
 				featureBuilderClass = args[i+1];
 			}
-			
-			
+			if (args[i].equalsIgnoreCase("--preprocessingDir")) {
+				preprocessingDir = new File(args[i+1]);
+				if (!preprocessingDir.exists()) {
+					System.err.println("Preprocessing dir does not exist: " + args[i+1]);
+					usage();
+					System.exit(2);;
+				}
+			}
 		}
 		if (nluType == null || nluRoot == null) {
 			usage();
@@ -547,7 +584,7 @@ public class NLURunner {
 			System.exit(2);
 		}
 		if (nluType.equalsIgnoreCase("mx")) {
-			nlu = createNLU(nluRoot,mxDir,nluClass,featureBuilderClass,acceptanceThreshold);
+			nlu = createNLU(nluRoot, mxDir, preprocessingDir, nluClass,featureBuilderClass,acceptanceThreshold);
 		} else if (nluType.equalsIgnoreCase("mxhier")) {
 			nlu = createHierNLU(nluRoot,mxDir,nluClass,featureBuilderClass,acceptanceThreshold);
 		} else if (nluType.equalsIgnoreCase("spsfst")) {
