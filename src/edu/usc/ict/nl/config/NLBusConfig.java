@@ -35,7 +35,8 @@ public class NLBusConfig extends NLConfig {
 	private boolean useVrSpeakOnly=false;
 	
 	private boolean validatePolicies=true;
-	
+	private boolean validatePoliciesOnStartup=true;
+
 	// vh toolkit
 	protected boolean isVRexpressBasicNLG() {
 		return nlgConfig.getNlgClass().equals(VRexpressBasicNLG.class.getCanonicalName());
@@ -206,7 +207,9 @@ public class NLBusConfig extends NLConfig {
 	public boolean getValidatePolicies() {return validatePolicies;}
 	public void setValidatePolicies(boolean validatePolicies) {
 		this.validatePolicies = validatePolicies;
-	}
+	}	
+	public boolean isValidatePoliciesOnStartup() { return validatePoliciesOnStartup; } 
+	public void setValidatePoliciesOnStartup(boolean validatePoliciesOnStartup) { this.validatePoliciesOnStartup = validatePoliciesOnStartup; }
 	
 	// sample config used to run mxnlu during testing
 	public static final NLBusConfig WIN_EXE_CONFIG=new NLBusConfig();

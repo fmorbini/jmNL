@@ -288,9 +288,11 @@ public class NLBus extends NLBusBase {
 			break;*/
 		}
 
-		Set<String> chs=findAvailableCharacters(config.getContentRoot());
-		character2DM=startDMs(chs);
-		character2NLG=startNLGs(chs);
+		if (config.isValidatePoliciesOnStartup()) {
+			Set<String> chs=findAvailableCharacters(config.getContentRoot());
+			character2DM=startDMs(chs);
+			character2NLG=startNLGs(chs);
+		}
 
 		List<String> ps=config.getProtocols();
 		if (ps!=null) {
