@@ -1,5 +1,6 @@
 package edu.usc.ict.nl.nlu.fst.sps.test;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +65,12 @@ public class NLURunner {
 		PreprocessingConfig preConfig = new PreprocessingConfig();
 		preConfig.setNluTokenizer(new Tokenizer());
 		preConfig.setNluPreprocessers(pre);
-		preConfig.setForcedPreprocessingContentRoot(preprocessingDir.getAbsolutePath());
+		try {
+			preConfig.setForcedPreprocessingContentRoot(preprocessingDir.getAbsolutePath());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		config.setForcedNLUContentRoot(nluroot.getAbsolutePath());
 		config.setPreprocessingTrainingConfig(preConfig);

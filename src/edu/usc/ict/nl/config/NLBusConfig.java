@@ -1,6 +1,7 @@
 package edu.usc.ict.nl.config;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -125,7 +126,12 @@ public class NLBusConfig extends NLConfig {
 	
 	/** content Root directory */
 	public String getContentRoot() {return contentRoot;}
-	public void setContentRoot(String root) {this.contentRoot = root;}
+	public void setContentRoot(String root) throws FileNotFoundException {
+		if (!(new File(root).exists())) {
+			throw new FileNotFoundException("The contentRoot directory does not exist: " + root);
+		}
+		this.contentRoot = root;
+	}
 
 	public String getCharacterContentRoot() {
 		String ch=getCharacter();
@@ -214,13 +220,15 @@ public class NLBusConfig extends NLConfig {
 	// sample config used to run mxnlu during testing
 	public static final NLBusConfig WIN_EXE_CONFIG=new NLBusConfig();
 	static{
-		WIN_EXE_CONFIG.setRunningMode(RunningMode.EXE);
-		WIN_EXE_CONFIG.setIsLoadBalancing(false);
-		WIN_EXE_CONFIG.setContentRoot("resources/characters/");
-		WIN_EXE_CONFIG.nluConfig=NLUConfig.WIN_EXE_CONFIG;
-		WIN_EXE_CONFIG.nlgConfig=NLGConfig.WIN_EXE_CONFIG;
-		//WIN_EXE_CONFIG.setSystemUtterances("system-utterances.xlsx");
-		//WIN_EXE_CONFIG.setSystemForms("forms.xlsx");
+		try {
+			WIN_EXE_CONFIG.setRunningMode(RunningMode.EXE);
+			WIN_EXE_CONFIG.setIsLoadBalancing(false);
+			WIN_EXE_CONFIG.setContentRoot("resources/characters/");
+			WIN_EXE_CONFIG.nluConfig=NLUConfig.WIN_EXE_CONFIG;
+			WIN_EXE_CONFIG.nlgConfig=NLGConfig.WIN_EXE_CONFIG;
+			//WIN_EXE_CONFIG.setSystemUtterances("system-utterances.xlsx");
+			//WIN_EXE_CONFIG.setSystemForms("forms.xlsx");
+		} catch (FileNotFoundException ex) { }
 	}
 
 	public static void main(String[] args) {

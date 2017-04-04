@@ -1,6 +1,7 @@
 package edu.usc.ict.nl.config;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -40,7 +41,12 @@ public class PreprocessingConfig extends NLConfig {
 			return file.getAbsolutePath();
 		}
 	}
-	public void setForcedPreprocessingContentRoot(String forcedContentRoot) {this.forcedPreprocessingContentRoot = forcedContentRoot;}
+	public void setForcedPreprocessingContentRoot(String forcedContentRoot) throws FileNotFoundException {
+		if (!(new File(forcedContentRoot).exists())) {
+			throw new FileNotFoundException("The preprocessingContentRoot directory does not exist: " + forcedContentRoot);
+		}
+		this.forcedPreprocessingContentRoot = forcedContentRoot;
+	}
 	public String getForcedPreprocessingContentRoot() {return this.forcedPreprocessingContentRoot;}
 
 	public PreprocessingConfig() {
