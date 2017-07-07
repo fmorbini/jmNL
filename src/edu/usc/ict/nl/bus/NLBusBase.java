@@ -705,6 +705,8 @@ public abstract class NLBusBase implements NLBusInterface {
 						return nluconstructor.newInstance(config);
 					} catch (NoSuchMethodException e) {
 						configClass=configClass.getSuperclass();
+					} catch (InvocationTargetException e) {
+						throw new RuntimeException("Not enough training data!");
 					}
 				}
 			}
